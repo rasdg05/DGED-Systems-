@@ -6,6 +6,10 @@
 
 - **Atlas live** en `main` (`ed7752e`): FastAPI, mapa MapLibre 5.6.1, diez
   sitios demo (5 norte, 5 Bajío), score `atlas-live-0.1.0`.
+- **Oráculo** (`POST /api/oracle`, D-010): preguntas en lenguaje natural
+  contestadas solo con herramientas del Atlas; dormido sin `ANTHROPIC_API_KEY`
+  (503). Probado con cliente simulado (`test_oracle.py`, 16); **no medido
+  contra la API real** todavía.
 - Pruebas sin red: `test_score.py` (8) y `score.test.mjs` (6) en verde.
 
 ## No medido todavía

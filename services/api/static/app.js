@@ -230,4 +230,67 @@ map.on("load", () => {
   });
 });
 
+const oracleEl = document.querySelector("#oracle");
+const oracleOut = document.querySelector("#oracle-output");
+const oracleAsk = document.querySelector("#oracle-ask");
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text != null) node.textContent = text;
+  return node;
+}
+
+function renderOracle(payload) {
+  oracleOut.replaceChildren();
+  if (payload.unverified && payload.unverified.length) {
+    oracleOut.appendChild(el("p", "oracle-warn", `Se retiraron ${payload.unverified.length === 1 ? "una cifra" : "cifras"} que no salían de ningún resultado de herramienta: ${payload.unverified.join(", ")}`));
+  }
+  oracleOut.appendChild(el("p", "oracle-answer", payload.answer));
+  if (payload.steps && payload.steps.length) {
+    const steps = el("ol", "oracle-steps");
+    for (const step of payload.steps) {
+      const item = el("li");
+      item.appendChild(el("code", null, step.tool));
+      item.appendChild(document.createTextNode(` ${JSON.stringify(step.input)} → ${step.summary}`));
+      steps.appendChild(item);
+    }
+    oracleOut.appendChild(el("p", "oracle-note", "Pasos"));
+    oracleOut.appendChild(steps);
+  }
+}
+
+async function askOracle(event) {
+  event.preventDefault();
+  const question = document.querySelector("#oracle-question").value.trim();
+  if (!question) return;
+  oracleAsk.disabled = true;
+  oracleAsk.textContent = "Consultando";
+  oracleOut.replaceChildren(el("p", "oracle-note", "Consultando Atlas…"));
+  try {
+    const response = await fetch("/api/oracle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      oracleOut.replaceChildren(el("p", "oracle-warn", payload.detail || `El Oráculo no contestó (${response.status}).`));
+    } else {
+      renderOracle(payload);
+    }
+  } catch (error) {
+    oracleOut.replaceChildren(el("p", "oracle-warn", "No hubo conexión con el servidor."));
+  } finally {
+    oracleAsk.disabled = false;
+    oracleAsk.textContent = "Preguntar";
+  }
+}
+
+document.querySelector("#toggle-oracle").addEventListener("click", () => {
+  oracleEl.hidden = !oracleEl.hidden;
+  if (!oracleEl.hidden) document.querySelector("#oracle-question").focus();
+});
+document.querySelector("#oracle-form").addEventListener("submit", askOracle);
+
 loadSites();

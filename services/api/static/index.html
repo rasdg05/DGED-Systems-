@@ -25,6 +25,7 @@
       <div class="header-actions">
         <button type="button" id="score-all">Calificar sitios</button>
         <button type="button" id="toggle-sources" class="ghost">Fuentes</button>
+        <button type="button" id="toggle-oracle" class="ghost">Oráculo</button>
       </div>
     </header>
     <div class="workspace">
@@ -46,6 +47,15 @@
       </aside>
     </div>
     <section class="sources" id="sources" hidden></section>
+    <section class="sources oracle" id="oracle" hidden aria-label="Oráculo">
+      <h2>Oráculo</h2>
+      <p class="oracle-note">Contesta solo con lo que devuelven las herramientas de Atlas. Una cifra que no sale de un resultado se retira.</p>
+      <form id="oracle-form">
+        <textarea id="oracle-question" rows="2" maxlength="2000" placeholder="¿Qué sitio del norte tiene menos riesgo de sequía?"></textarea>
+        <button type="submit" id="oracle-ask">Preguntar</button>
+      </form>
+      <div id="oracle-output" aria-live="polite"></div>
+    </section>
   </div>
   <script src="/static/maplibre-gl.js"></script>
   <script src="/static/app.js"></script>

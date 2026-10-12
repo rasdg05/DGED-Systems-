@@ -6,7 +6,9 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
+from atlas import oracle
 from atlas.connectors import catgeo, conagua, datosgob, inegi, sakbe
 from atlas.db import ensure as ensure_db
 from atlas.db import save_score
@@ -319,6 +321,48 @@ def score_site(site_id: str, drought_year: bool = False):
     except Exception:
         pass
     return public_site(site, cached) | {"graph": cached["graph"], "evidence": cached["evidence"]}
+
+
+class OracleQuestion(BaseModel):
+    question: str
+
+
+def oracle_api():
+    """Las herramientas del Oráculo son estas mismas funciones de la API."""
+    return oracle.AtlasApi(
+        list_sites=lambda corridor: sites(corridor),
+        score_site=lambda site_id, drought_year: score_site(site_id, drought_year=drought_year),
+        site_detail=site_detail,
+        ontology=ontology,
+        sources=sources,
+    )
+
+
+@app.post("/api/oracle")
+def ask_oracle(body: OracleQuestion):
+    if not oracle.is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="El Oráculo está dormido: el servidor no tiene ANTHROPIC_API_KEY. El resto de Atlas funciona sin él.",
+        )
+    question = body.question.strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Escribe una pregunta.")
+    if len(question) > 2000:
+        raise HTTPException(status_code=400, detail="La pregunta pasa de 2000 caracteres.")
+    import anthropic
+
+    try:
+        result = oracle.ask(question, oracle_api(), oracle.make_client())
+    except anthropic.AuthenticationError:
+        raise HTTPException(status_code=503, detail="El Oráculo no pudo autenticarse: revisa ANTHROPIC_API_KEY.")
+    except anthropic.RateLimitError:
+        raise HTTPException(status_code=429, detail="El Oráculo está saturado; intenta en un minuto.")
+    except anthropic.APIStatusError as error:
+        raise HTTPException(status_code=502, detail=f"El modelo respondió con error {error.status_code}.")
+    except anthropic.APIConnectionError:
+        raise HTTPException(status_code=502, detail="No hubo conexión con el modelo.")
+    return {key: result[key] for key in ("answer", "steps", "sources", "unverified", "missing", "model", "stop")}
 
 
 @app.get("/api/wms/{layer_key}/{z}/{x}/{y}.png")
