@@ -1,0 +1,63 @@
+{
+  "id": "dged.atlas",
+  "version": "0.1.0",
+  "description": "Ontología mínima de Atlas. Los objetos se materializan al consultar, no se dibujan a mano.",
+  "objectTypes": [
+    {
+      "apiName": "Sitio",
+      "primaryKey": "id",
+      "titleProperty": "name",
+      "properties": ["id", "name", "corridor", "lat", "lon", "note", "cvegeo", "municipality"]
+    },
+    {
+      "apiName": "ParqueIndustrial",
+      "primaryKey": "id",
+      "properties": ["id", "name", "note"],
+      "note": "En este MVP el punto candidato no trae polígono de parque. El tipo existe para colgar el lote cuando el cliente lo entregue."
+    },
+    {
+      "apiName": "CorredorLogistico",
+      "primaryKey": "id",
+      "properties": ["id", "name", "summary"]
+    },
+    {
+      "apiName": "RiesgoHidrico",
+      "primaryKey": "id",
+      "properties": ["cvegeo", "category", "asOf", "basinOrg", "source"],
+      "note": "Resolución municipal. Monitor de Sequía SMN/CONAGUA."
+    },
+    {
+      "apiName": "RiesgoClimatico",
+      "primaryKey": "id",
+      "properties": ["floodHit", "floodLayer", "landClass", "source"],
+      "note": "Cruce puntual con inundación y uso de suelo INEGI. No es un modelo de pérdida."
+    },
+    {
+      "apiName": "SubestacionAprox",
+      "primaryKey": "id",
+      "properties": ["name", "voltageKv", "distanceKm"],
+      "note": "No hay API pública de CFE por predio. El tipo queda definido y vacío hasta un estudio citado o una capa con voltaje."
+    },
+    {
+      "apiName": "Establecimiento",
+      "primaryKey": "id",
+      "properties": ["name", "activity"],
+      "note": "Sale de DENUE solo si hay INEGI_TOKEN."
+    }
+  ],
+  "linkTypes": [
+    {"apiName": "dentro_de", "from": "Sitio", "to": "CorredorLogistico"},
+    {"apiName": "expuesto_a_sequia", "from": "Sitio", "to": "RiesgoHidrico"},
+    {"apiName": "expuesto_a_clima", "from": "Sitio", "to": "RiesgoClimatico"},
+    {"apiName": "tiene_establecimiento", "from": "Sitio", "to": "Establecimiento"},
+    {"apiName": "subestacion_mas_cercana", "from": "Sitio", "to": "SubestacionAprox"}
+  ],
+  "actions": [
+    {
+      "apiName": "calcularCribado",
+      "object": "Sitio",
+      "parameters": ["droughtYear"],
+      "writes": "scoreSnapshot"
+    }
+  ]
+}

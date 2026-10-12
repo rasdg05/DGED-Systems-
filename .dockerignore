@@ -1,0 +1,7 @@
+.cache
+.git
+**/__pycache__
+.env
+docs
+*.md
+!README.md
