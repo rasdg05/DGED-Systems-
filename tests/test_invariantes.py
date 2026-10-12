@@ -111,3 +111,18 @@ def test_compose_pasa_cada_variable_del_env_example():
 def test_postgres_no_se_publica_a_toda_la_red():
     compose = (RAIZ / "docker-compose.yml").read_text(encoding="utf-8")
     assert '"5432:5432"' not in compose
+
+
+# XVIII — ninguna marca de conflicto de git llega a un commit. Pasó el
+# 2026-10-12 con MEMORY/ESTADO.md al integrar dos agentes: la memoria decía dos
+# estados a la vez y ningún test lo veía.
+def test_sin_marcas_de_conflicto():
+    marca = re.compile(r"^(<{7}|>{7}) ", re.MULTILINE)
+    sufijos = {".md", ".py", ".js", ".mjs", ".html", ".css", ".json", ".yml", ".yaml", ".sql", ".toml", ".txt"}
+    hallados = []
+    for archivo in RAIZ.rglob("*"):
+        if ".git" in archivo.parts or archivo.suffix not in sufijos or archivo.name in VENDIDOS:
+            continue
+        if marca.search(archivo.read_text(encoding="utf-8", errors="replace")):
+            hallados.append(str(archivo.relative_to(RAIZ)))
+    assert not hallados, f"marcas de conflicto en: {hallados}"

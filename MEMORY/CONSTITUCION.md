@@ -22,6 +22,7 @@
 | XV | Los pesos suman 1 en las 16 combinaciones de capas opcionales | `score.py::_weights` | `test_capas.py::test_weights_sum_to_one_in_every_combination` |
 | XVI | `SubestacionAprox` llenada desde OSM no lleva capacidad, MW ni "disponible", ni en llaves ni en texto | `services/api/atlas/main.py::materialize` | `test_capas.py::test_substation_never_claims_capacity` (y V, que ahora también prohíbe `disponible`/`available`) |
 | XVII | Una página de error del SMN no se guarda como libro ni tumba el arranque | `connectors/conagua.py` | `test_capas.py::test_smn_html_error_page_is_not_a_workbook` |
+| XVIII | Ninguna marca de conflicto de git llega a un commit | todo el repo | `tests/test_invariantes.py::test_sin_marcas_de_conflicto` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

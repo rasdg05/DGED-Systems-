@@ -130,6 +130,18 @@ def flood_at(lat, lon):
         text = result["text"]
         if "no results" in text.lower():
             continue
+        if "Feature" not in text:
+            # Ni "no results" ni un Feature: un 200 con otra cosa (página de
+            # error, ServiceException). No se lee como "sin inundación".
+            return {
+                "source": f"inegi.wms.{layer['id']}",
+                "ok": False,
+                "known": False,
+                "url": result.get("requested_url"),
+                "status": result["status"],
+                "error": "Respuesta de GetFeatureInfo no reconocida",
+                "excerpt": text[:200],
+            }
         if "Feature" in text:
             return {
                 "source": f"inegi.wms.{layer['id']}",

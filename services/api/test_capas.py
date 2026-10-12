@@ -277,8 +277,9 @@ def test_smn_html_error_page_is_not_a_workbook(monkeypatch, tmp_path):
     monkeypatch.setattr(conagua, "fetch", _fake_fetch(page))
     loaded = conagua.load_drought()
     assert loaded["ok"] is False and loaded["table"] == {}
-    assert "no es un xlsx" in loaded["error"]
-    assert not (tmp_path / "MunicipiosSequia.xlsx").exists()
+    assert "no es un libro .xlsx" in loaded["error"]
+    # La página vieja no se lee como libro ni se reemplaza por la nueva página.
+    assert (tmp_path / "MunicipiosSequia.xlsx").read_bytes() == page * 20
 
 
 def test_without_drought_book_the_site_scores_but_does_not_publish():
