@@ -1,11 +1,17 @@
-"""Cribado en vivo atlas-live-0.1.0.
+"""Cribado en vivo atlas-live-0.2.0.
 
-Tres variables que sí salen de fuentes públicas:
+Tres variables que sí salen de fuentes públicas y deciden si se publica:
 sequía municipal (SMN/CONAGUA), inundación (INEGI WMS) y uso de suelo (INEGI WMS).
-DENUE entra solo con token y no se inventa si falta.
+DENUE y SAKBÉ entran solo con token. Desde 0.2.0 (D-009) entran también, solo si
+respondieron, la sismicidad registrada (USGS FDSN) y la distancia a vía férrea
+(OSM Overpass). Sin su respuesta los pesos son exactamente los de 0.1.0.
+El clima (NASA POWER) y la subestación (OSM) se muestran y no puntúan.
 """
 
-MODEL_VERSION = "atlas-live-0.1.0"
+MODEL_VERSION = "atlas-live-0.2.0"
+
+# D-009: pesos fijos de las capas nuevas. El resto se escala por (1 - suma).
+EXTRA_WEIGHTS = {"seismic": 0.08, "rail": 0.10}
 
 DROUGHT_SCORE = {
     "NONE": 92,
@@ -78,11 +84,43 @@ def route_score(minutes):
     return 20
 
 
+def seismic_score(max_magnitude, known):
+    """Magnitud máxima registrada en 100 km y 50 años. Sin respuesta: None."""
+    if not known:
+        return None
+    if max_magnitude is None:
+        return 90
+    if max_magnitude < 4.5:
+        return 82
+    if max_magnitude < 5.0:
+        return 76
+    if max_magnitude < 5.5:
+        return 62
+    if max_magnitude < 6.0:
+        return 46
+    if max_magnitude < 6.5:
+        return 30
+    return 16
+
+
+def rail_score(distance_km, known):
+    """Km a la vía férrea mapeada más cercana. `known` con distancia None = nada en 10 km."""
+    if not known:
+        return None
+    if distance_km is None:
+        return 36
+    if distance_km <= 2:
+        return 88
+    if distance_km <= 5:
+        return 74
+    return 56
+
+
 def _round1(value):
     return round(value * 10) / 10
 
 
-def _weights(has_denue, has_route):
+def _base_weights(has_denue, has_route):
     if has_denue and has_route:
         return {"drought": 0.28, "flood": 0.20, "land": 0.16, "establishments": 0.18, "logistics": 0.18}
     if has_denue:
@@ -92,8 +130,24 @@ def _weights(has_denue, has_route):
     return {"drought": 0.40, "flood": 0.30, "land": 0.30}
 
 
+def _weights(has_denue, has_route, has_seismic=False, has_rail=False):
+    base = _base_weights(has_denue, has_route)
+    extra = {}
+    if has_seismic:
+        extra["seismic"] = EXTRA_WEIGHTS["seismic"]
+    if has_rail:
+        extra["rail"] = EXTRA_WEIGHTS["rail"]
+    if not extra:
+        return base
+    scale = 1 - sum(extra.values())
+    weights = {key: round(value * scale, 4) for key, value in base.items()}
+    weights.update(extra)
+    return weights
+
+
 def score_observation(observation, drought_year=False):
-    """observation keys: drought, flood_hit, flood_known, land_name, land_known, denue_count."""
+    """observation keys: drought, flood_hit, flood_known, land_name, land_known, denue_count,
+    route_minutes, seismic_known, seismic_max_magnitude, rail_known, rail_distance_km."""
     category = normalize_drought(observation.get("drought"))
     used = apply_drought_scenario(category, drought_year)
     factors = []
@@ -104,7 +158,7 @@ def score_observation(observation, drought_year=False):
             "label": "Sequía municipal",
             "score": None,
             "missing": True,
-            "raw": None,
+            "raw": {"reason": observation.get("drought_reason")} if observation.get("drought_reason") else None,
             "caveats": ["Sin corte del monitor de sequía para el municipio que devolvió INEGI."],
         })
     else:
@@ -232,7 +286,68 @@ def score_observation(observation, drought_year=False):
             ],
         })
 
-    weights = _weights(denue_score is not None, logistics is not None)
+    seismic = seismic_score(observation.get("seismic_max_magnitude"), observation.get("seismic_known"))
+    if seismic is None:
+        factors.append({
+            "key": "seismic",
+            "label": "Sismicidad",
+            "score": None,
+            "missing": True,
+            "raw": {"reason": observation.get("seismic_reason") or "USGS no respondió"},
+            "caveats": ["Sin respuesta del catálogo FDSN de USGS: el factor no entra al número."],
+        })
+    else:
+        factors.append({
+            "key": "seismic",
+            "label": "Sismicidad",
+            "score": seismic,
+            "missing": False,
+            "raw": {
+                "count": observation.get("seismic_count"),
+                "maxMagnitude": observation.get("seismic_max_magnitude"),
+                "strongest": observation.get("seismic_strongest"),
+                "radiusKm": observation.get("seismic_radius_km") or 100,
+                "years": observation.get("seismic_years") or 50,
+            },
+            "caveats": [
+                "Sismos M4 o más registrados por USGS en 100 km y 50 años. No es la regionalización sísmica de CFE ni un espectro de diseño; antes de los noventa el catálogo de M4 en México está incompleto.",
+            ],
+        })
+
+    rail = rail_score(observation.get("rail_distance_km"), observation.get("rail_known"))
+    if rail is None:
+        factors.append({
+            "key": "rail",
+            "label": "Vía férrea",
+            "score": None,
+            "missing": True,
+            "raw": {"reason": observation.get("rail_reason") or "Overpass no respondió"},
+            "caveats": ["Sin respuesta de Overpass: el factor no entra al número."],
+        })
+    else:
+        factors.append({
+            "key": "rail",
+            "label": "Vía férrea",
+            "score": rail,
+            "missing": False,
+            "raw": {
+                "distanceKm": observation.get("rail_distance_km"),
+                "withinKm": observation.get("rail_radius_km") or 10,
+                "name": observation.get("rail_name"),
+                "operator": observation.get("rail_operator"),
+                "service": observation.get("rail_service"),
+            },
+            "caveats": [
+                "Distancia en línea recta a la vía mapeada en OpenStreetMap (railway=rail), que puede estar incompleto. No es un ramal concesionado al predio ni una tarifa de carga.",
+            ],
+        })
+
+    weights = _weights(
+        denue_score is not None,
+        logistics is not None,
+        seismic is not None,
+        rail is not None,
+    )
 
     present = 0.0
     acc = 0.0

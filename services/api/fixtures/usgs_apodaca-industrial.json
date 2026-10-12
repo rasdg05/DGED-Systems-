@@ -1,0 +1,214 @@
+{
+ "type": "FeatureCollection",
+ "metadata": {
+  "generated": 1791830233000,
+  "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&latitude=25.7789&longitude=-100.1886&maxradiuskm=100&minmagnitude=4&starttime=1976-10-12&endtime=2026-10-12&orderby=magnitude",
+  "title": "USGS Earthquakes",
+  "status": 200,
+  "api": "2.8.1",
+  "count": 10
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "id": "usp0009up1",
+   "properties": {
+    "mag": 4.6,
+    "place": "3 km NNE of Saltillo, Mexico",
+    "time": 961111034630,
+    "type": "earthquake",
+    "magType": "mb",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -100.999,
+     25.45,
+     33
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usp000crva",
+   "properties": {
+    "mag": 4.5,
+    "place": "18 km ESE of Ciudad General Terán, Mexico",
+    "time": 1081278062700,
+    "type": "earthquake",
+    "magType": "md",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -99.532,
+     25.172,
+     37.7
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "us7000pyr1",
+   "properties": {
+    "mag": 4.2,
+    "place": "13 km E of Ciudad General Terán, Mexico",
+    "time": 1747013379116,
+    "type": "earthquake",
+    "magType": "mb",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -99.5543,
+     25.2496,
+     13.532
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usc000ngag",
+   "properties": {
+    "mag": 4.1,
+    "place": "18 km E of Pueblo Nuevo, Mexico",
+    "time": 1395186118100,
+    "type": "earthquake",
+    "magType": "mwr",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -99.58,
+     25.463,
+     1
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usc000mh7m",
+   "properties": {
+    "mag": 4.1,
+    "place": "12 km SSW of China, Mexico",
+    "time": 1390120031700,
+    "type": "earthquake",
+    "magType": "md",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -99.287,
+     25.593,
+     11.8
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usc000lz5g",
+   "properties": {
+    "mag": 4,
+    "place": "19 km NE of Ciudad General Terán, Mexico",
+    "time": 1387713147190,
+    "type": "earthquake",
+    "magType": "md",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -99.5688,
+     25.3964,
+     37.22
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usc000nz6j",
+   "properties": {
+    "mag": 4,
+    "place": "27 km SE of Los Ramones, Mexico",
+    "time": 1393931034900,
+    "type": "earthquake",
+    "magType": "md",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -99.447,
+     25.512,
+     5
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usb000l6hx",
+   "properties": {
+    "mag": 4,
+    "place": "23 km SE of Los Ramones, Mexico",
+    "time": 1385418354930,
+    "type": "earthquake",
+    "magType": "md",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -99.4896,
+     25.5255,
+     10
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usb000mzk2",
+   "properties": {
+    "mag": 4,
+    "place": "15 km SW of China, Mexico",
+    "time": 1393781416060,
+    "type": "earthquake",
+    "magType": "mwr",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -99.3466,
+     25.6034,
+     8.42
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usp000h6dr",
+   "properties": {
+    "mag": 4,
+    "place": "4 km S of San Pedro Garza García, Mexico",
+    "time": 1264024588800,
+    "type": "earthquake",
+    "magType": "md",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -100.405,
+     25.624,
+     5
+    ]
+   }
+  }
+ ],
+ "_recorte": "Respuesta real de USGS FDSN 2026-10-12, propiedades recortadas a mag/place/time/type/magType/status."
+}

@@ -1,0 +1,114 @@
+{
+ "type": "FeatureCollection",
+ "metadata": {
+  "generated": 1791830235000,
+  "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&latitude=20.595&longitude=-100.312&maxradiuskm=100&minmagnitude=4&starttime=1976-10-12&endtime=2026-10-12&orderby=magnitude",
+  "title": "USGS Earthquakes",
+  "status": 200,
+  "api": "2.8.1",
+  "count": 5
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "id": "usp0000yyn",
+   "properties": {
+    "mag": 5.3,
+    "place": "4 km WSW of Tepuxtepec, Mexico",
+    "time": 288522997000,
+    "type": "earthquake",
+    "magType": "mb",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -100.268,
+     19.98,
+     51
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usp0000z26",
+   "properties": {
+    "mag": 5,
+    "place": "0 km NE of Buenavista, Mexico",
+    "time": 289069817900,
+    "type": "earthquake",
+    "magType": "mb",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -100.226,
+     19.918,
+     33
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usp0000z2y",
+   "properties": {
+    "mag": 4.6,
+    "place": "2 km SSW of Buenavista, Mexico",
+    "time": 289106376600,
+    "type": "earthquake",
+    "magType": "mb",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -100.238,
+     19.888,
+     33
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usp000efv5",
+   "properties": {
+    "mag": 4.2,
+    "place": "5 km SSE of San Diego de Alcalá, Mexico",
+    "time": 1146422342500,
+    "type": "earthquake",
+    "magType": "md",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -100.84,
+     19.989,
+     15
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "usp0004fmb",
+   "properties": {
+    "mag": 4,
+    "place": "8 km NW of Pinal de Amoles, Mexico",
+    "time": 655614879440,
+    "type": "earthquake",
+    "magType": "mb",
+    "status": "reviewed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -99.691,
+     21.185,
+     10
+    ]
+   }
+  }
+ ],
+ "_recorte": "Respuesta real de USGS FDSN 2026-10-12, propiedades recortadas a mag/place/time/type/magType/status."
+}

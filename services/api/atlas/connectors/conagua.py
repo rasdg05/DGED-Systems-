@@ -102,10 +102,21 @@ def _load_rows(path):
         return {"as_of": file_as_of, "rows": len(table), "table": table}
 
 
+def _is_xlsx(body):
+    return bool(body) and body[:2] == b"PK"
+
+
 def load_drought(force=False):
     path = _cache_path()
+    if path.exists() and not _is_xlsx(path.read_bytes()[:2]):
+        # Una página de error guardada como .xlsx tumbaba el arranque (2026-10-12).
+        path.unlink()
     if force or not path.exists() or path.stat().st_size < 1000:
         result = fetch(SMN_XLSX, timeout=60)
+        if result["ok"] and not _is_xlsx(result["body"]):
+            # El SMN contesta 200 con una página HTML "This page can't be displayed" desde
+            # algunos servidores. No es el libro: se reporta como falla y no se guarda.
+            result = dict(result, ok=False, error=f"HTTP {result['status']} {result.get('content_type') or ''}: no es un xlsx".strip())
         if not result["ok"]:
             if path.exists():
                 loaded = _load_rows(path)

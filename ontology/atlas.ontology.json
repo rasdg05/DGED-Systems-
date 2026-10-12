@@ -1,13 +1,14 @@
 {
   "id": "dged.atlas",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ontología mínima de Atlas. Los objetos se materializan al consultar, no se dibujan a mano.",
   "objectTypes": [
     {
       "apiName": "Sitio",
       "primaryKey": "id",
       "titleProperty": "name",
-      "properties": ["id", "name", "corridor", "lat", "lon", "note", "cvegeo", "municipality"]
+      "properties": ["id", "name", "corridor", "lat", "lon", "note", "cvegeo", "municipality", "railDistanceKm", "railName", "railOperator", "railSource"],
+      "note": "railDistanceKm: línea recta a la vía mapeada en OSM (railway=rail) dentro de 10 km; null con railKnown verdadero es que no hay vía mapeada en ese radio."
     },
     {
       "apiName": "ParqueIndustrial",
@@ -29,14 +30,20 @@
     {
       "apiName": "RiesgoClimatico",
       "primaryKey": "id",
-      "properties": ["floodHit", "floodLayer", "landClass", "source"],
-      "note": "Cruce puntual con inundación y uso de suelo INEGI. No es un modelo de pérdida."
+      "properties": ["floodHit", "floodLayer", "landClass", "source", "annualPrecipitationMm", "hotDaysPerYear", "hotDayThresholdC", "climatePeriod", "climateSource"],
+      "note": "Cruce puntual con inundación y uso de suelo INEGI. Lluvia anual y días arriba de 35 °C de NASA POWER (celda de reanálisis, cinco años completos); se muestran y no puntúan. No es un modelo de pérdida."
+    },
+    {
+      "apiName": "RiesgoSismico",
+      "primaryKey": "id",
+      "properties": ["count", "maxMagnitude", "strongest", "radiusKm", "years", "source"],
+      "note": "Sismos M4 o más del catálogo FDSN de USGS en 100 km y 50 años. No es la regionalización sísmica de CFE ni un espectro de diseño."
     },
     {
       "apiName": "SubestacionAprox",
       "primaryKey": "id",
-      "properties": ["name", "voltageKv", "distanceKm"],
-      "note": "No hay API pública de CFE por predio. El tipo queda definido y vacío hasta un estudio citado o una capa con voltaje."
+      "properties": ["name", "voltageKv", "distanceKm", "kind", "operator", "osmId", "source"],
+      "note": "La subestación pública mapeada más cercana en OpenStreetMap (source osm), con el voltaje de su tag (null si no lo trae) y la distancia en línea recta. OSM puede estar incompleto. No hay API pública de CFE por predio: el tipo nunca dice cuánta carga se puede conectar (D-003)."
     },
     {
       "apiName": "Establecimiento",
@@ -49,6 +56,7 @@
     {"apiName": "dentro_de", "from": "Sitio", "to": "CorredorLogistico"},
     {"apiName": "expuesto_a_sequia", "from": "Sitio", "to": "RiesgoHidrico"},
     {"apiName": "expuesto_a_clima", "from": "Sitio", "to": "RiesgoClimatico"},
+    {"apiName": "expuesto_a_sismo", "from": "Sitio", "to": "RiesgoSismico"},
     {"apiName": "tiene_establecimiento", "from": "Sitio", "to": "Establecimiento"},
     {"apiName": "subestacion_mas_cercana", "from": "Sitio", "to": "SubestacionAprox"}
   ],
