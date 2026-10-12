@@ -17,6 +17,7 @@ anterior.
 |---|---|
 | `CONSTITUCION.md` | Invariantes no negociables y el test que hace cumplir cada una |
 | `ESTADO.md` | Qué corre, qué está trabado y qué sigue. Lo único que caduca rápido |
+| `FUENTES.md` | Catálogo de fuentes medidas con petición real: veredicto y valor observado (`herramientas/medir_fuentes.py`) |
 | `CEMENTERIO.md` | Fuentes, componentes e ideas medidos y descartados, con fecha y por qué |
 | `VISION.md` | Las tres fases de la empresa y los principios de trabajo |
 | `../DECISIONS.md` | Decisiones de arquitectura y producto, append-only |

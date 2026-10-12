@@ -32,3 +32,28 @@
 
 ### Megawatts disponibles por predio — 2026-10-10
 - No hay API pública de capacidad por lote. Afirmarlo es inventar (D-003).
+
+## Fuentes — medición del 2026-10-12 (`MEMORY/FUENTES.md`)
+
+### SMN webservices, pronóstico por municipio — 2026-10-12
+- `https://smn.conagua.gob.mx/webservices/?method=1`: 0 de 30 intentos seguidos
+  (y ~40 sueltos) con dato. Responde **HTTP 200 con la página de error del WAF**
+  (730 B, "This page can't be displayed"), con cualquier User-Agent.
+- Revivir solo si devuelve el gzip de JSON desde un servidor en 30 de 30 intentos,
+  dos días seguidos.
+
+### CONAGUA ArcGIS REST — 2026-10-12 (re-confirmada)
+- `sigagis.conagua.gob.mx/ArcGIS/rest/services?f=pjson`: 302 a "Loading" con curl,
+  403 con `urllib`. Sigue sin JSON. La entrada del 2026-10-10 sigue en pie.
+
+### datos.gob.mx (API CKAN) — 2026-10-12 (re-confirmada)
+- `package_search?q=acuiferos`: 403 `Access Denied` en 3 de 3 desde un centro de
+  datos. El "a veces" del 2026-10-10 hoy fue siempre.
+
+### Open-Meteo API gratuita en producción — 2026-10-12
+- No está muerta: responde. Se entierra **la idea de usar la API gratuita en Atlas**.
+  Sus términos dicen "You may only use the free API services for non-commercial
+  purposes", y desde una IP compartida el archivo histórico dio 429 ("Daily API
+  request limit exceeded") en todos los intentos.
+- Revivir con plan de pago o con una instancia propia (código abierto). Lo decide
+  el dueño.
