@@ -190,6 +190,32 @@ def public_site(site, score=None):
     return payload
 
 
+def _smn_source(drought):
+    return {
+        "ok": bool(drought.get("ok")),
+        "url": drought.get("url"),
+        "asOf": drought.get("as_of"),
+        "rows": drought.get("rows"),
+        "error": drought.get("error"),
+    }
+
+
+def _drought_loaded():
+    # El SMN contesta de forma intermitente con una página de error de WAF
+    # (medido 2026-10-12: 3 libros en 12 intentos). Si el arranque cayó en una
+    # de esas, se reintenta al calificar en vez de quedarse en 503 para siempre.
+    drought = _state["drought"] or {}
+    if drought.get("table"):
+        return drought
+    fresh = conagua.load_drought()
+    if fresh.get("table"):
+        with _lock:
+            _state["drought"] = fresh
+            _state["sources"]["conagua_smn"] = _smn_source(fresh)
+        return fresh
+    return drought
+
+
 @app.on_event("startup")
 def startup():
     drought = conagua.load_drought()
@@ -214,13 +240,7 @@ def startup():
                 "note": "Uso de suelo e inundación por GetFeatureInfo. El municipio ya no sale de un pixel: sale del polígono.",
             },
             "inegi_catgeo": polygons,
-            "conagua_smn": {
-                "ok": bool(drought.get("ok")),
-                "url": drought.get("url"),
-                "asOf": drought.get("as_of"),
-                "rows": drought.get("rows"),
-                "error": drought.get("error"),
-            },
+            "conagua_smn": _smn_source(drought),
             "conagua_arcgis": arcgis,
             "datos_gob_mx": datos,
             "inegi_denue": {
@@ -294,7 +314,7 @@ def score_site(site_id: str, drought_year: bool = False):
     site = next((item for item in SITES if item["id"] == site_id), None)
     if site is None:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
-    drought = _state["drought"] or {}
+    drought = _drought_loaded()
     if not drought.get("table"):
         raise HTTPException(status_code=503, detail="El monitor de sequía no está cargado")
     observation, evidence = observe(site, drought["table"])

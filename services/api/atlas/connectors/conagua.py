@@ -80,15 +80,17 @@ def _load_rows(path):
             key = str(data.get("A", "")).zfill(5)
             if not key.strip("0"):
                 continue
+            # Solo el corte más reciente. En la hoja NOTAS del propio libro,
+            # "Sin Sequía" no tiene clave: la celda vacía ES sin sequía en ese
+            # corte. Caminar hacia atrás hasta la última celda llena reportaba
+            # D0 de hace más de un año como si fuera de hoy (medido 2026-10-12).
             category = None
             as_of = None
-            for _, column, serial in reversed(date_columns):
+            if date_columns:
+                _, column, serial = date_columns[-1]
                 raw = data.get(column)
-                if raw is None or str(raw).strip() == "":
-                    continue
-                category = raw
+                category = "NONE" if raw is None or str(raw).strip() == "" else raw
                 as_of = (EXCEL_EPOCH + timedelta(days=serial)).date().isoformat()
-                break
             table[key] = {
                 "cvegeo": key,
                 "state_code": data.get("B"),
@@ -102,25 +104,45 @@ def _load_rows(path):
         return {"as_of": file_as_of, "rows": len(table), "table": table}
 
 
+def _is_workbook(path):
+    # Un .xlsx es un ZIP. Un 200 con la página de error de un WAF no lo es.
+    try:
+        return path.exists() and path.stat().st_size >= 1000 and zipfile.is_zipfile(path)
+    except OSError:
+        return False
+
+
+def _failure(error, body=b""):
+    excerpt = body[:160].decode("utf-8", "replace") if body else None
+    return {"ok": False, "url": SMN_XLSX, "error": error, "excerpt": excerpt, "table": {}}
+
+
 def load_drought(force=False):
     path = _cache_path()
-    if force or not path.exists() or path.stat().st_size < 1000:
+    if force or not _is_workbook(path):
         result = fetch(SMN_XLSX, timeout=60)
+        body = result.get("body") or b""
+        error = None
         if not result["ok"]:
-            if path.exists():
+            error = result.get("error") or f"HTTP {result['status']}"
+        elif body[:2] != b"PK":
+            error = (
+                f"HTTP {result['status']} con {len(body)} bytes de "
+                f"{result.get('content_type') or 'tipo desconocido'}: no es un libro .xlsx"
+            )
+        if error:
+            if _is_workbook(path):
                 loaded = _load_rows(path)
                 loaded["stale"] = True
-                loaded["error"] = result.get("error")
+                loaded["error"] = error
                 loaded["url"] = SMN_XLSX
                 return loaded
-            return {
-                "ok": False,
-                "url": SMN_XLSX,
-                "error": result.get("error") or f"HTTP {result['status']}",
-                "table": {},
-            }
-        path.write_bytes(result["body"])
-    loaded = _load_rows(path)
+            return _failure(error, body)
+        path.write_bytes(body)
+    try:
+        loaded = _load_rows(path)
+    except (zipfile.BadZipFile, KeyError, ET.ParseError, IndexError) as exc:
+        return _failure(f"El libro del SMN no se pudo leer: {exc}")
     loaded["ok"] = True
     loaded["url"] = SMN_XLSX
     loaded["bytes"] = path.stat().st_size
