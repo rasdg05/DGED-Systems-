@@ -260,6 +260,23 @@ function renderOracle(payload) {
   }
 }
 
+const oracleKeyEl = document.querySelector("#oracle-key");
+try {
+  oracleKeyEl.value = localStorage.getItem("atlas-key") || "";
+} catch (error) {
+  // Sin almacenamiento la llave se escribe en cada visita.
+}
+
+function oracleKey() {
+  const key = oracleKeyEl.value.trim();
+  try {
+    localStorage.setItem("atlas-key", key);
+  } catch (error) {
+    // Igual se manda; solo no se recuerda.
+  }
+  return key;
+}
+
 async function askOracle(event) {
   event.preventDefault();
   const question = document.querySelector("#oracle-question").value.trim();
@@ -270,7 +287,7 @@ async function askOracle(event) {
   try {
     const response = await fetch("/api/oracle", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Atlas-Key": oracleKey() },
       body: JSON.stringify({ question }),
     });
     const payload = await response.json().catch(() => ({}));

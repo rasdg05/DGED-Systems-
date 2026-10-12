@@ -37,3 +37,11 @@ El municipio sale del Catálogo Único (`wscatgeo/v2`), con población del Censo
 ## D-010 — 2026-10-12 — El Oráculo contesta con herramientas del Atlas, no de memoria
 
 `POST /api/oracle` (`services/api/atlas/oracle.py`): ciclo de tool use con el SDK oficial `anthropic` (1.13.0), modelo `claude-opus-5-5` por defecto (`ATLAS_ORACLE_MODEL` lo cambia, con ID completo), esfuerzo `medium` y fallback del servidor (`fallbacks: "default"`) ante un rechazo. Seis herramientas que llaman a las mismas funciones de la API: listar, calificar (la de `POST /api/sites/{id}/score`), ficha/grafo, ontología, fuentes y comparar. Tope de 8 pasos; agotado, el modelo solo puede contestar (`tool_choice: none`). Candados escritos por el sistema, no pedidos al modelo: toda cifra de la respuesta debe aparecer en un resultado de herramienta de esa conversación o se retira y se reporta en `unverified`; una oración que afirme megawatts o capacidad eléctrica se quita (D-003); fuentes (URLs devueltas) y factores ausentes se agregan al final. Dormido por defecto: sin `ANTHROPIC_API_KEY`, 503. Tests sin red ni clave en `services/api/test_oracle.py`.
+
+## D-011 — 2026-10-12 — Atlas Comparativo a USD 15,000
+
+Aprobado por el dueño. Dos o tres predios con fecha de decisión, escenarios y memo. Se acredita completo contra un Atlas Screening firmado dentro de 90 días. Es la puerta de entrada; el Screening (D-006) sigue siendo el destino. No se vende antes de medir las fuentes en vivo. Detalle en `docs/09-portafolio-90-dias.md` (P2).
+
+## D-012 — 2026-10-12 — Tres primeras cuentas y cómo se despliega
+
+Fibra Mty, FIBRA Prologis y Vesta, por evidencia pública de compra en curso (`docs/09-portafolio-90-dias.md` §3). AMPIP es canal después del primer memo. Despliegue en Railway: demo pública de solo lectura, espacio de cliente con llave y trabajo de fondo. El Oráculo no abre sin `ATLAS_ACCESS_TOKEN` (`services/api/atlas/access.py`). Plan en `docs/10-plan-30-dias.md`.

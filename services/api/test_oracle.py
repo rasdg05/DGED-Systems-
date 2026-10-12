@@ -14,9 +14,8 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from fastapi import HTTPException
-
 from atlas import oracle
+from fastapi import HTTPException
 
 SCORE = {
     "modelVersion": "atlas-live-0.1.0",

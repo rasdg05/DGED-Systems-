@@ -87,7 +87,27 @@ def test_ningun_test_tapa_a_otro():
 def test_env_example_sin_claves():
     lineas = (RAIZ / ".env.example").read_text(encoding="utf-8").splitlines()
     con_valor = [
-        l for l in lineas
-        if l.strip() and not l.lstrip().startswith("#") and "=" in l and l.split("=", 1)[1].strip()
+        linea for linea in lineas
+        if linea.strip() and not linea.lstrip().startswith("#") and "=" in linea and linea.split("=", 1)[1].strip()
     ]
-    assert not con_valor, f".env.example trae valores: {[l.split('=')[0] for l in con_valor]}"
+    assert not con_valor, f".env.example trae valores: {[linea.split('=')[0] for linea in con_valor]}"
+
+
+# IX — toda variable que declara .env.example llega al contenedor de la API.
+# SAKBE_TOKEN estuvo documentada y nunca llegaba: con Docker la ruta no entraba
+# al número aunque la clave estuviera en .env.
+def test_compose_pasa_cada_variable_del_env_example():
+    compose = (RAIZ / "docker-compose.yml").read_text(encoding="utf-8")
+    variables = [
+        linea.split("=", 1)[0].strip()
+        for linea in (RAIZ / ".env.example").read_text(encoding="utf-8").splitlines()
+        if linea.strip() and not linea.lstrip().startswith("#") and "=" in linea
+    ]
+    faltan = [v for v in variables if f"${{{v}:-" not in compose]
+    assert not faltan, f"docker-compose.yml no pasa: {faltan}"
+
+
+# X — la base no se publica fuera de la máquina.
+def test_postgres_no_se_publica_a_toda_la_red():
+    compose = (RAIZ / "docker-compose.yml").read_text(encoding="utf-8")
+    assert '"5432:5432"' not in compose

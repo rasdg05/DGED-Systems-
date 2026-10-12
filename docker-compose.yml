@@ -3,10 +3,11 @@ services:
     image: postgis/postgis:16-3.4
     environment:
       POSTGRES_USER: atlas
-      POSTGRES_PASSWORD: atlas
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-atlas}
       POSTGRES_DB: atlas
     ports:
-      - "5432:5432"
+      # Solo esta máquina. En un servidor la base no se publica.
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U atlas -d atlas"]
       interval: 5s
@@ -21,8 +22,15 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: postgresql://atlas:atlas@db:5432/atlas
+      DATABASE_URL: postgresql://atlas:${POSTGRES_PASSWORD:-atlas}@db:5432/atlas
       INEGI_TOKEN: ${INEGI_TOKEN:-}
+      SAKBE_TOKEN: ${SAKBE_TOKEN:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ATLAS_ORACLE_MODEL: ${ATLAS_ORACLE_MODEL:-}
+      ATLAS_ACCESS_TOKEN: ${ATLAS_ACCESS_TOKEN:-}
+      ATLAS_SCORE_LIMIT: ${ATLAS_SCORE_LIMIT:-}
+      ATLAS_ORACLE_LIMIT: ${ATLAS_ORACLE_LIMIT:-}
+      GIT_COMMIT: ${GIT_COMMIT:-}
       ATLAS_CACHE: /var/cache/atlas
     volumes:
       - atlas-cache:/var/cache/atlas

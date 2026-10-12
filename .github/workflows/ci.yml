@@ -22,14 +22,21 @@ jobs:
       - name: Dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r services/api/requirements.txt pytest
+          pip install -r services/api/requirements.txt -r requirements-dev.txt
 
-      - name: Score live e invariantes (sin red)
-        run: python -m pytest -q services/api tests
+      - name: Lint
+        run: ruff check .
+
+      - name: Score live, Oráculo, acceso e invariantes (sin red), con cobertura
+        # Piso: la cobertura medida al ponerlo (49.62%, 2026-10-12). Sube; no baja.
+        run: python -m pytest -q --cov --cov-report=term --cov-fail-under=49
 
       - name: Score de escritorio
         run: node --test packages/score/score.test.mjs
 
       - name: Smoke import del API
         working-directory: services/api
-        run: python -c "import atlas.score, atlas.main"
+        run: python -c "import atlas.score, atlas.main, atlas.access, atlas.oracle"
+
+      - name: docker-compose válido
+        run: docker compose config -q

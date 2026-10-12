@@ -122,7 +122,6 @@ def route(lon, lat, corridor, token):
     success = bool((result["json"] or {}).get("response", {}).get("success", minutes is not None))
     if minutes is None:
         success = False
-    public = dict(result)
     return {
         "ok": success,
         "configured": True,

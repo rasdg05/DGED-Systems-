@@ -164,7 +164,9 @@ button#score-all { background: var(--accent); color: #1a140c; border-color: tran
 
 .oracle { inset: auto 16px 16px auto; width: min(560px, calc(100vw - 32px)); max-height: 70vh; }
 .oracle-note { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.4; }
-#oracle-form { display: flex; gap: 8px; align-items: flex-end; }
+#oracle-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+#oracle-key { flex: 1 0 100%; }
+#oracle-key,
 #oracle-question {
   flex: 1;
   min-width: 0;

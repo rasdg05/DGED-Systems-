@@ -3,12 +3,12 @@ import os
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from atlas import oracle
+from atlas import access, oracle
 from atlas.connectors import catgeo, conagua, datosgob, inegi, sakbe
 from atlas.db import ensure as ensure_db
 from atlas.db import save_score
@@ -237,12 +237,23 @@ def startup():
         }
 
 
+def deployed_commit():
+    """El commit que corre. Railway lo inyecta; en otro lado se pasa GIT_COMMIT."""
+    for variable in ("RAILWAY_GIT_COMMIT_SHA", "GIT_COMMIT"):
+        value = os.environ.get(variable, "").strip()
+        if value:
+            return value[:12]
+    return None
+
+
 @app.get("/api/health")
 def health():
     drought = _state["drought"] or {}
     return {
         "ok": True,
         "service": "dged-atlas",
+        "commit": deployed_commit(),
+        "oracle": {"configured": oracle.is_configured(), "door": bool(access.access_token())},
         "droughtRows": drought.get("rows"),
         "droughtAsOf": drought.get("as_of"),
     }
@@ -291,7 +302,7 @@ def site_detail(site_id: str):
     return payload
 
 
-@app.post("/api/sites/{site_id}/score")
+@app.post("/api/sites/{site_id}/score", dependencies=[Depends(access.guard_score)])
 def score_site(site_id: str, drought_year: bool = False):
     site = next((item for item in SITES if item["id"] == site_id), None)
     if site is None:
@@ -338,7 +349,7 @@ def oracle_api():
     )
 
 
-@app.post("/api/oracle")
+@app.post("/api/oracle", dependencies=[Depends(access.guard_oracle)])
 def ask_oracle(body: OracleQuestion):
     if not oracle.is_configured():
         raise HTTPException(
@@ -355,13 +366,13 @@ def ask_oracle(body: OracleQuestion):
     try:
         result = oracle.ask(question, oracle_api(), oracle.make_client())
     except anthropic.AuthenticationError:
-        raise HTTPException(status_code=503, detail="El Oráculo no pudo autenticarse: revisa ANTHROPIC_API_KEY.")
+        raise HTTPException(status_code=503, detail="El Oráculo no pudo autenticarse: revisa ANTHROPIC_API_KEY.") from None
     except anthropic.RateLimitError:
-        raise HTTPException(status_code=429, detail="El Oráculo está saturado; intenta en un minuto.")
+        raise HTTPException(status_code=429, detail="El Oráculo está saturado; intenta en un minuto.") from None
     except anthropic.APIStatusError as error:
-        raise HTTPException(status_code=502, detail=f"El modelo respondió con error {error.status_code}.")
+        raise HTTPException(status_code=502, detail=f"El modelo respondió con error {error.status_code}.") from None
     except anthropic.APIConnectionError:
-        raise HTTPException(status_code=502, detail="No hubo conexión con el modelo.")
+        raise HTTPException(status_code=502, detail="No hubo conexión con el modelo.") from None
     return {key: result[key] for key in ("answer", "steps", "sources", "unverified", "missing", "model", "stop")}
 
 

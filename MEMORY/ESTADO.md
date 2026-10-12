@@ -10,7 +10,10 @@
   contestadas solo con herramientas del Atlas; dormido sin `ANTHROPIC_API_KEY`
   (503). Probado con cliente simulado (`test_oracle.py`, 16); **no medido
   contra la API real** todavía.
-- Pruebas sin red: `test_score.py` (8) y `score.test.mjs` (6) en verde.
+- **Semana 1 del plan de 30 días** (`docs/10-plan-30-dias.md`): Oráculo con
+  llave (`ATLAS_ACCESS_TOKEN`) y tope por IP, compose sin fugas, `/api/health`
+  con commit, CI con ruff, cobertura (piso 49.62%) y Dependabot.
+- Pruebas sin red: 42 de Python y 6 de `score.test.mjs`, en verde.
 
 ## No medido todavía
 
@@ -28,10 +31,13 @@
 2. Una calificación en vivo por corredor; guardar las URLs de `/api/examples`.
 3. Pedir las claves INEGI (DENUE) y SAKBÉ.
 4. Holgura eléctrica por corredor firmada contra PRODESEN (`DECISIONS.md` D-003).
-5. Mercado y portafolio a 90 días (`docs/08-mercado.md`, `docs/09-portafolio-90-dias.md`): primero agente WhatsApp, Atlas Comparativo (USD 15k, requiere D-009) y evaluación técnica; P4 solo tras medir CENAPRED/CFE/acuíferos.
+5. Mercado y portafolio a 90 días (`docs/08-mercado.md`, `docs/09-portafolio-90-dias.md`): primero agente WhatsApp, Atlas Comparativo (USD 15k, aprobado en D-011) y evaluación técnica; P4 solo tras medir CENAPRED/CFE/acuíferos.
+6. Primeras cuentas (D-012): Fibra Mty, FIBRA Prologis, Vesta.
 
 ## Lo que es del dueño
 
 - Claves INEGI y SAKBÉ (se piden con nombre y correo).
 - Quién revisa los primeros diez sitios (alguien que haya trabajado parque en NL).
-- Primer prospecto para el piloto de Atlas Screening.
+- El contacto con nombre en Fibra Mty, FIBRA Prologis y Vesta.
+- Acceso a Railway y un dominio para la demo pública.
+- Clave de Anthropic y `ATLAS_ACCESS_TOKEN` para prender el Oráculo.

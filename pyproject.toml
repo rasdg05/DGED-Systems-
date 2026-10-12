@@ -1,0 +1,20 @@
+# Configuración de herramientas. El servicio se instala con
+# services/api/requirements.txt; este archivo no empaqueta nada.
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+extend-exclude = ["services/api/static"]
+
+[tool.ruff.lint]
+# Errores, avisos, bugbear e imports ordenados. E501 fuera: el largo lo cuida
+# el formato humano, no el linter.
+select = ["E", "F", "W", "B", "I"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+pythonpath = ["services/api"]
+testpaths = ["services/api", "tests"]
+
+[tool.coverage.run]
+source = ["services/api/atlas"]

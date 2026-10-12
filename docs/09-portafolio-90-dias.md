@@ -160,7 +160,7 @@ interés específico **no está medido** y se confirma en la primera conversaci�
 
 ## 4. Lo que es del dueño
 
-1. Aprobar o no el SKU **P2 a USD 15,000** con crédito al Screening (sería D-009).
+1. ~~Aprobar o no el SKU **P2 a USD 15,000** con crédito al Screening.~~ Aprobado el 2026-10-12 (D-011).
 2. Decidir si P1 se ofrece con el nombre de Gestor Morelos como caso (es su
    negocio; los datos de sus clientes nunca salen).
-3. Elegir las tres primeras cuentas de la tabla para conversación con nombre.
+3. ~~Elegir las tres primeras cuentas.~~ Fibra Mty, FIBRA Prologis y Vesta (D-012, 2026-10-12).
