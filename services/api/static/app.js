@@ -109,6 +109,55 @@ function factorLine(factor) {
   `;
 }
 
+function km(value) {
+  return value == null ? null : `${Number(value).toLocaleString("es-MX", { maximumFractionDigits: 2 })} km`;
+}
+
+function layerRow(label, known, text, source) {
+  return `
+    <div class="layer">
+      <div class="row"><strong>${label}</strong><span class="${known ? "ok" : "bad"}">${known ? source : "sin respuesta"}</span></div>
+      <p>${text}</p>
+    </div>
+  `;
+}
+
+// Las cuatro capas sin clave (D-009). Sismicidad y vía férrea también están en los factores;
+// clima y subestación solo se muestran: no puntúan.
+function layersBlock(obs) {
+  if (obs.seismicKnown === undefined) return "";
+  const strongest = obs.seismicStrongest;
+  const seismic = obs.seismicKnown
+    ? (obs.seismicCount
+      ? `${obs.seismicCount} sismos M4+ en 100 km desde hace 50 años. Máximo M${obs.seismicMaxMagnitude}${strongest ? ` (${strongest.date}, ${strongest.place})` : ""}.`
+      : "Ningún sismo M4+ registrado en 100 km en 50 años.")
+    : "USGS no respondió; no entra al número.";
+  const climate = obs.climateKnown
+    ? `Lluvia media ${Number(obs.climatePrecipMm).toLocaleString("es-MX")} mm/año y ${obs.climateHotDays} días/año arriba de 35 °C (${obs.climatePeriod}). Celda de reanálisis, no una estación. No puntúa.`
+    : "NASA POWER no respondió.";
+  let substation = "Overpass no respondió.";
+  if (obs.osmKnown) {
+    substation = obs.substationDistanceKm == null
+      ? "OSM no tiene subestación pública mapeada en 25 km."
+      : `${obs.substationName || "Sin nombre en OSM"} a ${km(obs.substationDistanceKm)} en línea recta · ${obs.substationVoltageKv == null ? "voltaje desconocido" : obs.substationVoltageKv + " kV (tag OSM)"}${obs.substationOperator ? " · " + obs.substationOperator : ""}.`;
+    substation += " OSM puede estar incompleto. No dice cuánta carga se puede conectar; eso es un estudio de CFE/CENACE. No puntúa.";
+  }
+  let rail = "Overpass no respondió; no entra al número.";
+  if (obs.osmKnown) {
+    rail = obs.railDistanceKm == null
+      ? `Sin vía mapeada en ${obs.railRadiusKm || 10} km.`
+      : `Vía a ${km(obs.railDistanceKm)} en línea recta${obs.railName ? " · " + obs.railName : ""}${obs.railOperator ? " · " + obs.railOperator : ""}.`;
+    rail += " OSM puede estar incompleto; no es un ramal al predio.";
+  }
+  return `
+    <h3 class="layers-title">Capas sin clave</h3>
+    ${layerRow("Sismicidad", obs.seismicKnown, seismic, "USGS")}
+    ${layerRow("Clima", obs.climateKnown, climate, "NASA POWER")}
+    ${layerRow("Subestación aprox.", obs.osmKnown, substation, "OSM")}
+    ${layerRow("Vía férrea", obs.osmKnown, rail, "OSM")}
+  `;
+}
+
 function renderDetail(payload) {
   if (!payload) {
     detail.innerHTML = `<p class="empty">Elige un sitio.</p>`;
@@ -126,8 +175,9 @@ function renderDetail(payload) {
       <p class="risk">Viabilidad ${score.modelVersion}. Riesgo complementario ${score.risk == null ? "—" : score.risk.toFixed(1)}. ${score.publishable ? "Publicable." : "Borrador: falta una de las tres fuentes."}</p>
       ${score.publishable ? "" : '<p class="unpublished">No se entrega a un cliente mientras falte sequía, inundación o uso de suelo.</p>'}
       ${score.factors.map(factorLine).join("")}
+      ${layersBlock(obs)}
     ` : `<p class="empty">${payload.note}</p>`}
-    ${objects.length ? `<ul class="objects">${objects.map((object) => `<li><b>${object.type}</b> ${object.name || object.category || object.landClass || object.reason || object.id}</li>`).join("")}</ul>` : ""}
+    ${objects.length ? `<ul class="objects">${objects.map((object) => `<li><b>${object.type}</b> ${object.name || object.category || object.landClass || (object.maxMagnitude != null ? "M" + object.maxMagnitude : null) || object.reason || object.id}</li>`).join("")}</ul>` : ""}
   `;
 }
 

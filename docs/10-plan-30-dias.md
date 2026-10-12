@@ -32,9 +32,10 @@ AWS o GCP hasta que un contrato lo exija.
       configurables.
 - [x] `/api/health` dice el commit que corre (`RAILWAY_GIT_COMMIT_SHA` o
       `GIT_COMMIT`) y si el Oráculo tiene clave y puerta.
-- [x] CI: ruff, cobertura con piso (49.62% medido), `docker compose config`.
+- [x] CI: ruff, cobertura con piso (49.62% al ponerlo; 60.01% tras integrar las capas), `docker compose config`.
 - [x] Dependabot (pip, Actions, Docker) y dependencias de desarrollo fijadas.
-- [ ] Integrar lo de los agentes de fuentes, conectores y verificación.
+- [x] Integrar conectores (D-009, atlas-live-0.2.0).
+- [ ] Integrar lo de los agentes de fuentes y verificación.
 - [ ] Desplegar la demo pública en Railway — **necesita acceso del dueño**.
 - [ ] Prueba diaria contra las fuentes reales en CI (avisa el día que INEGI o
       CONAGUA cambian).

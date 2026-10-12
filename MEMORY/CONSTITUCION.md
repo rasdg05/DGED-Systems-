@@ -18,6 +18,10 @@
 | XI | Sin `ATLAS_ACCESS_TOKEN` no hay Oráculo; con él, `X-Atlas-Key` obligatoria | `services/api/atlas/access.py` | `services/api/test_access.py` |
 | XII | Las rutas que gastan (calificar, Oráculo) tienen tope por IP | `access.guard_score`, `access.guard_oracle` | `test_access.py::test_las_rutas_que_gastan_tienen_su_guardia` |
 | XIII | Toda cifra del Oráculo sale de un resultado de herramienta | `services/api/atlas/oracle.py` | `services/api/test_oracle.py` |
+| XIV | Una capa sin respuesta (USGS, Overpass) no mueve el número: los pesos son los de 0.1.0 | `services/api/atlas/score.py` | `services/api/test_capas.py::test_unanswered_layers_do_not_move_the_number` |
+| XV | Los pesos suman 1 en las 16 combinaciones de capas opcionales | `score.py::_weights` | `test_capas.py::test_weights_sum_to_one_in_every_combination` |
+| XVI | `SubestacionAprox` llenada desde OSM no lleva capacidad, MW ni "disponible", ni en llaves ni en texto | `services/api/atlas/main.py::materialize` | `test_capas.py::test_substation_never_claims_capacity` (y V, que ahora también prohíbe `disponible`/`available`) |
+| XVII | Una página de error del SMN no se guarda como libro ni tumba el arranque | `connectors/conagua.py` | `test_capas.py::test_smn_html_error_page_is_not_a_workbook` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

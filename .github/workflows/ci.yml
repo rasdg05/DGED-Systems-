@@ -28,8 +28,8 @@ jobs:
         run: ruff check .
 
       - name: Score live, Oráculo, acceso e invariantes (sin red), con cobertura
-        # Piso: la cobertura medida al ponerlo (49.62%, 2026-10-12). Sube; no baja.
-        run: python -m pytest -q --cov --cov-report=term --cov-fail-under=49
+        # Piso: cobertura medida tras integrar las capas (60.01%, 2026-10-12). Sube; no baja.
+        run: python -m pytest -q --cov --cov-report=term --cov-fail-under=59
 
       - name: Score de escritorio
         run: node --test packages/score/score.test.mjs

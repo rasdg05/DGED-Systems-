@@ -47,7 +47,7 @@ def test_subestacion_sin_capacidad():
     tipos = {t["apiName"]: t for t in ontologia["objectTypes"]}
     assert "SubestacionAprox" in tipos
     props = [p.lower() for p in tipos["SubestacionAprox"]["properties"]]
-    prohibidas = [p for p in props if any(s in p for s in ("mw", "capacity", "capacidad", "headroom", "holgura"))]
+    prohibidas = [p for p in props if any(s in p for s in ("mw", "capacity", "capacidad", "headroom", "holgura", "disponible", "available"))]
     assert not prohibidas, f"SubestacionAprox no puede afirmar capacidad: {prohibidas}"
 
 

@@ -34,6 +34,14 @@ GeoLibre, Mundi, ontograph-core y OpenFoundry no se incrustan: son otros product
 
 El municipio sale del Catálogo Único (`wscatgeo/v2`), con población del Censo 2020. La ventana DENUE del GeoServer se muestra y no puntúa. Los minutos de SAKBÉ puntúan solo si `SAKBE_TOKEN` devuelve `tiempo_min`.
 
+## D-009 — 2026-10-12 — Cuatro capas sin clave; sismicidad y vía férrea puntúan (atlas-live-0.2.0)
+
+Medidas desde un servidor antes de escribir código. USGS FDSN responde (GeoJSON, <1 s). Open-Meteo archive responde 429 "Daily API request limit exceeded": va al cementerio y el clima sale de NASA POWER, que sí responde. Overpass: `overpass-api.de` corta la conexión, `kumi` da 504, `maps.mail.ru` entrega JSON; el conector prueba los tres en orden.
+
+Entran al número solo si su fuente respondió: sismicidad (magnitud máxima M4+ en 100 km y 50 años) con peso 0.08 y distancia a vía férrea mapeada con 0.10. Los pesos de 0.1.0 se escalan por `1 − suma`; sin esas respuestas el número es idéntico al de 0.1.0. No son compuertas de publicación. Clima y subestación se muestran y no puntúan: el clima de reanálisis repite lo que ya dice la sequía, y una distancia a subestación sin holgura firmada empujaría a leer capacidad donde no la hay (D-003). `SubestacionAprox` se llena con nombre, voltaje del tag y distancia de OSM, y nunca con capacidad.
+
+De paso: el SMN respondió 200 con una página HTML de error en vez de `MunicipiosSequia.xlsx`, se guardaba como libro y tumbaba el arranque. Ahora se rechaza lo que no empieza con `PK`, el API arranca y califica con la sequía ausente: el número existe pero no es publicable (invariante I).
+
 ## D-010 — 2026-10-12 — El Oráculo contesta con herramientas del Atlas, no de memoria
 
 `POST /api/oracle` (`services/api/atlas/oracle.py`): ciclo de tool use con el SDK oficial `anthropic` (1.13.0), modelo `claude-opus-5-5` por defecto (`ATLAS_ORACLE_MODEL` lo cambia, con ID completo), esfuerzo `medium` y fallback del servidor (`fallbacks: "default"`) ante un rechazo. Seis herramientas que llaman a las mismas funciones de la API: listar, calificar (la de `POST /api/sites/{id}/score`), ficha/grafo, ontología, fuentes y comparar. Tope de 8 pasos; agotado, el modelo solo puede contestar (`tool_choice: none`). Candados escritos por el sistema, no pedidos al modelo: toda cifra de la respuesta debe aparecer en un resultado de herramienta de esa conversación o se retira y se reporta en `unverified`; una oración que afirme megawatts o capacidad eléctrica se quita (D-003); fuentes (URLs devueltas) y factores ausentes se agregan al final. Dormido por defecto: sin `ANTHROPIC_API_KEY`, 503. Tests sin red ni clave en `services/api/test_oracle.py`.

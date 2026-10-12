@@ -1,6 +1,7 @@
 import json
 import os
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -9,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from atlas import access, oracle
-from atlas.connectors import catgeo, conagua, datosgob, inegi, sakbe
+from atlas.connectors import catgeo, conagua, datosgob, inegi, osm, power, sakbe, usgs
 from atlas.db import ensure as ensure_db
 from atlas.db import save_score
 from atlas.score import score_observation
@@ -47,7 +48,14 @@ def _ontology():
     return json.loads(ONTOLOGY_PATH.read_text(encoding="utf-8"))
 
 
+_pool = ThreadPoolExecutor(max_workers=6)
+
+
 def observe(site, drought_table):
+    # Las tres capas sin clave van en paralelo: Overpass sola tarda de 10 a 50 s.
+    seismic_job = _pool.submit(usgs.seismicity, site["lat"], site["lon"])
+    climate_job = _pool.submit(power.climate, site["lat"], site["lon"])
+    infra_job = _pool.submit(osm.infrastructure, site["lat"], site["lon"])
     municipality = catgeo.locate(site["lat"], site["lon"])
     if not municipality.get("hit"):
         fallback = inegi.municipality_at(site["lat"], site["lon"])
@@ -58,6 +66,11 @@ def observe(site, drought_table):
     token = os.environ.get("INEGI_TOKEN", "").strip()
     denue = inegi.denue_search(site["lat"], site["lon"], token)
     route = sakbe.route(site["lon"], site["lat"], site["corridor"], os.environ.get("SAKBE_TOKEN", "").strip())
+    seismic = seismic_job.result()
+    climate = climate_job.result()
+    infra = infra_job.result()
+    substation = infra.get("substation") or {}
+    rail = infra.get("rail") or {}
     cvegeo = municipality.get("cvegeo")
     drought_row = drought_table.get(cvegeo) if cvegeo else None
     examples = [
@@ -66,6 +79,9 @@ def observe(site, drought_table):
         {"label": "INEGI inundación", "url": flood.get("url"), "ok": flood.get("ok")},
         {"label": "DENUE", "url": denue.get("url"), "ok": denue.get("ok")},
         {"label": "SAKBÉ", "url": route.get("url"), "ok": route.get("ok")},
+        {"label": "USGS sismos", "url": seismic.get("url"), "ok": seismic.get("ok")},
+        {"label": "NASA POWER clima", "url": climate.get("url"), "ok": climate.get("ok")},
+        {"label": "OSM Overpass", "url": infra.get("url"), "ok": infra.get("ok")},
     ]
     for example in examples:
         if example.get("url"):
@@ -94,6 +110,39 @@ def observe(site, drought_table):
         "route_reference": route.get("reference"),
         "route_reason": route.get("reason"),
         "route_vehicle": route.get("vehicle"),
+        "seismic_known": bool(seismic.get("ok")),
+        "seismic_count": seismic.get("count"),
+        "seismic_max_magnitude": seismic.get("maxMagnitude"),
+        "seismic_strongest": seismic.get("strongest"),
+        "seismic_radius_km": seismic.get("radiusKm"),
+        "seismic_years": seismic.get("years"),
+        "seismic_reason": seismic.get("reason"),
+        "climate_known": bool(climate.get("ok")),
+        "climate_precip_mm": climate.get("annualPrecipitationMm"),
+        "climate_hot_days": climate.get("hotDaysPerYear"),
+        "climate_period": climate.get("period"),
+        "climate_years": climate.get("years") or [],
+        "climate_reason": climate.get("reason"),
+        "osm_known": bool(infra.get("ok")),
+        "osm_endpoint": infra.get("url") if infra.get("ok") else None,
+        "osm_base": infra.get("osmBase"),
+        "osm_reason": infra.get("reason"),
+        "substation_name": substation.get("name"),
+        "substation_voltage_kv": substation.get("voltageKv"),
+        "substation_voltages_kv": substation.get("voltagesKv") or [],
+        "substation_distance_km": substation.get("distanceKm"),
+        "substation_kind": substation.get("kind"),
+        "substation_operator": substation.get("operator"),
+        "substation_osm_id": substation.get("osmId"),
+        "substation_radius_km": infra.get("substationRadiusKm"),
+        "rail_known": bool(infra.get("ok")),
+        "rail_distance_km": rail.get("distanceKm"),
+        "rail_name": rail.get("name"),
+        "rail_operator": rail.get("operator"),
+        "rail_service": rail.get("service"),
+        "rail_osm_id": rail.get("osmId"),
+        "rail_radius_km": infra.get("railRadiusKm"),
+        "rail_reason": infra.get("reason"),
     }
     return observation, {
         "municipality": municipality,
@@ -102,6 +151,9 @@ def observe(site, drought_table):
         "denue": {key: value for key, value in denue.items() if key != "sample"} | {"sample": denue.get("sample") or []},
         "route": {key: value for key, value in route.items() if key != "text"},
         "drought": drought_row,
+        "seismic": seismic,
+        "climate": climate,
+        "infrastructure": {key: value for key, value in infra.items() if key != "query"},
     }
 
 
@@ -119,6 +171,11 @@ def materialize(site, observation, score):
             "municipality": observation.get("municipality"),
             "population": observation.get("population"),
             "marco": observation.get("marco"),
+            "railDistanceKm": observation.get("rail_distance_km"),
+            "railName": observation.get("rail_name"),
+            "railOperator": observation.get("rail_operator"),
+            "railKnown": observation.get("rail_known"),
+            "railSource": "osm.overpass" if observation.get("rail_known") else None,
         },
         {
             "type": "CorredorLogistico",
@@ -144,22 +201,54 @@ def materialize(site, observation, score):
         "floodHit": observation.get("flood_hit"),
         "floodLayer": observation.get("flood_layer"),
         "landClass": observation.get("land_name"),
+        "annualPrecipitationMm": observation.get("climate_precip_mm"),
+        "hotDaysPerYear": observation.get("climate_hot_days"),
+        "hotDayThresholdC": 35,
+        "climatePeriod": observation.get("climate_period"),
         "source": "inegi.wms",
+        "climateSource": "nasa.power" if observation.get("climate_known") else None,
     })
     links.append({"rel": "expuesto_a_clima", "from": site["id"], "to": clima})
+    sismo = f"sismo-{site['id']}"
+    objects.append({
+        "type": "RiesgoSismico",
+        "id": sismo,
+        "count": observation.get("seismic_count"),
+        "maxMagnitude": observation.get("seismic_max_magnitude"),
+        "strongest": observation.get("seismic_strongest"),
+        "radiusKm": observation.get("seismic_radius_km"),
+        "years": observation.get("seismic_years"),
+        "known": observation.get("seismic_known"),
+        "source": "usgs.fdsn",
+        "reason": None if observation.get("seismic_known") else observation.get("seismic_reason"),
+    })
+    links.append({"rel": "expuesto_a_sismo", "from": site["id"], "to": sismo})
     for index, row in enumerate(observation.get("denue_sample") or []):
         eid = f"{site['id']}-denue-{index}"
         objects.append({"type": "Establecimiento", "id": eid, **row})
         links.append({"rel": "tiene_establecimiento", "from": site["id"], "to": eid})
+    sub_id = f"sub-{site['id']}"
+    found = observation.get("osm_known") and observation.get("substation_distance_km") is not None
+    if found:
+        reason = osm.NOTE + " Solo nombre, voltaje del tag y distancia en línea recta; nada sobre lo que la subestación pueda entregar."
+    elif observation.get("osm_known"):
+        reason = f"OSM no tiene subestación pública mapeada en {observation.get('substation_radius_km') or 25:g} km. " + osm.NOTE
+    else:
+        reason = observation.get("osm_reason") or "Overpass no respondió."
     objects.append({
         "type": "SubestacionAprox",
-        "id": f"sub-{site['id']}",
-        "name": None,
-        "voltageKv": None,
-        "distanceKm": None,
-        "empty": True,
-        "reason": "Sin capa pública de CFE a nivel predio.",
+        "id": sub_id,
+        "name": observation.get("substation_name") if found else None,
+        "voltageKv": observation.get("substation_voltage_kv") if found else None,
+        "distanceKm": observation.get("substation_distance_km") if found else None,
+        "kind": observation.get("substation_kind") if found else None,
+        "operator": observation.get("substation_operator") if found else None,
+        "osmId": observation.get("substation_osm_id") if found else None,
+        "source": "osm" if found else None,
+        "empty": not found,
+        "reason": reason,
     })
+    links.append({"rel": "subestacion_mas_cercana", "from": site["id"], "to": sub_id})
     return {"objects": objects, "links": links, "score": score, "unused": drought}
 
 
@@ -188,6 +277,25 @@ def public_site(site, score=None):
             "denueMode": score["observation"].get("denue_mode"),
             "routeMinutes": score["observation"].get("route_minutes"),
             "routeReference": score["observation"].get("route_reference"),
+            "seismicKnown": score["observation"].get("seismic_known"),
+            "seismicCount": score["observation"].get("seismic_count"),
+            "seismicMaxMagnitude": score["observation"].get("seismic_max_magnitude"),
+            "seismicStrongest": score["observation"].get("seismic_strongest"),
+            "climateKnown": score["observation"].get("climate_known"),
+            "climatePrecipMm": score["observation"].get("climate_precip_mm"),
+            "climateHotDays": score["observation"].get("climate_hot_days"),
+            "climatePeriod": score["observation"].get("climate_period"),
+            "osmKnown": score["observation"].get("osm_known"),
+            "osmEndpoint": score["observation"].get("osm_endpoint"),
+            "substationName": score["observation"].get("substation_name"),
+            "substationVoltageKv": score["observation"].get("substation_voltage_kv"),
+            "substationDistanceKm": score["observation"].get("substation_distance_km"),
+            "substationKind": score["observation"].get("substation_kind"),
+            "substationOperator": score["observation"].get("substation_operator"),
+            "railDistanceKm": score["observation"].get("rail_distance_km"),
+            "railRadiusKm": score["observation"].get("rail_radius_km"),
+            "railName": score["observation"].get("rail_name"),
+            "railOperator": score["observation"].get("rail_operator"),
         }
     return payload
 
@@ -200,6 +308,9 @@ def startup():
     datos = datosgob.probe()
     denue = inegi.denue_search(25.7789, -100.1886, os.environ.get("INEGI_TOKEN", "").strip())
     routing = sakbe.probe()
+    seismic = usgs.probe()
+    weather = power.probe()
+    overpass = osm.probe()
     database = False
     try:
         database = ensure_db()
@@ -233,6 +344,14 @@ def startup():
                 "reason": denue.get("reason"),
             },
             "inegi_sakbe": routing,
+            "usgs_sismos": seismic,
+            "nasa_power_clima": weather,
+            "osm_overpass": overpass,
+            "open_meteo": {
+                "ok": False,
+                "url": "https://archive-api.open-meteo.com/v1/archive",
+                "note": "Medido el 2026-10-12: 429 'Daily API request limit exceeded' desde un servidor. No se usa; el clima sale de NASA POWER (cementerio).",
+            },
             "database": {"ok": database, "urlConfigured": bool(os.environ.get("DATABASE_URL"))},
         }
 
@@ -308,9 +427,11 @@ def score_site(site_id: str, drought_year: bool = False):
     if site is None:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     drought = _state["drought"] or {}
+    # Sin el libro del SMN la sequía queda ausente y el número no es publicable (I);
+    # las demás capas se siguen consultando y se muestran.
+    observation, evidence = observe(site, drought.get("table") or {})
     if not drought.get("table"):
-        raise HTTPException(status_code=503, detail="El monitor de sequía no está cargado")
-    observation, evidence = observe(site, drought["table"])
+        observation["drought_reason"] = drought.get("error") or "El monitor de sequía no está cargado"
     score = score_observation(observation, drought_year=drought_year)
     graph = materialize(site, observation, score)
     cached = {
@@ -322,6 +443,10 @@ def score_site(site_id: str, drought_year: bool = False):
             "floodUrl": (evidence["flood"] or {}).get("url"),
             "denueUrl": (evidence["denue"] or {}).get("url"),
             "droughtUrl": drought.get("url"),
+            "seismicUrl": (evidence["seismic"] or {}).get("url"),
+            "climateUrl": (evidence["climate"] or {}).get("url"),
+            "osmUrl": (evidence["infrastructure"] or {}).get("url"),
+            "osmAttempts": (evidence["infrastructure"] or {}).get("attempts"),
         },
         "graph": {"objects": graph["objects"], "links": graph["links"]},
     }

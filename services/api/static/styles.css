@@ -119,6 +119,10 @@ button#score-all { background: var(--accent); color: #1a140c; border-color: tran
 .risk { margin: 0 0 12px; color: var(--muted); }
 .factor { padding: 10px 0; border-top: 1px solid var(--line); }
 .factor p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.layers-title { margin: 18px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.layer { padding: 8px 0; border-top: 1px solid var(--line); }
+.layer .row span { font-size: 12px; }
+.layer p { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
 .raw { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text); }
 .unpublished { border: 1px solid var(--bad); color: var(--bad); padding: 8px 10px; border-radius: 8px; font-size: 13px; }
 .objects { margin: 14px 0 0; padding: 0; list-style: none; }

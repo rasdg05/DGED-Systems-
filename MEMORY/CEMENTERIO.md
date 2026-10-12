@@ -18,6 +18,21 @@
 - Sin `INEGI_TOKEN` responde `No Autorizado`. La ventana del GeoServer no es
   el universo del radio: se muestra y no puntúa (D-008).
 
+### Open-Meteo archive (clima histórico) — 2026-10-12
+- `archive-api.open-meteo.com/v1/archive` (y `historical-forecast-api`, `climate-api`)
+  responden 429 `Daily API request limit exceeded` desde el servidor, incluso con
+  una consulta de cinco días: la cuota es por IP compartida. `api.open-meteo.com`
+  (pronóstico) sí responde, pero no trae cinco años.
+- Reemplazo: NASA POWER diario (`PRECTOTCORR`, `T2M_MAX`), sin clave (D-009).
+- Revivir solo con plan pagado con clave, o si responde 200 desde un servidor dos días seguidos.
+
+### Overpass `overpass-api.de` y `overpass.kumi.systems` como única instancia — 2026-10-12
+- `overpass-api.de`: connection reset en cada intento (también `/api/status`, `lz4.` y `z.`).
+- `overpass.kumi.systems`: 504 "server is probably too busy" o se agota a los 50 s.
+- `overpass.osm.jp`: certificado vencido. `overpass.private.coffee`: se agota.
+- Sigue en la lista de `osm.ENDPOINTS` porque la caída puede ser de esta red; la
+  que contestó fue `maps.mail.ru/osm/tools/overpass` (10–50 s, 504 a ratos).
+
 ## Componentes
 
 ### GeoLibre, Mundi.ai, ontograph-core, OpenFoundry — 2026-10-10
