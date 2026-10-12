@@ -23,6 +23,7 @@
 | XVI | `SubestacionAprox` llenada desde OSM no lleva capacidad, MW ni "disponible", ni en llaves ni en texto | `services/api/atlas/main.py::materialize` | `test_capas.py::test_substation_never_claims_capacity` (y V, que ahora también prohíbe `disponible`/`available`) |
 | XVII | Una página de error del SMN no se guarda como libro ni tumba el arranque | `connectors/conagua.py` | `test_capas.py::test_smn_html_error_page_is_not_a_workbook` |
 | XVIII | Ninguna marca de conflicto de git llega a un commit | todo el repo | `tests/test_invariantes.py::test_sin_marcas_de_conflicto` |
+| XIX | Al medir una fuente, un HTTP 200 sin dato es MUERTA y una conexión sin respuesta es NO CONCLUYE, nunca MUERTA (`MEMORY/FUENTES.md`) | `herramientas/medir_fuentes.py` | `tests/test_medir_fuentes.py` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

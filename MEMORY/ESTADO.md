@@ -29,7 +29,13 @@
   cambiaron); calificar reintenta el SMN y, si falla, califica con la sequía
   ausente (no publicable); una respuesta rara del WMS ya no cuenta como "no
   inundable".
-- Pruebas sin red: 69 de Python y 6 de `score.test.mjs`, en verde.
+- **Fuentes medidas** (`MEMORY/FUENTES.md`, `herramientas/medir_fuentes.py`): 23
+  fuentes el 2026-10-12. Vivas sin clave: USGS, NASA POWER, Sentinel-2 (Earth
+  Search y Planetary Computer), Copernicus DEM, World Bank, Catálogo Único, GHSL.
+  Con clave gratuita: Banxico SIE, INEGI BIE, NASA FIRMS. Open-Meteo gratis es
+  **solo no comercial**. No concluyen desde aquí (puertos que el proxy no deja):
+  CENACE PML, Atlas Nacional de Riesgos, SSN.
+- Pruebas sin red: 75 de Python y 6 de `score.test.mjs`, en verde.
 
 ## Bloqueos (con causa)
 
@@ -49,7 +55,8 @@
 
 1. Desplegar la demo en Railway: mide Docker y el SMN desde una red normal.
 2. Calificar los 10 sitios con 0.2.0 y actualizar la tabla de verificación.
-3. Pedir las claves INEGI (DENUE), SAKBÉ y Anthropic.
+3. Pedir las claves INEGI (DENUE), SAKBÉ y Anthropic; después Banxico, INEGI BIE y FIRMS.
+   Volver a medir CENACE PML, ANR y SSN desde el servidor de producción.
 4. Holgura eléctrica por corredor firmada contra PRODESEN (`DECISIONS.md` D-003).
 5. Mercado y portafolio a 90 días (`docs/08-mercado.md`,
    `docs/09-portafolio-90-dias.md`): agente WhatsApp, Atlas Comparativo (USD 15k,

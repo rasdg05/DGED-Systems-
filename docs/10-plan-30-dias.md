@@ -35,7 +35,8 @@ AWS o GCP hasta que un contrato lo exija.
 - [x] CI: ruff, cobertura con piso (49.62% al ponerlo; 60.01% tras integrar las capas), `docker compose config`.
 - [x] Dependabot (pip, Actions, Docker) y dependencias de desarrollo fijadas.
 - [x] Integrar conectores (D-009, atlas-live-0.2.0).
-- [ ] Integrar lo de los agentes de fuentes y verificación.
+- [x] Integrar fuentes (`MEMORY/FUENTES.md`, 23 medidas) y verificación (10 sitios en vivo, Docker, 4 bugs).
+- [x] Piso de cobertura: 65.81% medido tras integrar todo.
 - [ ] Desplegar la demo pública en Railway — **necesita acceso del dueño**.
 - [ ] Prueba diaria contra las fuentes reales en CI (avisa el día que INEGI o
       CONAGUA cambian).
