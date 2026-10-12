@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/api/requirements.txt pytest
+
+      - name: Score live e invariantes (sin red)
+        run: python -m pytest -q services/api tests
+
+      - name: Score de escritorio
+        run: node --test packages/score/score.test.mjs
+
+      - name: Smoke import del API
+        working-directory: services/api
+        run: python -c "import atlas.score, atlas.main"
