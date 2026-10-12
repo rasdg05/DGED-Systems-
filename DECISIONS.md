@@ -53,3 +53,7 @@ Aprobado por el dueño. Dos o tres predios con fecha de decisión, escenarios y 
 ## D-012 — 2026-10-12 — Tres primeras cuentas y cómo se despliega
 
 Fibra Mty, FIBRA Prologis y Vesta, por evidencia pública de compra en curso (`docs/09-portafolio-90-dias.md` §3). AMPIP es canal después del primer memo. Despliegue en Railway: demo pública de solo lectura, espacio de cliente con llave y trabajo de fondo. El Oráculo no abre sin `ATLAS_ACCESS_TOKEN` (`services/api/atlas/access.py`). Plan en `docs/10-plan-30-dias.md`.
+
+## D-013 — 2026-10-12 — Revisión de adquisiciones: precio por nave con tope por portafolio
+
+Aprobado por el dueño. Producto: memo de banderas rojas antes de la exclusividad (lectura del cuarto de datos con cita a página, rent roll, cruces, riesgo físico de Atlas). No incluye opinión legal, inspección física, ambiental firmado, valuación ni capacidad eléctrica certificada. Se cobra por nave con un tope por portafolio; los montos se fijan con comparables (pendiente del agente de mercado) y se agregan como decisión nueva. Detalle en `docs/11-revision-adquisiciones.md`.
