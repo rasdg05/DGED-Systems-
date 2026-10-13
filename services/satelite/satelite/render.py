@@ -12,6 +12,7 @@ COLORES = {
     1: (255, 140, 0),  # vegetación → suelo: naranja
     2: (230, 30, 200),  # suelo → construido: magenta
     3: (40, 200, 70),  # reverdecimiento: verde
+    4: (230, 30, 30),  # vegetación → construido: rojo
 }
 GRIS_NUBE = (150, 150, 160)
 
@@ -83,7 +84,7 @@ def dibujar(
         lienzo.paste(im, (x, cab))
         for k, linea in enumerate(titulo.split("\n")[:2]):
             dib.text((x + 2, 2 + 14 * k), linea, fill=(235, 235, 235))
-    ley = "naranja: vegetacion->suelo   magenta: suelo->construido   verde: reverdecimiento   gris: nube/sombra"
+    ley = "naranja: veg->suelo  rojo: veg->construido  magenta: suelo->construido  verde: reverdecimiento  gris: nube"
     dib.text((4, ancho + cab + 3), ley, fill=(200, 200, 200))
     # 256 colores con difuminado: un tercio del peso y se lee igual.
     lienzo.quantize(256, dither=Image.Dither.FLOYDSTEINBERG).save(ruta, optimize=True)

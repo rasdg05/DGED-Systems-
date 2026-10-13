@@ -248,3 +248,36 @@ def test_sin_escena_limpia_gana_la_menos_nublada_y_puede_no_concluir():
 
 def test_ventana_vacia_no_inventa_escena():
     assert emparejar([], [("2026-02-19T17:00:00Z", 0.0, "d1")])[0] is None
+
+
+# --- v0.2: a construido -----------------------------------------------------
+
+LOSA_GRIS = (0.08, 0.09, 0.10, 0.12, 0.12)
+SUELO_SECO = (0.13, 0.18, 0.23, 0.30, 0.40)  # el mismo suelo, más claro y seco
+
+
+def test_vegetacion_que_se_vuelve_techo_es_vegetacion_a_construido():
+    antes = _escena(VEGETACION)
+    despues = _escena(VEGETACION, [(slice(0, 10), slice(0, 10), TECHO)])
+    assert [z.tipo for z in _cambio(antes, despues).zonas] == ["vegetacion_a_construido"]
+
+
+def test_losa_gris_que_se_vuelve_techo_claro_es_construido():
+    antes = _escena(LOSA_GRIS)
+    despues = _escena(LOSA_GRIS, [(slice(0, 10), slice(0, 10), TECHO)])
+    assert [z.tipo for z in _cambio(antes, despues).zonas] == ["suelo_a_construido"]
+
+
+def test_suelo_que_solo_se_seca_y_aclara_no_es_construido():
+    assert _cambio(_escena(SUELO), _escena(SUELO_SECO)).zonas == []
+
+
+def test_posible_obra_suma_todo_menos_reverdecimiento():
+    antes = _escena(SUELO, [(slice(0, 10), slice(0, 10), VEGETACION), (slice(20, 30), slice(0, 10), VEGETACION)])
+    despues = _escena(SUELO, [(slice(0, 10), slice(0, 10), TECHO), (slice(40, 50), slice(0, 10), VEGETACION)])
+    r = _construir(_esc("A"), _esc("B"), _cambio(antes, despues))
+    assert r["hectareas_por_tipo"]["vegetacion_a_construido"] == pytest.approx(1.0)
+    assert r["hectareas_por_tipo"]["vegetacion_a_suelo"] == pytest.approx(1.0)
+    assert r["hectareas_por_tipo"]["reverdecimiento"] == pytest.approx(1.0)
+    assert r["hectareas_posible_obra"] == pytest.approx(2.0)
+    assert r["hectareas_cambiadas"] == pytest.approx(3.0)

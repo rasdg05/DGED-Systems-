@@ -11,9 +11,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 
 from . import indices as _ix
-from .indices import AREA_MINIMA_PX, NUBOSIDAD_MAXIMA, TIPOS, Cambio
+from .indices import AREA_MINIMA_PX, NUBOSIDAD_MAXIMA, TIPOS, TIPOS_OBRA, Cambio
 
-VERSION = "satelite-0.1.0"
+VERSION = "satelite-0.2.0"
 
 
 @dataclass
@@ -38,6 +38,8 @@ def umbrales() -> dict:
         "delta_bsi_construido": _ix.DELTA_BSI_CONSTRUIDO,
         "delta_brillo_construido": _ix.DELTA_BRILLO_CONSTRUIDO,
         "delta_ndvi_ganancia": _ix.DELTA_NDVI_GANANCIA,
+        "delta_brillo_techo": _ix.DELTA_BRILLO_TECHO,
+        "bsi_no_suelo": _ix.BSI_NO_SUELO,
         "area_minima_px": AREA_MINIMA_PX,
         "area_minima_ha": round(AREA_MINIMA_PX * _ix.HA_POR_PIXEL_10M, 2),
     }
@@ -114,9 +116,7 @@ def construir(
             "hectareas_cambiadas": cambio.hectareas(),
             # Lo que puede ser obra: desmonte o suelo que se volvió techo/pavimento.
             # El reverdecimiento se reporta aparte y no cuenta aquí.
-            "hectareas_posible_obra": round(
-                cambio.hectareas("vegetacion_a_suelo") + cambio.hectareas("suelo_a_construido"), 2
-            ),
+            "hectareas_posible_obra": round(sum(cambio.hectareas(t) for t in TIPOS_OBRA), 2),
             "hectareas_por_tipo": {nombre: cambio.hectareas(nombre) for nombre in TIPOS.values()},
             "zonas": zonas,
         }

@@ -44,6 +44,12 @@ DELTA_BSI_CONSTRUIDO = -0.10
 #: Cambio mínimo de brillo visible (reflectancia media R+G+B) para el caso
 #: suelo→construido: sin él, una lluvia que oscurece el suelo pasaría por techo.
 DELTA_BRILLO_CONSTRUIDO = 0.04
+#: Aclarado fuerte de un píxel sin vegetación que termina con firma de no-suelo
+#: (BSI ≤ 0): losa gris o terracería compactada que se vuelve techo claro. Se
+#: agregó en la v0.2, DESPUÉS de mirar las dos obras de prueba: no está validado.
+DELTA_BRILLO_TECHO = 0.08
+#: BSI por debajo del cual el píxel "ya no parece suelo" (el suelo desnudo da BSI > 0).
+BSI_NO_SUELO = 0.0
 #: Subida de NDVI que se reporta como reverdecimiento (no es obra, se dice).
 DELTA_NDVI_GANANCIA = 0.20
 
@@ -56,7 +62,10 @@ TIPOS = {
     1: "vegetacion_a_suelo",
     2: "suelo_a_construido",
     3: "reverdecimiento",
+    4: "vegetacion_a_construido",
 }
+#: Los tipos que pueden ser obra (el reverdecimiento no).
+TIPOS_OBRA = ("vegetacion_a_suelo", "vegetacion_a_construido", "suelo_a_construido")
 
 
 def reflectancia(dn: np.ndarray, escala: float = 0.0001, offset: float = -0.1, nodata: int = 0) -> np.ndarray:
@@ -151,18 +160,20 @@ def clasificar(antes: Bandas, despues: Bandas, region: np.ndarray | None = None)
     dbrillo = d["brillo"] - a["brillo"]
 
     perdida = (a["ndvi"] >= NDVI_VEGETACION) & (dndvi <= DELTA_NDVI_PERDIDA) & (d["ndvi"] < NDVI_VEGETACION)
-    construido = (
-        (a["ndvi"] < NDVI_NO_VEGETACION)
-        & (d["ndvi"] < NDVI_NO_VEGETACION)
-        & (dbsi <= DELTA_BSI_CONSTRUIDO)
-        & (np.abs(dbrillo) >= DELTA_BRILLO_CONSTRUIDO)
+    # Después de perder la vegetación, ¿quedó suelo o algo que ya no es suelo y aclaró (techo)?
+    a_techo = (d["bsi"] <= BSI_NO_SUELO) & (dbrillo >= DELTA_BRILLO_CONSTRUIDO)
+    sin_veg = (a["ndvi"] < NDVI_NO_VEGETACION) & (d["ndvi"] < NDVI_NO_VEGETACION)
+    construido = sin_veg & (
+        ((dbsi <= DELTA_BSI_CONSTRUIDO) & (np.abs(dbrillo) >= DELTA_BRILLO_CONSTRUIDO))
+        | ((dbrillo >= DELTA_BRILLO_TECHO) & (d["bsi"] <= BSI_NO_SUELO))
     )
     ganancia = dndvi >= DELTA_NDVI_GANANCIA
 
     tipo = np.zeros(valido.shape, dtype=np.uint8)
     tipo[ganancia & valido] = 3
     tipo[construido & valido] = 2
-    tipo[perdida & valido] = 1
+    tipo[perdida & ~a_techo & valido] = 1
+    tipo[perdida & a_techo & valido] = 4
     return tipo
 
 
