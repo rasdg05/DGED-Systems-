@@ -35,6 +35,13 @@
   Con clave gratuita: Banxico SIE, INEGI BIE, NASA FIRMS. Open-Meteo gratis es
   **solo no comercial**. No concluyen desde aquí (puertos que el proxy no deja):
   CENACE PML, Atlas Nacional de Riesgos, SSN.
+- **Fuentes para productos nuevos, medidas 2026-10-13** (`MEMORY/FUENTES.md`):
+  Sentinel-1 VIVA (firma SAS anónima; revisita 3 días en la costa, hasta 7 en
+  Apodaca: no se promete "≤24 h" en alertas); recorte Sentinel-2 en stdlib VIVO;
+  CBP tiempos de cruce VIVO (sin serie histórica: hay que guardarla); compras de
+  Nuevo León VIVAS (OCDS 2026 y 179 obras con coordenadas); FIRMS CSV 24 h sin
+  clave VIVO. ComprasMX federal y la PNT: MUERTAS para lectura automática
+  (captcha), al cementerio.
 - **Lector del cuarto de datos** (`services/dataroom/`, `docs/14-lector-dataroom.md`,
   D-013): cita literal por página o se descarta; rent roll, cruces deterministas
   y memo de banderas rojas. En la muestra ficticia encuentra exactamente los 5
@@ -42,7 +49,7 @@
   `fallbacks` y la salida estructurada van juntos en la primera llamada.
 - **Precios** (`docs/13-comparables-precio.md`): propuesta de USD 3,500 por nave,
   mínimo 3, tope USD 45,000 por 60 naves — **pendiente de aprobación del dueño**.
-- Pruebas sin red: 96 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom 73%.
+- Pruebas sin red: 105 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom 73%.
 
 ## Bloqueos (con causa)
 
