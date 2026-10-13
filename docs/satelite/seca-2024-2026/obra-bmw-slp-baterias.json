@@ -1,0 +1,350 @@
+{
+  "version": "satelite-0.2.0",
+  "nombre": "obra-bmw-slp-baterias",
+  "punto": {
+    "lat": 21.9682649,
+    "lon": -100.8491733
+  },
+  "radio_m": 1500.0,
+  "area_analizada_ha": 706.88,
+  "ventanas": {
+    "antes": [
+      "2024-01-01",
+      "2024-04-30"
+    ],
+    "despues": [
+      "2026-01-01",
+      "2026-04-30"
+    ]
+  },
+  "antes": {
+    "id": "S2A_14QLK_20240423_0_L2A",
+    "fecha": "2024-04-23T17:27:47.308000Z",
+    "nubosidad_recorte": 0.0,
+    "nubosidad_escena": 0.062409,
+    "mosaico": "14QLK",
+    "epsg": 32614,
+    "fuente": "https://earth-search.aws.element84.com/v1",
+    "enlace": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2A_14QLK_20240423_0_L2A"
+  },
+  "despues": {
+    "id": "S2C_14QLK_20260423_0_L2A",
+    "fecha": "2026-04-23T17:27:44.973000Z",
+    "nubosidad_recorte": 0.0,
+    "nubosidad_escena": 0.441389,
+    "mosaico": "14QLK",
+    "epsg": 32614,
+    "fuente": "https://earth-search.aws.element84.com/v1",
+    "enlace": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2C_14QLK_20260423_0_L2A"
+  },
+  "escenas_citadas": [
+    "S2A_14QLK_20240423_0_L2A",
+    "S2C_14QLK_20260423_0_L2A"
+  ],
+  "umbrales": {
+    "nubosidad_maxima_recorte": 0.2,
+    "scl_invalidas": [
+      0,
+      1,
+      3,
+      8,
+      9,
+      10,
+      11
+    ],
+    "delta_ndvi_perdida": -0.2,
+    "ndvi_vegetacion": 0.3,
+    "ndvi_no_vegetacion": 0.25,
+    "delta_bsi_construido": -0.1,
+    "delta_brillo_construido": 0.04,
+    "delta_ndvi_ganancia": 0.2,
+    "delta_brillo_techo": 0.08,
+    "bsi_no_suelo": 0.0,
+    "area_minima_px": 50,
+    "area_minima_ha": 0.5
+  },
+  "avisos": [],
+  "png": "docs/satelite/seca-2024-2026/obra-bmw-slp-baterias.png",
+  "estado": "concluye",
+  "motivo": null,
+  "hectareas_cambiadas": 67.05,
+  "hectareas_posible_obra": 45.03,
+  "hectareas_por_tipo": {
+    "vegetacion_a_suelo": 24.17,
+    "suelo_a_construido": 20.86,
+    "reverdecimiento": 22.02,
+    "vegetacion_a_construido": 0
+  },
+  "zonas": [
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 11.23,
+      "pixeles": 1123,
+      "centroide": {
+        "lat": 21.965786,
+        "lon": -100.837945
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 9.89,
+      "pixeles": 989,
+      "centroide": {
+        "lat": 21.967542,
+        "lon": -100.843025
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 4.81,
+      "pixeles": 481,
+      "centroide": {
+        "lat": 21.973927,
+        "lon": -100.861324
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 3.83,
+      "pixeles": 383,
+      "centroide": {
+        "lat": 21.972567,
+        "lon": -100.857315
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 3.78,
+      "pixeles": 378,
+      "centroide": {
+        "lat": 21.980248,
+        "lon": -100.848256
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 3.02,
+      "pixeles": 302,
+      "centroide": {
+        "lat": 21.97626,
+        "lon": -100.859839
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 2.75,
+      "pixeles": 275,
+      "centroide": {
+        "lat": 21.961325,
+        "lon": -100.844323
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 2.54,
+      "pixeles": 254,
+      "centroide": {
+        "lat": 21.979249,
+        "lon": -100.841426
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 2.45,
+      "pixeles": 245,
+      "centroide": {
+        "lat": 21.975315,
+        "lon": -100.841041
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 2.28,
+      "pixeles": 228,
+      "centroide": {
+        "lat": 21.963053,
+        "lon": -100.841216
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 2.1,
+      "pixeles": 210,
+      "centroide": {
+        "lat": 21.974347,
+        "lon": -100.848748
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 1.68,
+      "pixeles": 168,
+      "centroide": {
+        "lat": 21.959353,
+        "lon": -100.841301
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 1.53,
+      "pixeles": 153,
+      "centroide": {
+        "lat": 21.979279,
+        "lon": -100.856577
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 1.51,
+      "pixeles": 151,
+      "centroide": {
+        "lat": 21.969425,
+        "lon": -100.861112
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.45,
+      "pixeles": 145,
+      "centroide": {
+        "lat": 21.978722,
+        "lon": -100.849781
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.37,
+      "pixeles": 137,
+      "centroide": {
+        "lat": 21.979268,
+        "lon": -100.855209
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 1.26,
+      "pixeles": 126,
+      "centroide": {
+        "lat": 21.957281,
+        "lon": -100.84273
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 1.18,
+      "pixeles": 118,
+      "centroide": {
+        "lat": 21.971965,
+        "lon": -100.861109
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 0.96,
+      "pixeles": 96,
+      "centroide": {
+        "lat": 21.971305,
+        "lon": -100.859007
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 0.89,
+      "pixeles": 89,
+      "centroide": {
+        "lat": 21.958576,
+        "lon": -100.84181
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 0.86,
+      "pixeles": 86,
+      "centroide": {
+        "lat": 21.969994,
+        "lon": -100.86295
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.75,
+      "pixeles": 75,
+      "centroide": {
+        "lat": 21.979325,
+        "lon": -100.850548
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.71,
+      "pixeles": 71,
+      "centroide": {
+        "lat": 21.962351,
+        "lon": -100.85415
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 0.68,
+      "pixeles": 68,
+      "centroide": {
+        "lat": 21.96763,
+        "lon": -100.835774
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 0.66,
+      "pixeles": 66,
+      "centroide": {
+        "lat": 21.968494,
+        "lon": -100.842201
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 0.65,
+      "pixeles": 65,
+      "centroide": {
+        "lat": 21.979958,
+        "lon": -100.847271
+      }
+    },
+    {
+      "tipo": "suelo_a_construido",
+      "hectareas": 0.63,
+      "pixeles": 63,
+      "centroide": {
+        "lat": 21.96604,
+        "lon": -100.84912
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.56,
+      "pixeles": 56,
+      "centroide": {
+        "lat": 21.961261,
+        "lon": -100.839305
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.53,
+      "pixeles": 53,
+      "centroide": {
+        "lat": 21.974514,
+        "lon": -100.857538
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 0.51,
+      "pixeles": 51,
+      "centroide": {
+        "lat": 21.958296,
+        "lon": -100.843625
+      }
+    }
+  ]
+}

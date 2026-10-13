@@ -42,6 +42,14 @@
   Nuevo León VIVAS (OCDS 2026 y 179 obras con coordenadas); FIRMS CSV 24 h sin
   clave VIVO. ComprasMX federal y la PNT: MUERTAS para lectura automática
   (captcha), al cementerio.
+- **Ojo satelital, prototipo** (`services/satelite/`, `docs/12-ojo-satelital.md`):
+  Sentinel-2 sin clave, nubes medidas con SCL sobre el recorte, NDVI/NDBI/BSI,
+  "no concluye" con nubes. Corrido en vivo sobre 10 sitios y 2 obras (seca
+  2024 vs 2026): BMW SLP muestra 20.9 ha suelo→construido dentro del polígono
+  OSM de la planta (plausible, no verificado); LEGO no se pudo atribuir. **n = 2:
+  no concluye precisión.** Dos umbrales de v0.2 se pusieron después de ver las
+  obras: no validados. Siguiente: las 55 naves en construcción de Monterrey que
+  reporta Colliers.
 - **Lector del cuarto de datos** (`services/dataroom/`, `docs/14-lector-dataroom.md`,
   D-013): cita literal por página o se descarta; rent roll, cruces deterministas
   y memo de banderas rojas. En la muestra ficticia encuentra exactamente los 5
@@ -49,7 +57,7 @@
   `fallbacks` y la salida estructurada van juntos en la primera llamada.
 - **Precios** (`docs/13-comparables-precio.md`): propuesta de USD 3,500 por nave,
   mínimo 3, tope USD 45,000 por 60 naves — **pendiente de aprobación del dueño**.
-- Pruebas sin red: 105 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom 73%.
+- Pruebas sin red: 135 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite 70.82% (piso 70).
 
 ## Bloqueos (con causa)
 

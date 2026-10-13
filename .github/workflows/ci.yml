@@ -22,17 +22,23 @@ jobs:
       - name: Dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r services/api/requirements.txt -r services/dataroom/requirements.txt -r requirements-dev.txt
+          pip install -r services/api/requirements.txt -r services/dataroom/requirements.txt -r services/satelite/requirements.txt -r requirements-dev.txt
 
       - name: Lint
         run: ruff check .
 
       - name: Score live, Oráculo, acceso e invariantes (sin red), con cobertura
-        # Piso: cobertura de atlas + dataroom medida al integrar el lector (73%, 2026-10-13). Sube; no baja.
-        run: python -m pytest -q --cov --cov-report=term --cov-fail-under=73
+        # Piso: cobertura de atlas + dataroom + satelite al integrar el satélite (70.82%, 2026-10-13).
+        # Bajó de 73 porque entraron los módulos de red y CLI del satélite (cambios.py, lote.py, stac.py). Sube; no baja.
+        run: python -m pytest -q --cov --cov-report=term --cov-fail-under=70
 
       - name: Lector del cuarto de datos (sin red ni clave, cliente grabado)
         run: python -m pytest -q services/dataroom/tests
+
+      - name: Ojo satelital (services/satelite, arreglos sintéticos, sin red)
+        # También corre dentro del paso anterior (testpaths); aquí va solo para
+        # que un rojo del satélite se vea con su nombre.
+        run: python -m pytest -q services/satelite -p no:cacheprovider
 
       - name: Score de escritorio
         run: node --test packages/score/score.test.mjs

@@ -1,0 +1,254 @@
+[
+  {
+    "id": "apodaca-industrial",
+    "grupo": "seed",
+    "nombre": "Apodaca, corredor industrial",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14RLP_20240324_0_L2A",
+    "fecha_antes": "2024-03-24",
+    "nub_antes": 0.0,
+    "despues": "S2A_14RLP_20260326_0_L2A",
+    "fecha_despues": "2026-03-26",
+    "nub_despues": 0.0,
+    "ha_total": 37.87,
+    "ha_posible_obra": 25.17,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 24.61,
+      "suelo_a_construido": 0.56,
+      "reverdecimiento": 12.7,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "pesqueria-kia",
+    "grupo": "seed",
+    "nombre": "Pesquería, corredor KIA",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2B_14RLP_20240129_0_L2A",
+    "fecha_antes": "2024-01-29",
+    "nub_antes": 0.0,
+    "despues": "S2B_14RLP_20260128_0_L2A",
+    "fecha_despues": "2026-01-28",
+    "nub_despues": 0.0,
+    "ha_total": 296.95,
+    "ha_posible_obra": 29.91,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 29.91,
+      "suelo_a_construido": 0,
+      "reverdecimiento": 267.04,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "salinas-hofusan",
+    "grupo": "seed",
+    "nombre": "Salinas Victoria, norte",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14RLP_20240324_0_L2A",
+    "fecha_antes": "2024-03-24",
+    "nub_antes": 0.0,
+    "despues": "S2A_14RLP_20260326_0_L2A",
+    "fecha_despues": "2026-03-26",
+    "nub_despues": 0.0,
+    "ha_total": 43.6,
+    "ha_posible_obra": 41.55,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 38.43,
+      "suelo_a_construido": 3.12,
+      "reverdecimiento": 2.05,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "garcia-poniente",
+    "grupo": "seed",
+    "nombre": "García, poniente",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14RLP_20240324_0_L2A",
+    "fecha_antes": "2024-03-24",
+    "nub_antes": 0.0,
+    "despues": "S2A_14RLP_20260326_0_L2A",
+    "fecha_despues": "2026-03-26",
+    "nub_despues": 0.0,
+    "ha_total": 44.81,
+    "ha_posible_obra": 44.14,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 44.14,
+      "suelo_a_construido": 0,
+      "reverdecimiento": 0.67,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "ramos-arizpe",
+    "grupo": "seed",
+    "nombre": "Ramos Arizpe",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14RLP_20240324_0_L2A",
+    "fecha_antes": "2024-03-24",
+    "nub_antes": 0.0,
+    "despues": "S2A_14RLP_20260326_0_L2A",
+    "fecha_despues": "2026-03-26",
+    "nub_despues": 0.0,
+    "ha_total": 44.06,
+    "ha_posible_obra": 41.28,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 40.74,
+      "suelo_a_construido": 0,
+      "reverdecimiento": 2.78,
+      "vegetacion_a_construido": 0.54
+    }
+  },
+  {
+    "id": "puerto-interior",
+    "grupo": "seed",
+    "nombre": "Puerto Interior, Silao",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_13QHD_20240403_0_L2A",
+    "fecha_antes": "2024-04-03",
+    "nub_antes": 0.0,
+    "despues": "S2C_13QHD_20260403_0_L2A",
+    "fecha_despues": "2026-04-03",
+    "nub_despues": 0.0,
+    "ha_total": 101.99,
+    "ha_posible_obra": 11.87,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 11.87,
+      "suelo_a_construido": 0,
+      "reverdecimiento": 90.12,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "el-marques",
+    "grupo": "seed",
+    "nombre": "El Marqués, Querétaro",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14QLH_20240324_0_L2A",
+    "fecha_antes": "2024-03-24",
+    "nub_antes": 0.0,
+    "despues": "S2A_14QLH_20260326_1_L2A",
+    "fecha_despues": "2026-03-26",
+    "nub_despues": 0.0,
+    "ha_total": 365.48,
+    "ha_posible_obra": 43.21,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 43.21,
+      "suelo_a_construido": 0,
+      "reverdecimiento": 322.27,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "celaya",
+    "grupo": "seed",
+    "nombre": "Celaya, corredor industrial",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2B_14QKH_20240228_0_L2A",
+    "fecha_antes": "2024-02-28",
+    "nub_antes": 0.0,
+    "despues": "S2B_14QKH_20260227_0_L2A",
+    "fecha_despues": "2026-02-27",
+    "nub_despues": 0.0,
+    "ha_total": 64.06,
+    "ha_posible_obra": 21.86,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 21.86,
+      "suelo_a_construido": 0,
+      "reverdecimiento": 42.2,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "slp-industrial",
+    "grupo": "seed",
+    "nombre": "San Luis Potosí, zona industrial",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14QKK_20240304_0_L2A",
+    "fecha_antes": "2024-03-04",
+    "nub_antes": 0.0,
+    "despues": "S2C_14QKK_20260304_0_L2A",
+    "fecha_despues": "2026-03-04",
+    "nub_despues": 0.0,
+    "ha_total": 2.89,
+    "ha_posible_obra": 0,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 0,
+      "suelo_a_construido": 0,
+      "reverdecimiento": 2.89,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "leon-sur",
+    "grupo": "seed",
+    "nombre": "León, sur",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_13QHD_20240403_0_L2A",
+    "fecha_antes": "2024-04-03",
+    "nub_antes": 0.0,
+    "despues": "S2C_13QHD_20260403_0_L2A",
+    "fecha_despues": "2026-04-03",
+    "nub_despues": 0.0,
+    "ha_total": 25.38,
+    "ha_posible_obra": 8.77,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 8.77,
+      "suelo_a_construido": 0,
+      "reverdecimiento": 16.61,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "obra-bmw-slp-baterias",
+    "grupo": "obra",
+    "nombre": "BMW SLP, centro de módulos de baterías (81,876 m², obra desde 2024-05-03)",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14QLK_20240423_0_L2A",
+    "fecha_antes": "2024-04-23",
+    "nub_antes": 0.0,
+    "despues": "S2C_14QLK_20260423_0_L2A",
+    "fecha_despues": "2026-04-23",
+    "nub_despues": 0.0,
+    "ha_total": 67.05,
+    "ha_posible_obra": 45.03,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 24.17,
+      "suelo_a_construido": 20.86,
+      "reverdecimiento": 22.02,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "obra-lego-cienega",
+    "grupo": "obra",
+    "nombre": "LEGO Ciénega de Flores, nave de 59,000 m² (lista prevista 2025-05)",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14RLP_20240324_0_L2A",
+    "fecha_antes": "2024-03-24",
+    "nub_antes": 0.0,
+    "despues": "S2A_14RLP_20260326_0_L2A",
+    "fecha_despues": "2026-03-26",
+    "nub_despues": 0.0,
+    "ha_total": 37.82,
+    "ha_posible_obra": 32.26,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 30.77,
+      "suelo_a_construido": 1.49,
+      "reverdecimiento": 5.56,
+      "vegetacion_a_construido": 0
+    }
+  }
+]

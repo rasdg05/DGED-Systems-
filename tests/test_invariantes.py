@@ -126,3 +126,17 @@ def test_sin_marcas_de_conflicto():
         if marca.search(archivo.read_text(encoding="utf-8", errors="replace")):
             hallados.append(str(archivo.relative_to(RAIZ)))
     assert not hallados, f"marcas de conflicto en: {hallados}"
+
+
+# XXIX — ningún artefacto generado vive en git. `.coverage` estuvo versionado
+# del 2026-10-12 al 13 (un `git add -A` tras medir cobertura) y chocó al
+# integrar el satélite.
+def test_sin_artefactos_generados_en_git():
+    import subprocess
+
+    rastreados = subprocess.run(
+        ["git", "ls-files"], cwd=RAIZ, capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+    prohibidos = re.compile(r"(^|/)(\.coverage(\..*)?|\.pytest_cache/.*|\.ruff_cache/.*|__pycache__/.*|.*\.pyc)$")
+    hallados = [r for r in rastreados if prohibidos.search(r)]
+    assert not hallados, f"artefactos generados en git: {hallados}"

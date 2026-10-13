@@ -29,6 +29,11 @@
 | XXII | Sin `ANTHROPIC_API_KEY` el lector no lee ni escribe nada | `dataroom/leer.py` | `services/dataroom/tests/test_dataroom_lector.py`::`test_sin_clave_el_cli_duerme_con_mensaje_claro` |
 | XXIII | D-003 en el lector: ningún esquema tiene capacidad; lo de un oficio sale solo "según el oficio" | `dataroom/esquemas.py`, `extraccion.py` | `services/dataroom/tests/test_dataroom_lector.py`::`test_ningun_esquema_tiene_campo_de_capacidad` y vecinos |
 | XXIV | Los cruces sobre la muestra encuentran exactamente los errores plantados; la muestra es ficticia y marcada | `dataroom/cruces.py`, `muestra/` | `services/dataroom/tests/test_dataroom_lector.py`::`test_los_cruces_encuentran_exactamente_los_errores_plantados` |
+| XXV | Un cambio satelital tiene hectáreas solo si cita las dos escenas con ID y fecha | `services/satelite/satelite/resultado.py::assert_citado` | `services/satelite/tests/` `test_assert_citado_rechaza_hectareas_sin_escena`, `test_concluye_cita_las_dos_escenas_con_fecha` |
+| XXVI | Recorte con más de 20% de nubes o ventana sin escena → "no concluye" con hectáreas `null`, nunca 0 | `satelite/resultado.py` | `services/satelite/tests/` `test_recorte_nublado_no_concluye_y_no_da_hectareas`, `test_sin_escena_no_concluye` |
+| XXVII | Un pixel nublado en cualquiera de las dos fechas nunca cuenta como cambio | `satelite/indices.py` | `services/satelite/tests/` `test_pixel_nublado_en_cualquier_fecha_nunca_cambia` |
+| XXVIII | El reverdecimiento nunca cuenta como posible obra | `satelite/indices.py` | `services/satelite/tests/` `test_posible_obra_suma_todo_menos_reverdecimiento` |
+| XXIX | Ningún artefacto generado (`.coverage`, cachés, `.pyc`) vive en git | `.gitignore` | `tests/test_invariantes.py::test_sin_artefactos_generados_en_git` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 
