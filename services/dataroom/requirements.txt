@@ -1,0 +1,6 @@
+# Lector del cuarto de datos (services/dataroom). Aislado de services/api.
+anthropic==1.13.0
+pypdf==6.17.0
+# Solo para regenerar el cuarto de muestra ficticio (muestra/generar_muestra.py).
+reportlab==5.0.1
+pillow==12.3.0
