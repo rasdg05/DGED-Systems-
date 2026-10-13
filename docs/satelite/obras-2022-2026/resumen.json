@@ -1,0 +1,44 @@
+[
+  {
+    "id": "obra-bmw-slp-baterias",
+    "grupo": "obra",
+    "nombre": "BMW SLP, centro de módulos de baterías (81,876 m², obra desde 2024-05-03)",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14QLK_20220404_0_L2A",
+    "fecha_antes": "2022-04-04",
+    "nub_antes": 0.0,
+    "despues": "S2C_14QLK_20260403_0_L2A",
+    "fecha_despues": "2026-04-03",
+    "nub_despues": 0.0,
+    "ha_total": 138.76,
+    "ha_posible_obra": 91.47,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 73.85,
+      "suelo_a_construido": 17.62,
+      "reverdecimiento": 47.29,
+      "vegetacion_a_construido": 0
+    }
+  },
+  {
+    "id": "obra-lego-cienega",
+    "grupo": "obra",
+    "nombre": "LEGO Ciénega de Flores, nave de 59,000 m² (lista prevista 2025-05)",
+    "estado": "concluye",
+    "motivo": null,
+    "antes": "S2A_14RLP_20220315_0_L2A",
+    "fecha_antes": "2022-03-15",
+    "nub_antes": 0.0,
+    "despues": "S2C_14RLP_20260314_0_L2A",
+    "fecha_despues": "2026-03-14",
+    "nub_despues": 0.0,
+    "ha_total": 187.81,
+    "ha_posible_obra": 50.56,
+    "ha_por_tipo": {
+      "vegetacion_a_suelo": 38.25,
+      "suelo_a_construido": 12.31,
+      "reverdecimiento": 137.25,
+      "vegetacion_a_construido": 0
+    }
+  }
+]

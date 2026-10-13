@@ -1,0 +1,476 @@
+{
+  "version": "satelite-0.2.0",
+  "nombre": "puerto-interior",
+  "punto": {
+    "lat": 20.9665,
+    "lon": -101.469
+  },
+  "radio_m": 1500.0,
+  "area_analizada_ha": 706.88,
+  "ventanas": {
+    "antes": [
+      "2024-01-01",
+      "2024-04-30"
+    ],
+    "despues": [
+      "2026-01-01",
+      "2026-04-30"
+    ]
+  },
+  "antes": {
+    "id": "S2A_13QHD_20240403_0_L2A",
+    "fecha": "2024-04-03T17:28:01.085000Z",
+    "nubosidad_recorte": 0.0,
+    "nubosidad_escena": 0.001374,
+    "mosaico": "13QHD",
+    "epsg": 32613,
+    "fuente": "https://earth-search.aws.element84.com/v1",
+    "enlace": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2A_13QHD_20240403_0_L2A"
+  },
+  "despues": {
+    "id": "S2C_13QHD_20260403_0_L2A",
+    "fecha": "2026-04-03T17:28:03.426000Z",
+    "nubosidad_recorte": 0.0,
+    "nubosidad_escena": 0.045773,
+    "mosaico": "13QHD",
+    "epsg": 32613,
+    "fuente": "https://earth-search.aws.element84.com/v1",
+    "enlace": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2C_13QHD_20260403_0_L2A"
+  },
+  "escenas_citadas": [
+    "S2A_13QHD_20240403_0_L2A",
+    "S2C_13QHD_20260403_0_L2A"
+  ],
+  "umbrales": {
+    "nubosidad_maxima_recorte": 0.2,
+    "scl_invalidas": [
+      0,
+      1,
+      3,
+      8,
+      9,
+      10,
+      11
+    ],
+    "delta_ndvi_perdida": -0.2,
+    "ndvi_vegetacion": 0.3,
+    "ndvi_no_vegetacion": 0.25,
+    "delta_bsi_construido": -0.1,
+    "delta_brillo_construido": 0.04,
+    "delta_ndvi_ganancia": 0.2,
+    "delta_brillo_techo": 0.08,
+    "bsi_no_suelo": 0.0,
+    "area_minima_px": 50,
+    "area_minima_ha": 0.5
+  },
+  "avisos": [],
+  "png": "docs/satelite/seca-2024-2026/puerto-interior.png",
+  "estado": "concluye",
+  "motivo": null,
+  "hectareas_cambiadas": 101.99,
+  "hectareas_posible_obra": 11.87,
+  "hectareas_por_tipo": {
+    "vegetacion_a_suelo": 11.87,
+    "suelo_a_construido": 0,
+    "reverdecimiento": 90.12,
+    "vegetacion_a_construido": 0
+  },
+  "zonas": [
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 14.79,
+      "pixeles": 1479,
+      "centroide": {
+        "lat": 20.970833,
+        "lon": -101.470794
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 12.56,
+      "pixeles": 1256,
+      "centroide": {
+        "lat": 20.970973,
+        "lon": -101.475072
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 8.66,
+      "pixeles": 866,
+      "centroide": {
+        "lat": 20.962732,
+        "lon": -101.462639
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 6.3,
+      "pixeles": 630,
+      "centroide": {
+        "lat": 20.958228,
+        "lon": -101.47424
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 4.76,
+      "pixeles": 476,
+      "centroide": {
+        "lat": 20.95894,
+        "lon": -101.465901
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 3.96,
+      "pixeles": 396,
+      "centroide": {
+        "lat": 20.975185,
+        "lon": -101.475426
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 3.91,
+      "pixeles": 391,
+      "centroide": {
+        "lat": 20.959794,
+        "lon": -101.463676
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 3.42,
+      "pixeles": 342,
+      "centroide": {
+        "lat": 20.978764,
+        "lon": -101.473113
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 3.24,
+      "pixeles": 324,
+      "centroide": {
+        "lat": 20.969777,
+        "lon": -101.47836
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 3.15,
+      "pixeles": 315,
+      "centroide": {
+        "lat": 20.954874,
+        "lon": -101.469587
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 2.62,
+      "pixeles": 262,
+      "centroide": {
+        "lat": 20.965655,
+        "lon": -101.459662
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 2.62,
+      "pixeles": 262,
+      "centroide": {
+        "lat": 20.965257,
+        "lon": -101.467343
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 2.37,
+      "pixeles": 237,
+      "centroide": {
+        "lat": 20.959327,
+        "lon": -101.45745
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.98,
+      "pixeles": 198,
+      "centroide": {
+        "lat": 20.965943,
+        "lon": -101.461659
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.81,
+      "pixeles": 181,
+      "centroide": {
+        "lat": 20.962705,
+        "lon": -101.469276
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.69,
+      "pixeles": 169,
+      "centroide": {
+        "lat": 20.975972,
+        "lon": -101.461621
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.59,
+      "pixeles": 159,
+      "centroide": {
+        "lat": 20.97353,
+        "lon": -101.46616
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.55,
+      "pixeles": 155,
+      "centroide": {
+        "lat": 20.971851,
+        "lon": -101.463777
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 1.4,
+      "pixeles": 140,
+      "centroide": {
+        "lat": 20.963556,
+        "lon": -101.460101
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.39,
+      "pixeles": 139,
+      "centroide": {
+        "lat": 20.958276,
+        "lon": -101.470682
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.13,
+      "pixeles": 113,
+      "centroide": {
+        "lat": 20.95497,
+        "lon": -101.464974
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.06,
+      "pixeles": 106,
+      "centroide": {
+        "lat": 20.975279,
+        "lon": -101.466995
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.05,
+      "pixeles": 105,
+      "centroide": {
+        "lat": 20.972298,
+        "lon": -101.465208
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.05,
+      "pixeles": 105,
+      "centroide": {
+        "lat": 20.967351,
+        "lon": -101.466838
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 0.96,
+      "pixeles": 96,
+      "centroide": {
+        "lat": 20.959875,
+        "lon": -101.458624
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.94,
+      "pixeles": 94,
+      "centroide": {
+        "lat": 20.970149,
+        "lon": -101.467721
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.92,
+      "pixeles": 92,
+      "centroide": {
+        "lat": 20.97068,
+        "lon": -101.462338
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 0.89,
+      "pixeles": 89,
+      "centroide": {
+        "lat": 20.963888,
+        "lon": -101.458651
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.83,
+      "pixeles": 83,
+      "centroide": {
+        "lat": 20.974112,
+        "lon": -101.478184
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.82,
+      "pixeles": 82,
+      "centroide": {
+        "lat": 20.971792,
+        "lon": -101.456427
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.77,
+      "pixeles": 77,
+      "centroide": {
+        "lat": 20.961855,
+        "lon": -101.471269
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.77,
+      "pixeles": 77,
+      "centroide": {
+        "lat": 20.960642,
+        "lon": -101.465711
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.76,
+      "pixeles": 76,
+      "centroide": {
+        "lat": 20.975434,
+        "lon": -101.474414
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 0.65,
+      "pixeles": 65,
+      "centroide": {
+        "lat": 20.96311,
+        "lon": -101.457506
+      }
+    },
+    {
+      "tipo": "vegetacion_a_suelo",
+      "hectareas": 0.64,
+      "pixeles": 64,
+      "centroide": {
+        "lat": 20.964654,
+        "lon": -101.472129
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.64,
+      "pixeles": 64,
+      "centroide": {
+        "lat": 20.97385,
+        "lon": -101.461491
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.6,
+      "pixeles": 60,
+      "centroide": {
+        "lat": 20.968701,
+        "lon": -101.468635
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.56,
+      "pixeles": 56,
+      "centroide": {
+        "lat": 20.974618,
+        "lon": -101.461887
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.55,
+      "pixeles": 55,
+      "centroide": {
+        "lat": 20.956775,
+        "lon": -101.467104
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.55,
+      "pixeles": 55,
+      "centroide": {
+        "lat": 20.955023,
+        "lon": -101.466232
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.54,
+      "pixeles": 54,
+      "centroide": {
+        "lat": 20.974809,
+        "lon": -101.460832
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.53,
+      "pixeles": 53,
+      "centroide": {
+        "lat": 20.97066,
+        "lon": -101.455444
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.51,
+      "pixeles": 51,
+      "centroide": {
+        "lat": 20.9751,
+        "lon": -101.468263
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.5,
+      "pixeles": 50,
+      "centroide": {
+        "lat": 20.968298,
+        "lon": -101.456104
+      }
+    }
+  ]
+}

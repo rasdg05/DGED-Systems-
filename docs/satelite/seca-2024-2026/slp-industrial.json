@@ -1,0 +1,107 @@
+{
+  "version": "satelite-0.2.0",
+  "nombre": "slp-industrial",
+  "punto": {
+    "lat": 22.14,
+    "lon": -100.932
+  },
+  "radio_m": 1500.0,
+  "area_analizada_ha": 706.88,
+  "ventanas": {
+    "antes": [
+      "2024-01-01",
+      "2024-04-30"
+    ],
+    "despues": [
+      "2026-01-01",
+      "2026-04-30"
+    ]
+  },
+  "antes": {
+    "id": "S2A_14QKK_20240304_0_L2A",
+    "fecha": "2024-03-04T17:27:48.608000Z",
+    "nubosidad_recorte": 0.0,
+    "nubosidad_escena": 0,
+    "mosaico": "14QKK",
+    "epsg": 32614,
+    "fuente": "https://earth-search.aws.element84.com/v1",
+    "enlace": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2A_14QKK_20240304_0_L2A"
+  },
+  "despues": {
+    "id": "S2C_14QKK_20260304_0_L2A",
+    "fecha": "2026-03-04T17:27:48.223000Z",
+    "nubosidad_recorte": 0.0,
+    "nubosidad_escena": 0,
+    "mosaico": "14QKK",
+    "epsg": 32614,
+    "fuente": "https://earth-search.aws.element84.com/v1",
+    "enlace": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2C_14QKK_20260304_0_L2A"
+  },
+  "escenas_citadas": [
+    "S2A_14QKK_20240304_0_L2A",
+    "S2C_14QKK_20260304_0_L2A"
+  ],
+  "umbrales": {
+    "nubosidad_maxima_recorte": 0.2,
+    "scl_invalidas": [
+      0,
+      1,
+      3,
+      8,
+      9,
+      10,
+      11
+    ],
+    "delta_ndvi_perdida": -0.2,
+    "ndvi_vegetacion": 0.3,
+    "ndvi_no_vegetacion": 0.25,
+    "delta_bsi_construido": -0.1,
+    "delta_brillo_construido": 0.04,
+    "delta_ndvi_ganancia": 0.2,
+    "delta_brillo_techo": 0.08,
+    "bsi_no_suelo": 0.0,
+    "area_minima_px": 50,
+    "area_minima_ha": 0.5
+  },
+  "avisos": [],
+  "png": "docs/satelite/seca-2024-2026/slp-industrial.png",
+  "estado": "concluye",
+  "motivo": null,
+  "hectareas_cambiadas": 2.89,
+  "hectareas_posible_obra": 0,
+  "hectareas_por_tipo": {
+    "vegetacion_a_suelo": 0,
+    "suelo_a_construido": 0,
+    "reverdecimiento": 2.89,
+    "vegetacion_a_construido": 0
+  },
+  "zonas": [
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 1.71,
+      "pixeles": 171,
+      "centroide": {
+        "lat": 22.136204,
+        "lon": -100.918822
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.66,
+      "pixeles": 66,
+      "centroide": {
+        "lat": 22.133368,
+        "lon": -100.931859
+      }
+    },
+    {
+      "tipo": "reverdecimiento",
+      "hectareas": 0.52,
+      "pixeles": 52,
+      "centroide": {
+        "lat": 22.12939,
+        "lon": -100.925994
+      }
+    }
+  ]
+}
