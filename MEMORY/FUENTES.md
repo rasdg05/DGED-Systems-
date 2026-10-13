@@ -245,3 +245,209 @@ WAF (730 bytes de HTML). El script revisa el contenido, no el código.
    climatología sin clave mientras tanto.
 4. Pedir los tokens de Banxico, INEGI BIE y FIRMS si un factor los necesita. Hoy
    ninguno entra al número.
+
+---
+
+## Medición del 2026-10-13 — radar, recorte óptico, frontera, compras públicas y FIRMS sin clave
+
+**Cuándo y desde dónde:** 2026-10-13, entre 01:12 y 04:52 UTC, desde el mismo
+contenedor con proxy de salida (mismas salvedades de arriba). Peticiones reales
+con curl, `urllib` y, para validar el lector stdlib, rasterio 1.4.3. Puntos:
+Apodaca, Silao y, para radar sobre la costa, **Coatzacoalcos Ver (18.15, -94.42)**.
+Estas fuentes son las que habilitan los productos de `docs/13-comparables-precio.md`
+§2–6. Para volver a medirlas:
+
+```bash
+python3 herramientas/medir_fuentes.py --solo stac.planetary.s1,stac.earthsearch.s1,stac.earthsearch.s2.recorte,cbp.bwt,compras.comprasmx,compras.ocds_nl,compras.obra_smpu_nl,pnt.transparencia,nasa.firms.csv24h
+```
+
+### Tabla
+
+| Clave | Fuente | HTTP | Clave | Veredicto | Valor observado (resumen) |
+|---|---|---|---|---|---|
+| `stac.planetary.s1` | Sentinel-1 RTC/GRD, Planetary Computer | 200 búsqueda · 409 sin firma · 206 con firma | no (firma SAS anónima) | **VIVA** | Apodaca: RTC del 2026-10-10 (asc.); Coatzacoalcos: RTC del 2026-10-09 (desc.), GRD del 2026-10-12. Recorte de 100×100 px leído |
+| `stac.earthsearch.s1` | Sentinel-1 GRD, Earth Search | 200 búsqueda · 206 anónimo | no (el STAC dice *requester pays*) | **VIVA** (acceso al COG: re-medir) | Misma escena GRD del 2026-10-10 (Apodaca) y del 2026-10-12 (Coatzacoalcos); cabecera TIFF leída sin firmar |
+| `stac.earthsearch.s2.recorte` | Sentinel-2 L2A, COG B04/B08 | 206 | no | **VIVA** | Escena del 2026-09-15 (0.48 % nubes); 1 km² en Apodaca: B04 0.0874, B08 0.1343, NDVI 0.212; 1.73 MB y ~1.9 s por banda |
+| `cbp.bwt` | CBP Border Wait Times `api/bwtnew` | 200 | no | **VIVA** | 85 cruces, 55 de la frontera con México; WTB Laredo: 45 min y 10 de 19 carriles (corte 7:00 pm CDT) |
+| `compras.ocds_nl` | OCDS del Gobierno de NL (OCP Data Registry) | 200 | no | **VIVA** | 2026: 4,256 *releases* (del 2026-01-13 al 2026-09-11); 3,588 adjudicaciones directas; 4,052 con proveedor y monto |
+| `compras.obra_smpu_nl` | Obra pública por licitación, Movilidad y Planeación Urbana de NL | 200 | no | **VIVA** | 179 contratos de 2021 a 2025, los 179 con coordenadas; MXN 16,459,820,910 en suma |
+| `nasa.firms.csv24h` | FIRMS, CSV público de 24 h (Centroamérica) | 200 | no | **VIVA** | NOAA-20: 1,039 focos en la región; 3 a ≤50 km de Apodaca (el más cercano a 12.37 km); 10 de Silao |
+| `nasa.firms` | FIRMS API por área | 400 | **sí** | **CON CLAVE** (re-confirmada) | `Invalid MAP_KEY.` con `DEMO_KEY` |
+| `compras.comprasmx` | ComprasMX (sucesor de CompraNet), datos abiertos | 403 | — | **MUERTA** (para lectura por máquina) | `{"success":false,"error":"Acceso no permitido."}` |
+| `pnt.transparencia` | Plataforma Nacional de Transparencia, consulta (SIPOT) | 403 | — | **MUERTA** (para lectura por máquina) | Página de captcha: *"ayudanos a solucionar el siguiente captcha para verificar que eres humano"* |
+| — | `compranet.hacienda.gob.mx`, `contratacionesabiertas.hacienda.gob.mx`, `api.datos.gob.mx` | sin respuesta | — | **NO CONCLUYE** | El proxy rechazó el CONNECT (502) en los dos primeros; el tercero se agotó a los 12 s |
+| — | `datos.gob.mx` (portada y `/dataset/compranet`) | 403 | — | MUERTA (ya en el cementerio) | Igual que el 2026-10-12 |
+
+### `stac.planetary.s1` — Sentinel-1 en Planetary Computer — VIVA
+- Búsqueda: `POST https://planetarycomputer.microsoft.com/api/stac/v1/search`, colecciones
+  `sentinel-1-rtc` (retrodispersión corregida por terreno, ya proyectada en UTM a 10 m) y
+  `sentinel-1-grd`.
+- Escena más reciente:
+  - **Apodaca**: `S1D_IW_GRDH_1SDV_20261010T004136_…_rtc`, del 2026-10-10 a las 00:41 UTC,
+    órbita ascendente, VV+VH, modo IW.
+  - **Coatzacoalcos**: RTC `S1D_…_20261009T120916_…`, del 2026-10-09 (descendente). En GRD
+    hay una más nueva, `S1D_…_20261012T002256_…`, del 2026-10-12. Frontera (Tabasco,
+    18.53, -92.93): RTC `S1C_…_20261010T120034_…`, del 2026-10-10.
+- **Lectura del COG:** sin firma, el blob responde **409** `PublicAccessNotPermitted`.
+  `GET https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=…` responde 200 sin
+  cuenta, con una firma que caduca en ~45 min (`msft:expiry`). Con la firma, la petición
+  de rango responde **206**. El RTC VV de Apodaca mide 28,061 × 21,173 px, en EPSG:32614,
+  con mosaicos de 512 y vistas reducidas de 2 a 64. Con rasterio, una ventana de
+  100×100 px sobre el punto tardó 2.8 s: 10,000 válidos y mediana lineal 0.2358
+  (−6.27 dB). En Coatzacoalcos: EPSG:32615, mediana 0.1934 (−7.14 dB), 1.4 s.
+- **Revisita medida** (escenas GRD distintas en 60 días, 2026-08-14 → 2026-10-13):
+  - **Apodaca**: 10 días con escena. Huecos de 5 y 7 días; **el máximo fue 7**. Solo pasó S1D.
+  - **Silao**: 20 días con escena, hueco máximo de 6 días y mediano de 2. Pasaron S1C y S1D.
+  - **Coatzacoalcos**: 20 días con escena, **cada 3 días exactos**. Pasaron S1C y S1D.
+  - Para `docs/13` §4.2: sobre la costa del Golfo, la primera imagen de radar después de
+    un evento puede tardar **hasta 3 días**; en Apodaca, hasta 7. A eso hay que sumar la
+    latencia de publicación, que no se midió. **La promesa de "≤ 24 h desde el evento" no
+    se puede escribir con Sentinel-1.** Lo que sí se puede escribir es "≤ 24 h desde la
+    primera imagen útil".
+- La firma SAS no se publica: la salida del script lleva la URL sin su query (test
+  `test_s1_planetary_no_publica_la_firma_sas`).
+- Licencia: datos Copernicus, libres. El RTC lo produce Microsoft (CC BY 4.0).
+
+### `stac.earthsearch.s1` — Sentinel-1 GRD en Earth Search — VIVA (acceso al COG: re-medir)
+- La búsqueda responde con las **mismas escenas** que Planetary Computer.
+- Los assets están en `s3://sentinel-s1-l1c/…` (eu-central-1) y el STAC los marca
+  `storage:requester_pays: true`. Aun así, aquí un GET **anónimo y sin firmar** respondió
+  **206** en 3 de 3 intentos, y el listado del bucket respondió 200. No se concluye que
+  siga abierto: si un día da 403, hace falta una cuenta de AWS que pague la salida.
+- El GRD viene en **geometría de radar**: no tiene CRS, solo 210 GCP. Leer un punto exige
+  GDAL. La ventana central (100×100 px) dio la misma mediana de DN (175) que el mismo
+  producto en Planetary Computer.
+- Para Atlas conviene el **RTC de Planetary Computer**: ya viene en UTM y corregido por
+  terreno.
+
+### `stac.earthsearch.s2.recorte` — recorte real de Sentinel-2 — VIVA
+- La escena más reciente con menos de 20 % de nubes sobre Apodaca es
+  `S2B_14RLP_20260915_0_L2A` (2026-09-15, 0.48 %). La más reciente sin filtro es la del
+  2026-10-10, con 24.3 % de nubes.
+- Lectura **solo con stdlib** (`leer_recorte_cog`): peticiones de rango, IFD del TIFF,
+  UTM calculado a mano, un mosaico de 1024×1024 descomprimido con deflate y predictor 2,
+  y una ventana de 100×100 px (1 km²).
+  - **B04**: mediana DN 1874, 1,734,403 bytes leídos, 1.89 s.
+  - **B08**: mediana DN 2343, 1,711,296 bytes, 1.83 s.
+  - **rasterio leyó la misma ventana con las mismas medianas** (1874 y 2343; 1.2 s y 0.6 s).
+- Reflectancia: DN × 0.0001 − 0.1 (de `raster:bands`; la baseline 05.12 trae
+  `earthsearch:boa_offset_applied: true`). B04 = 0.0874, B08 = 0.1343, **NDVI de las
+  medianas = 0.212**. El TCI (`visual`, RGB uint8) también se leyó con rasterio
+  (mediana 191, 0.65 s).
+- Costo práctico: **~1.7 MB por banda por km²**, porque se baja el mosaico entero
+  (10 × 10 km). Un corredor de muchas obras conviene leerlo por mosaico, no por punto.
+- Que 10 m distinga etapas de una nave (`docs/13` §2.2) **sigue sin medirse**: esto
+  prueba que el píxel llega, no que sirva para eso.
+
+### `cbp.bwt` — CBP Border Wait Times — VIVA
+- `GET https://bwt.cbp.gov/api/bwtnew` responde JSON de 134 KB en 0.4–0.8 s, sin clave.
+  También están `https://bwt.cbp.gov/xml/bwt.xml`, `api/waittimes` y RSS por puerto
+  (`api/bwtRss/rssbyportnum/HTML/POV/230502`).
+- El feed trae 85 cruces, 55 de ellos de la frontera con México. **Carril comercial**
+  (`commercial_vehicle_lanes`, estándar y FAST) en los cruces pedidos (01:12 UTC):
+  - **Laredo – World Trade Bridge** (`230404`): demora 45 min, 10 de 19 carriles
+    abiertos, FAST 15 min. Corte "At 7:00 pm CDT".
+  - **Laredo – Colombia Solidarity** (`230403`): 20 min, 3 de 8 carriles, FAST 10 min.
+  - **Pharr** (`230502`): 5 min, 4 de 7 carriles, FAST 2 min.
+  - **Otay Mesa – Commercial** (`250602`): *Lanes Closed*, de 10 carriles.
+  - **El Paso – Ysleta** (`240203`, enfrente de Zaragoza): *Lanes Closed*, de 8 carriles.
+  - De noche, *Lanes Closed* es un estado del carril, no un hueco del feed.
+- **Cada cuándo:** el campo `update_time` es por hora y por cruce. A las 04:52 UTC, WTB y
+  Colombia decían "At 11:00 pm CDT" (30 min y 5 min) y Pharr seguía en "At 9:00 pm
+  CDT": un cruce puede saltarse horas. El feed se regenera varias veces por hora (el
+  XML decía 21:10:38 y el JSON 21:12:20). Son dos lecturas: n < 30, no concluye sobre
+  la regularidad.
+- **Histórico:** `GET https://bwt.cbp.gov/api/historicalwaittimes/{bwtId}/COV/GEN/{mes}/{día}`.
+  El `bwtId` sale de `api/bwtmodern/crossingslist` (WTB = `07230404`) y el día 7 es
+  "todos". **No es una serie**: es un promedio por mes × día de la semana × hora, **sin
+  año** (`cv_time_avg`, `xcv_time_avg`). En septiembre, WTB tiene 104 filas, con un
+  máximo de 59 min (martes a las 19 h). Colombia: 101 filas, máximo 41. Pharr: 94,
+  máximo 46. Otay Mesa Commercial: 91, máximo 58. Ysleta: 98, máximo 51.
+- Para `docs/13` §5: el pronóstico necesita **una serie propia**, juntada leyendo el feed
+  cada hora. El promedio sin año de CBP sirve de base ingenua, no de holdout. Hoy no
+  hay serie guardada. Lo que sigue es empezar a juntarla (n ≥ 30 días antes de medir
+  nada).
+
+### `compras.ocds_nl` — contrataciones abiertas de Nuevo León (OCDS) — VIVA
+- `https://data.open-contracting.org/en/publication/149/download?name=2026.jsonl.gz`
+  responde con una redirección a Fastly: 1,684,726 bytes en 2.0 s, sin clave. También hay
+  `full`, 2024 y 2025, en jsonl.gz, xlsx y csv.tar.gz. El registro dice "Weekly", con
+  descarga mensual del registro.
+- **2026**: 4,256 *releases*, con fecha del 2026-01-13 al **2026-09-11** (un mes de
+  rezago al medir). Por método: 3,588 adjudicaciones directas, 358 restringidas, 119
+  abiertas y 191 sin método. 4,052 traen proveedor y monto adjudicado; 3,024 traen
+  `contracts`.
+- Campos: `buyer` (dependencia), `tender` (método, título, `numberOfTenderers`,
+  `tenderers`, `items`), `awards` (fecha, monto MXN y proveedor con **RFC**) y
+  `contracts`. En el ejemplo leído, el contrato venía sin `dateSigned` ni monto.
+  **Sin ubicación de la obra**: 0 de 4,256.
+- El proveedor puede ser una persona física con su RFC. Eso es dato personal: no se
+  publica por persona, igual que con DENUE.
+- Origen: `catalogodatos.nl.gob.mx` (CKAN, respondió 200) y `api-ocds.nl.gob.mx`
+  (respondió 200, 649 KB por *release* agrupado).
+- El Data Registry lista **18 publicaciones de México**. Ninguna es federal y vigente:
+  la del INAI va de 2020 a feb-2025 y "ya no se actualiza"; la de QuiénEsQuién.Wiki
+  (republica CompraNet), de mar-2022, tampoco.
+
+### `compras.obra_smpu_nl` — obra pública de Movilidad y Planeación Urbana de NL — VIVA
+- `catalogodatos.nl.gob.mx/…/contratos_licitacion.csv`: 60,961 bytes en latin-1, con
+  columnas `Periodo, Licitacion, Contrato, Obra, Empresa, Ubicacion, Coordenadas, Monto`.
+  Viene con su diccionario aparte.
+- 179 contratos (2021: 1, 2022: 65, 2023: 53, 2024: 30 y 2025: 30). **Los 179 traen
+  coordenadas**: un par o un tramo inicio-fin, por ejemplo `27.423890 -100.000880
+  27.689460 -99.779819`. 151 traen ubicación en texto. La suma de montos es MXN
+  16,459,820,910. El recurso se modificó por última vez el 2026-06-29.
+- Es la única fuente medida con **ubicación de la obra**. Junto con Sentinel-2 permite
+  cruzar el contrato con el píxel (`docs/13` §2 y §6). n = 179 de un solo ente: no
+  generaliza al país.
+
+### `compras.comprasmx` — ComprasMX / CompraNet federal — MUERTA (para lectura por máquina)
+- El portal (`comprasmx.buengobierno.gob.mx/datos-abiertos`) es una SPA de Angular. Los
+  documentos se piden a `https://upcp-cnetservicios.buengobierno.gob.mx/amy/comprasmx/portal/documentos`
+  con tres cabeceras (`grc`, `igrc`, `xgrc`) que **arma el navegador** (`encryptRequest`).
+  Sin ellas responde **403** `{"success":false,"error":"Acceso no permitido."}`.
+- El histórico de CompraNet (`historico-compranet.buengobierno.gob.mx`) tiene una descarga
+  OCDS (`DOWNLOAD_OCDS_CNET5`) detrás de las mismas cabeceras y de **reCAPTCHA v3**.
+  `…/whitney/sitiopublico/` responde 403 igual.
+- **No se replicó el mecanismo del navegador ni se esquivó el captcha.** Una descarga
+  manual en navegador quizá funcione (no medida). Si el producto §6 la necesita,
+  decide el dueño si alguien la baja a mano cada mes.
+- `compranet.hacienda.gob.mx` y `contratacionesabiertas.hacienda.gob.mx`: **NO
+  CONCLUYE**, porque el proxy rechazó la conexión.
+
+### `pnt.transparencia` — Plataforma Nacional de Transparencia — MUERTA (para lectura por máquina)
+- La portada responde 200 (10 de 10) con el User-Agent del script y **403 de Cloudflare**
+  (10 de 10) con el de curl. La portada no es dato.
+- La consulta pública (`consultapublicamx…/vut-web/`, SIPOT) y el buscador responden
+  **403** con una página de captcha (*"verificar que eres humano"*), con cualquier
+  User-Agent probado.
+
+### `nasa.firms.csv24h` y `nasa.firms` — FIRMS — VIVA sin clave (CSV) / CON CLAVE (API)
+- **Sin clave**: `https://firms.modaps.eosdis.nasa.gov/data/active_fire/{sensor}/csv/{archivo}_Central_America_24h.csv`
+  respondió 200 en ~0.3 s. También hay versiones de 48 h y 7 días; la región va de 7.0°
+  a 33.5° de latitud y de −115.5° a −58.5° de longitud, y cubre México.
+  - **VIIRS S-NPP**: 1,012 focos (83 KB).
+  - **VIIRS NOAA-20**: 1,039 focos (87 KB).
+  - **VIIRS NOAA-21**: 1,154 focos (97 KB).
+  - **MODIS**: 144 focos.
+  - **Global de 24 h (S-NPP)**: 6.3 MB.
+- Frescura: el archivo NOAA-20 tenía `last-modified` 00:41 UTC y su última adquisición
+  era del 2026-10-12 a las 17:11 UTC (unas 8 h antes de medir).
+- Valor en NOAA-20: 3 focos a ≤ 50 km de Apodaca (el más cercano a 12.37 km) y 10 de
+  Silao (el más cercano a 48.18 km).
+- **Con clave**: la API por área sigue en 400 `Invalid MAP_KEY.` con `DEMO_KEY`. **Cómo
+  se pide**: en `https://firms.modaps.eosdis.nasa.gov/api/map_key/`, gratis con un
+  correo (*"The key will be sent to your email"*). El límite publicado es de **5,000
+  transacciones cada 10 minutos**. El script la lee de `FIRMS_MAP_KEY`. Para "incendios
+  a ≤ 50 km en 24 h–7 días", el CSV público alcanza sin clave. La API sirve para cajas
+  y fechas arbitrarias (histórico).
+
+### Lo que sigue (de esta medición)
+1. CBP: juntar la serie propia (lectura horaria del feed) antes de prometer un
+   pronóstico. El holdout pide n ≥ 30 días.
+2. Medir la **latencia de publicación** de Sentinel-1: cuántas horas pasan entre la
+   adquisición y que la escena aparece en el STAC. La revisita ya está medida.
+3. Compras federales: el dueño decide si se baja a mano (ComprasMX) o si el producto §6
+   arranca con lo estatal que sí se lee (NL).
+4. Re-medir desde producción `compranet.hacienda.gob.mx`, `contratacionesabiertas.hacienda.gob.mx`
+   y el acceso anónimo al bucket `sentinel-s1-l1c`.

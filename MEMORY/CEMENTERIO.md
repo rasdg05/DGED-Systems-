@@ -72,3 +72,21 @@
   request limit exceeded") en todos los intentos.
 - Revivir con plan de pago o con una instancia propia (código abierto). Lo decide
   el dueño.
+
+## Fuentes — medición del 2026-10-13 (`MEMORY/FUENTES.md`)
+
+### ComprasMX / CompraNet federal como fuente legible por máquina — 2026-10-13
+- `upcp-cnetservicios.buengobierno.gob.mx/amy/comprasmx/portal/documentos` responde
+  **403** `"Acceso no permitido."` sin las cabeceras `grc`/`igrc`/`xgrc` que arma el
+  navegador. La descarga OCDS del histórico (`historico-compranet.buengobierno.gob.mx`)
+  está detrás de lo mismo y de reCAPTCHA v3. No se replica ni se esquiva.
+- Reemplazo medido: OCDS de Nuevo León (`data.open-contracting.org/en/publication/149`)
+  y el CSV de obra pública de la SMPU de NL, los dos VIVA y estatales.
+- Revivir si publica descarga directa (archivo o API sin captcha) que responda desde un
+  servidor dos días seguidos.
+
+### Plataforma Nacional de Transparencia (consulta SIPOT) — 2026-10-13
+- `consultapublicamx.plataformadetransparencia.org.mx/vut-web/` y el buscador responden
+  **403** con captcha ("verificar que eres humano"). La portada responde 200 con un
+  User-Agent y 403 de Cloudflare con el de curl. La portada no es dato.
+- Revivir si la consulta o una descarga masiva responde sin captcha desde un servidor.
