@@ -135,3 +135,33 @@ primero pone el techo, el segundo dice dónde empieza un reporte técnico serio,
 el tercero dice cuánto vale la lectura sin cruce ni criterio.
 
 ---
+
+## 2. Monitoreo satelital de avance de obra
+
+Para bancos (crédito puente o de construcción), desarrolladores con varias obras
+y gobierno (obra pública).
+
+### 2.1 Comparables
+
+| # | Comparable | Precio público | Modelo de cobro | Comprador típico | Fuente (consulta 2026-10-13) |
+|---|---|---|---|---|---|
+| A | **Inspección de avance para liberar un pago** (*draw inspection*), EE. UU. | **De tercero**: USD 100–300 por visita (alto: 400+). Citizens Bank, según el extracto del buscador: USD 155 por inspección de avance en créditos solicitados antes del 2026-01-22 y ninguno después; inspección final USD 200–1,000. El PDF del banco devolvió 403 y no se pudo leer completo | Por visita, una por cada disposición | Banco; lo paga el acreditado | [Citizens Bank, tarifas de servicio](https://www.citizensbank.com/dam/6a53971d-329f-486d-911e-b42100cd8a1a/common-servicing-fees-original-file.pdf) · [Lenderly](https://lenderly.co/navigating-construction-loan-draws/) |
+| B | **DroneDeploy** (captura con dron y análisis de avance) | **Público**: Flight & Analysis USD 4,188/año (≈ 349/mes) por piloto; planes Enterprise, Aerial y Ground "cotización" | Suscripción anual por licencia; el vuelo lo pone el cliente | Constructoras, desarrolladores | [DroneDeploy, precios](https://dronedeploy.com/pricing) |
+| C | **Imagen satelital de 50 cm** bajo pedido (SkySat vía SkyWatch) | **De tercero**: archivo USD 10–12/km², mínimo 25 km² (catálogo SkyWatch, jun 2026); tareo nuevo desde USD 12/km² con mínimo ≈ 25 km² en un listado agregador que pide re-verificar | Por km² por imagen | Cualquier analista | [SkyWatch, área y costo mínimo](https://intercom.help/skywatch-ab92e82e1a0a/en/articles/9917241-aoi-size-and-cost-requirements-hub) · [apis.io, planes SkyWatch](https://apis.io/plans/skywatch/skywatch-plans-pricing/) |
+| D | **SpaceKnow Guardian** (avance satelital contra el calendario de obra) · **Vantor** (señales de construcción) · **BlackSky** (contrato con gobierno de EE. UU. para monitoreo de construcción) | **No publicado** en ninguno de los tres | Contrato a la medida | Gobierno, bancos, infraestructura | [SpaceKnow](https://spaceknow.com/blog/spaceknow-guardian-for-construction-monitoring/) · [Vantor](https://go.vantor.com/monitoring-construction-signals) · [FedScoop](https://fedscoop.com/?p=32026) |
+| E | **ESA ConsTrack / Buildspot** (proyectos piloto con bancos y vigilancia semanal de miles de obras) | **No publicado**: la ESA describe usuarios (bancos) y alcance, no precio | Piloto financiado | Bancos europeos | [ESA ConsTrack](https://business.esa.int/projects/constrack) · [ESA Buildspot](https://business.esa.int/projects/buildspot) |
+| F | **Supervisión de obra pública en México** | **No encontrado** como porcentaje público. Un trámite estatal de Coahuila (ICIFED, supervisión de obra educativa) aparece en el buscador con un cobro de **3% del monto de la obra**; la página dio 503 el 2026-10-13 y no se verificó. La ASF exige licitar la supervisión aparte de la constructora | Porcentaje de obra o precio unitario por tiempo | Dependencias, estados | [Papelea, ICIFED (no verificado)](https://papelea.com/mx/estado-de-coahuila-de-zaragoza/supervision-de-obra-icifed-registro-estatal-de-tramites-y-servicios-retys) · [ASF, auditoría 2012-0144](https://www.asf.gob.mx/Trans/Informes/IR2012i/Documentos/Auditorias/2012_0144_a.pdf) |
+
+**Rango observable**: USD 100–300 por visita humana (A) y USD ≈ 350/mes por
+licencia de dron (B). Del satelital puro no hay precio de lista público (D, E).
+
+### 2.2 Propuesta para DGED (inferencia)
+
+| | |
+|---|---|
+| **Precio** | **MXN 6,000 por obra al mes** (≈ USD 330), mínimo **10 obras × 6 meses** (MXN 360,000). Imagen de 50 cm, cuando el cliente la pida, se factura a costo + 15% (≈ USD 300 por toma con el mínimo de 25 km²) |
+| **Modelo** | Por activo-mes, con un mínimo de cartera |
+| **Comprador típico** | Área de crédito puente de un banco o de la banca de desarrollo (SHF, Bancomext); desarrollador con 5+ obras; gobierno estatal con obra pública |
+| **Lógica** | Una visita humana mensual cuesta USD 100–300 en EE. UU. (A) y en México además implica traslado; el satélite **no reemplaza** la visita que libera el pago, la **programa**: dice qué obra se movió y cuál no antes de mandar a nadie. Por eso el precio va en el rango de una visita, no arriba. El mínimo de cartera existe porque el costo es la puesta en marcha (polígonos, calendario de obra), no la imagen |
+| **Qué se mide antes de vender** | Que Sentinel-2 (10 m, gratis) distinga etapas de una nave (terracería → estructura → techo) en las obras de un cliente. Si con 10 m solo se ve "hay techo / no hay techo", el producto es de 50 cm y el precio cambia. **No medido todavía**: por la regla de la casa, no se vende hasta medirlo |
+| **No se promete** | Porcentaje de avance físico firmado: eso es del supervisor con cédula |
