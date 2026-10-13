@@ -1,0 +1,3 @@
+#!/bin/sh
+# D-015: sin GitHub Actions, nada sale sin pasar las mismas revisiones del CI.
+exec sh "$(git rev-parse --show-toplevel)/herramientas/verificar.sh"

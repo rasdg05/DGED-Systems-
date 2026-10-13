@@ -57,3 +57,11 @@ Fibra Mty, FIBRA Prologis y Vesta, por evidencia pública de compra en curso (`d
 ## D-013 — 2026-10-12 — Revisión de adquisiciones: precio por nave con tope por portafolio
 
 Aprobado por el dueño. Producto: memo de banderas rojas antes de la exclusividad (lectura del cuarto de datos con cita a página, rent roll, cruces, riesgo físico de Atlas). No incluye opinión legal, inspección física, ambiental firmado, valuación ni capacidad eléctrica certificada. Se cobra por nave con un tope por portafolio; los montos se fijan con comparables (pendiente del agente de mercado) y se agregan como decisión nueva. Detalle en `docs/11-revision-adquisiciones.md`.
+
+## D-014 — 2026-10-13 — Montos de la revisión de adquisiciones
+
+Aprobado por el dueño, sobre la propuesta de `docs/13-comparables-precio.md` §1. **USD 3,500 por nave**, mínimo 3 naves (USD 10,500), **tope de USD 45,000 por memo hasta 60 naves**; arriba de 60, el mismo tope por cada bloque de 60. Hasta 3 contratos de renta por nave incluidos; cada contrato extra, USD 150. 50% al recibir acceso al cuarto de datos y 50% contra entrega. Se acredita completo contra un Screening firmado en 90 días. Sube 20% si tres propuestas seguidas se firman sin regatear; baja a USD 2,800 por nave si tres seguidas no se firman por precio. Comparables fuertes: inspección física USD 8,000–15,000 por edificio, ambiental fase I USD 1,400–7,500, lectura de contratos con IA USD 10–20 por contrato.
+
+## D-015 — 2026-10-13 — Sin GitHub Actions, las revisiones corren antes de cada push
+
+El dueño no tiene gasto de GitHub por ahora: cada corrida de CI muere en ~2 s sin ejecutar pasos (desde el 2026-10-12). `.github/workflows/ci.yml` se queda tal cual para cuando vuelva. Mientras tanto, `herramientas/verificar.sh` corre lo mismo que el CI y `.githooks/pre-push` lo exige antes de cada push (`git config core.hooksPath .githooks`). Un push sin verificar se hace solo con `--no-verify` y se dice en el commit.

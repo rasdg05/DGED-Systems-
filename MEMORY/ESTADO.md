@@ -55,9 +55,12 @@
   y memo de banderas rojas. En la muestra ficticia encuentra exactamente los 5
   errores plantados. **No medido contra la API real**: falta probar que
   `fallbacks` y la salida estructurada van juntos en la primera llamada.
-- **Precios** (`docs/13-comparables-precio.md`): propuesta de USD 3,500 por nave,
-  mínimo 3, tope USD 45,000 por 60 naves — **pendiente de aprobación del dueño**.
-- Pruebas sin red: 135 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite 70.82% (piso 70).
+- **Precio de la revisión de adquisiciones aprobado** (D-014): USD 3,500 por nave,
+  mínimo 3, tope USD 45,000 por cada 60 naves.
+- **Sin GitHub Actions** (D-015): el dueño no tiene gasto de GitHub; el CI muere
+  sin correr. `herramientas/verificar.sh` corre lo mismo y `.githooks/pre-push`
+  lo exige (`git config core.hooksPath .githooks` en cada clon).
+- Pruebas sin red: 136 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite 70.82% (piso 70).
 
 ## Bloqueos (con causa)
 
@@ -90,7 +93,6 @@
 - Claves INEGI (DENUE), SAKBÉ y Anthropic, y `ATLAS_ACCESS_TOKEN`.
 - Acceso a Railway y un dominio para la demo pública.
 - El contacto con nombre en Fibra Mty, FIBRA Prologis y Vesta.
-- Aprobar los montos de D-013 (USD 3,500 / nave, mínimo 3, tope 45,000).
 - ¿Compras públicas con nombre de DGED o por un socio?
 - Confirmar en BMV la fecha de la compra de USD 32.7 M de FIBRA Prologis (¿2023 o 2026?).
 - Quién revisa los primeros diez sitios (alguien que haya trabajado parque en NL).

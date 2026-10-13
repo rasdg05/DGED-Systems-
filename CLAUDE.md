@@ -28,11 +28,12 @@ Si cierras algo, pregúntate qué test lo impide volver. Si la respuesta es
 ## Verificar antes de push
 
 ```bash
-python3 -m pytest -q services/api tests
-node --test packages/score/score.test.mjs
+git config core.hooksPath .githooks   # una vez por clon: el pre-push verifica
+sh herramientas/verificar.sh          # lint, pytest con cobertura, node, smoke, compose
 ```
 
-CI corre lo mismo en cada push (`.github/workflows/ci.yml`).
+Es lo mismo que `.github/workflows/ci.yml`, que hoy no corre: no hay gasto de
+GitHub (D-015). Instala antes `services/*/requirements.txt` y `requirements-dev.txt`.
 
 ## Reglas de trabajo
 

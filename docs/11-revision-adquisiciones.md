@@ -33,9 +33,11 @@ ingeniería.
 
 ## Precio
 
-Por nave, con tope por portafolio (D-013). Montos pendientes de comparables.
-Referencia interna: Screening ≈ USD 4,600 por sitio (D-006), Comparativo
-≈ USD 5,000 por sitio (D-011).
+Por nave, con tope por portafolio (D-013, montos en D-014): **USD 3,500 por
+nave**, mínimo 3 naves (USD 10,500), **tope de USD 45,000 por memo hasta 60
+naves**. Hasta 3 contratos por nave incluidos; extra, USD 150 cada uno. 50% al
+recibir el cuarto de datos, 50% contra entrega; se acredita contra un Screening
+firmado en 90 días. Comparables en `docs/13-comparables-precio.md` §1.
 
 ## Cómo se vende
 
@@ -50,7 +52,8 @@ Referencia interna: Screening ≈ USD 4,600 por sitio (D-006), Comparativo
 
 ## Antes de vender
 
-- Lector del cuarto de datos (en construcción, `services/dataroom/`).
+- Lector del cuarto de datos (`services/dataroom/`): MVP listo sobre la muestra;
+  falta medirlo con la API real.
 - Instantáneas inmutables y memo PDF (semana 2 del plan).
 - NDA, espacio por cliente, borrado al cierre; revisar términos comerciales de
   la API de Anthropic sobre retención antes de procesar documentos de clientes.

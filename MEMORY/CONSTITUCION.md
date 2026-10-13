@@ -34,6 +34,7 @@
 | XXVII | Un pixel nublado en cualquiera de las dos fechas nunca cuenta como cambio | `satelite/indices.py` | `services/satelite/tests/` `test_pixel_nublado_en_cualquier_fecha_nunca_cambia` |
 | XXVIII | El reverdecimiento nunca cuenta como posible obra | `satelite/indices.py` | `services/satelite/tests/` `test_posible_obra_suma_todo_menos_reverdecimiento` |
 | XXIX | Ningún artefacto generado (`.coverage`, cachés, `.pyc`) vive en git | `.gitignore` | `tests/test_invariantes.py::test_sin_artefactos_generados_en_git` |
+| XXX | Sin GitHub Actions, `herramientas/verificar.sh` corre lo mismo que el CI y el pre-push lo exige (D-015) | `herramientas/verificar.sh`, `.githooks/pre-push` | `tests/test_invariantes.py::test_verificar_corre_lo_mismo_que_el_ci` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

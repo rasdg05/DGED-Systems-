@@ -140,3 +140,16 @@ def test_sin_artefactos_generados_en_git():
     prohibidos = re.compile(r"(^|/)(\.coverage(\..*)?|\.pytest_cache/.*|\.ruff_cache/.*|__pycache__/.*|.*\.pyc)$")
     hallados = [r for r in rastreados if prohibidos.search(r)]
     assert not hallados, f"artefactos generados en git: {hallados}"
+
+
+# XXX — sin GitHub Actions (D-015), verificar.sh corre lo mismo que el CI.
+# Si alguien agrega un paso al CI y no a verificar.sh, la revisión local
+# dejaría pasar lo que el CI habría frenado.
+def test_verificar_corre_lo_mismo_que_el_ci():
+    ci = (RAIZ / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    local = (RAIZ / "herramientas" / "verificar.sh").read_text(encoding="utf-8")
+    for paso in ("ruff check .", "--cov-fail-under", "node --test packages/score/score.test.mjs",
+                 "import atlas.score, atlas.main, atlas.access, atlas.oracle", "docker compose config -q"):
+        assert paso in ci and paso in local, f"paso que no está en los dos: {paso}"
+    gancho = (RAIZ / ".githooks" / "pre-push").read_text(encoding="utf-8")
+    assert "herramientas/verificar.sh" in gancho
