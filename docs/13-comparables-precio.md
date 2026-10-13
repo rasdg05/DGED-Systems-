@@ -179,7 +179,6 @@ que salgan en el reporte trimestral de un corredor o en el DENUE.
 | B | **Building Radar** (detección de proyectos con IA, incluye señales satelitales en su relato comercial) | **No publicado** (cotización a la medida, contrato anual). **De tercero**: USD 500–2,000+/mes según asientos y regiones (estimado de un competidor) | Suscripción anual por regiones y asientos | Proveedores de construcción, fabricantes | [Datarade](https://datarade.ai/data-providers/building-radar/profile) · [Prospeo](https://prospeo.io/s/building-radar-pricing-reviews-pros-and-cons) |
 | C | **Planet Analytic Feeds** (detección de edificios y cambios) | **No publicado**: requiere suscripción por área (AOI) y ventana de tiempo, vía ventas. Cadencia mensual en una hoja técnica, semanal en el anuncio de Planet Insights: se contradicen | Suscripción por área y periodo | Gobierno, aseguradoras, analistas | [Planet, Analytic Feeds Viewer](https://docs.planet.com/platform/get-started/analyze-data/analytic-feeds-viewer/) · [Planet, análisis](https://docs.planet.com/develop/apis/analytics/) |
 | D | **LandTech** (Reino Unido; filtro de terrenos y alertas) | **Público**: Pro GBP 150/mes + IVA | Suscripción por usuario | Desarrolladores | citado en `08-mercado.md` §1.3 |
-| E | **Statista** (dato de mercado genérico, referencia de disposición a pagar por "inteligencia") | Aparece en el buscador: Starter USD 199/mes, Professional USD 1,399/mes. No es comparable de producto, solo de bolsillo | Suscripción por usuario | Analistas | [Statista](https://www.statista.com/statistics/1370409/mexico-construction-production-value-by-state) |
 
 **No encontrado**: precio de **BIMSA Reports** (proyectos de construcción en
 México) ni de **SiiLA** (datos inmobiliarios comerciales de México). Los dos
@@ -220,8 +219,10 @@ paramétrico (quién certifica que se cumplió el disparo); tarifa de
 McKenzie Intelligence, EagleView o Verisk para respuesta a catástrofe.
 
 **Competidor gratuito que hay que nombrar**: Copernicus Emergency Management
-Service y la Carta Internacional "Espacio y Grandes Catástrofes" entregan mapas
-de daño a gobiernos sin costo cuando se activan. Al gobierno no se le vende el
+Service ([emergency.copernicus.eu](https://emergency.copernicus.eu/)) y la Carta
+Internacional "Espacio y Grandes Catástrofes"
+([disasterscharter.org](https://disasterscharter.org/)) entregan mapas de daño a
+gobiernos y protección civil sin costo cuando se activan. Al gobierno no se le vende el
 mapa; a la aseguradora se le vende **su cartera cruzada con el mapa**, a tiempo.
 
 **Rango observable**: EUR 34,000–99,000/año por aseguradora (A). El riesgo
