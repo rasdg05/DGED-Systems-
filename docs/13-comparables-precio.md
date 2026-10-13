@@ -165,3 +165,36 @@ licencia de dron (B). Del satelital puro no hay precio de lista público (D, E).
 | **Lógica** | Una visita humana mensual cuesta USD 100–300 en EE. UU. (A) y en México además implica traslado; el satélite **no reemplaza** la visita que libera el pago, la **programa**: dice qué obra se movió y cuál no antes de mandar a nadie. Por eso el precio va en el rango de una visita, no arriba. El mínimo de cartera existe porque el costo es la puesta en marcha (polígonos, calendario de obra), no la imagen |
 | **Qué se mide antes de vender** | Que Sentinel-2 (10 m, gratis) distinga etapas de una nave (terracería → estructura → techo) en las obras de un cliente. Si con 10 m solo se ve "hay techo / no hay techo", el producto es de 50 cm y el precio cambia. **No medido todavía**: por la regla de la casa, no se vende hasta medirlo |
 | **No se promete** | Porcentaje de avance físico firmado: eso es del supervisor con cédula |
+
+## 3. Inteligencia de mercado por detección satelital de construcciones nuevas
+
+Suscripción: "qué naves nuevas aparecieron este mes en el corredor", antes de
+que salgan en el reporte trimestral de un corredor o en el DENUE.
+
+### 3.1 Comparables
+
+| # | Comparable | Precio público | Modelo de cobro | Comprador típico | Fuente (consulta 2026-10-13) |
+|---|---|---|---|---|---|
+| A | **ConstructConnect** (proyectos de construcción como prospectos, EE. UU.) | **De tercero**: Starter USD 129/mes por mercado y asiento (mes a mes); Professional desde USD 199/mes por mercado y asiento (anual); Premium desde **USD 10,000/año**. Cifras verificadas por un competidor contra la página del proveedor el 2026-10-06 | Suscripción por mercado × asiento | Contratistas, proveedores de materiales | [ConstructionBids.ai, guía 2026](https://constructionbids.ai/blog/constructconnect-pricing-guide-2026) · [PricingSaaS](https://pricingsaas.com/companies/constructconnect) |
+| B | **Building Radar** (detección de proyectos con IA, incluye señales satelitales en su relato comercial) | **No publicado** (cotización a la medida, contrato anual). **De tercero**: USD 500–2,000+/mes según asientos y regiones (estimado de un competidor) | Suscripción anual por regiones y asientos | Proveedores de construcción, fabricantes | [Datarade](https://datarade.ai/data-providers/building-radar/profile) · [Prospeo](https://prospeo.io/s/building-radar-pricing-reviews-pros-and-cons) |
+| C | **Planet Analytic Feeds** (detección de edificios y cambios) | **No publicado**: requiere suscripción por área (AOI) y ventana de tiempo, vía ventas. Cadencia mensual en una hoja técnica, semanal en el anuncio de Planet Insights: se contradicen | Suscripción por área y periodo | Gobierno, aseguradoras, analistas | [Planet, Analytic Feeds Viewer](https://docs.planet.com/platform/get-started/analyze-data/analytic-feeds-viewer/) · [Planet, análisis](https://docs.planet.com/develop/apis/analytics/) |
+| D | **LandTech** (Reino Unido; filtro de terrenos y alertas) | **Público**: Pro GBP 150/mes + IVA | Suscripción por usuario | Desarrolladores | citado en `08-mercado.md` §1.3 |
+| E | **Statista** (dato de mercado genérico, referencia de disposición a pagar por "inteligencia") | Aparece en el buscador: Starter USD 199/mes, Professional USD 1,399/mes. No es comparable de producto, solo de bolsillo | Suscripción por usuario | Analistas | [Statista](https://www.statista.com/statistics/1370409/mexico-construction-production-value-by-state) |
+
+**No encontrado**: precio de **BIMSA Reports** (proyectos de construcción en
+México) ni de **SiiLA** (datos inmobiliarios comerciales de México). Los dos
+son los competidores locales naturales y ninguno publica tarifa. Tampoco hay
+precio público de Colliers/CBRE research: lo regalan como mercadotecnia.
+
+**Rango observable**: USD 1,500–2,400/año por mercado y asiento (A, básico) a
+USD 10,000/año (A, Premium); B, de tercero, USD 6,000–24,000/año.
+
+### 3.2 Propuesta para DGED (inferencia)
+
+| | |
+|---|---|
+| **Precio** | **USD 1,200 al mes por corredor** (USD 14,400/año, anual), 3 asientos, alerta mensual de naves nuevas y en obra con polígono, fecha de primera detección y municipio. Asiento extra USD 100/mes |
+| **Modelo** | Suscripción por corredor (área), no por asiento: el valor está en el área cubierta, como en Planet (C) |
+| **Comprador típico** | Proveedores que venden a naves nuevas (techos, estructuras, subestaciones, seguridad, montacargas), corredores inmobiliarios, desarrolladores que vigilan la competencia, gobierno estatal (promoción) |
+| **Lógica** | Arriba del Premium de ConstructConnect (USD 10,000/año) porque México no tiene base de permisos abierta equivalente y la alternativa es mandar gente a recorrer el corredor; **abajo** del corredor extra de Atlas Operate (USD 48,000/año, D-006), que trae re-score y talleres. Si un cliente de Operate la quiere, va incluida |
+| **Qué se mide antes de vender** | Precisión y oportunidad contra una lista pública: Colliers reporta **55 naves en construcción en Monterrey** (2T 2026, `08-mercado.md` §2.1). Si el detector sobre Sentinel-2 encuentra ≥ 80% de ellas y las ve antes que el reporte, se vende; con n = 55 alcanza para concluir (n ≥ 30). Si no, va al cementerio con su número |
