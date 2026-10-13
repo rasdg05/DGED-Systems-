@@ -35,7 +35,14 @@
   Con clave gratuita: Banxico SIE, INEGI BIE, NASA FIRMS. Open-Meteo gratis es
   **solo no comercial**. No concluyen desde aquí (puertos que el proxy no deja):
   CENACE PML, Atlas Nacional de Riesgos, SSN.
-- Pruebas sin red: 75 de Python y 6 de `score.test.mjs`, en verde.
+- **Lector del cuarto de datos** (`services/dataroom/`, `docs/14-lector-dataroom.md`,
+  D-013): cita literal por página o se descarta; rent roll, cruces deterministas
+  y memo de banderas rojas. En la muestra ficticia encuentra exactamente los 5
+  errores plantados. **No medido contra la API real**: falta probar que
+  `fallbacks` y la salida estructurada van juntos en la primera llamada.
+- **Precios** (`docs/13-comparables-precio.md`): propuesta de USD 3,500 por nave,
+  mínimo 3, tope USD 45,000 por 60 naves — **pendiente de aprobación del dueño**.
+- Pruebas sin red: 96 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom 73%.
 
 ## Bloqueos (con causa)
 
@@ -68,6 +75,9 @@
 - Claves INEGI (DENUE), SAKBÉ y Anthropic, y `ATLAS_ACCESS_TOKEN`.
 - Acceso a Railway y un dominio para la demo pública.
 - El contacto con nombre en Fibra Mty, FIBRA Prologis y Vesta.
+- Aprobar los montos de D-013 (USD 3,500 / nave, mínimo 3, tope 45,000).
+- ¿Compras públicas con nombre de DGED o por un socio?
+- Confirmar en BMV la fecha de la compra de USD 32.7 M de FIBRA Prologis (¿2023 o 2026?).
 - Quién revisa los primeros diez sitios (alguien que haya trabajado parque en NL).
 - El punto de `salinas-hofusan` cae en el polígono de General Zuazua, no de
   Salinas Victoria: ¿se mueve el punto o se renombra?

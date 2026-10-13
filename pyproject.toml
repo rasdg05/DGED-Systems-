@@ -17,4 +17,4 @@ pythonpath = ["services/api", "services/dataroom"]
 testpaths = ["services/api", "services/dataroom/tests", "tests"]
 
 [tool.coverage.run]
-source = ["services/api/atlas"]
+source = ["services/api/atlas", "services/dataroom/dataroom"]

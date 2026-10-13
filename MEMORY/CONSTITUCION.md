@@ -24,6 +24,11 @@
 | XVII | Una página de error del SMN no se guarda como libro ni tumba el arranque | `connectors/conagua.py` | `test_capas.py::test_smn_html_error_page_is_not_a_workbook` |
 | XVIII | Ninguna marca de conflicto de git llega a un commit | todo el repo | `tests/test_invariantes.py::test_sin_marcas_de_conflicto` |
 | XIX | Al medir una fuente, un HTTP 200 sin dato es MUERTA y una conexión sin respuesta es NO CONCLUYE, nunca MUERTA (`MEMORY/FUENTES.md`) | `herramientas/medir_fuentes.py` | `tests/test_medir_fuentes.py` |
+| XX | Todo valor del lector del cuarto de datos trae documento, página y cita literal en esa página; si no, se descarta | `services/dataroom/dataroom/extraccion.py` | `services/dataroom/tests/test_dataroom_lector.py` (`test_toda_cita_que_sale_esta_literal_en_su_pagina` y vecinos) |
+| XXI | Un PDF sin texto se reporta "requiere OCR" y no va al modelo | `dataroom/textos.py` | `services/dataroom/tests/test_dataroom_lector.py`::`test_pdf_sin_texto_requiere_ocr_y_no_va_al_modelo` |
+| XXII | Sin `ANTHROPIC_API_KEY` el lector no lee ni escribe nada | `dataroom/leer.py` | `services/dataroom/tests/test_dataroom_lector.py`::`test_sin_clave_el_cli_duerme_con_mensaje_claro` |
+| XXIII | D-003 en el lector: ningún esquema tiene capacidad; lo de un oficio sale solo "según el oficio" | `dataroom/esquemas.py`, `extraccion.py` | `services/dataroom/tests/test_dataroom_lector.py`::`test_ningun_esquema_tiene_campo_de_capacidad` y vecinos |
+| XXIV | Los cruces sobre la muestra encuentran exactamente los errores plantados; la muestra es ficticia y marcada | `dataroom/cruces.py`, `muestra/` | `services/dataroom/tests/test_dataroom_lector.py`::`test_los_cruces_encuentran_exactamente_los_errores_plantados` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

@@ -28,8 +28,8 @@ jobs:
         run: ruff check .
 
       - name: Score live, Oráculo, acceso e invariantes (sin red), con cobertura
-        # Piso: cobertura medida tras integrar los cinco agentes (65.81%, 2026-10-12). Sube; no baja.
-        run: python -m pytest -q --cov --cov-report=term --cov-fail-under=65
+        # Piso: cobertura de atlas + dataroom medida al integrar el lector (73%, 2026-10-13). Sube; no baja.
+        run: python -m pytest -q --cov --cov-report=term --cov-fail-under=73
 
       - name: Lector del cuarto de datos (sin red ni clave, cliente grabado)
         run: python -m pytest -q services/dataroom/tests
