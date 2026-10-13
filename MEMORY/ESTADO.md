@@ -60,6 +60,16 @@
 - **Sin GitHub Actions** (D-015): el dueño no tiene gasto de GitHub; el CI muere
   sin correr. `herramientas/verificar.sh` corre lo mismo y `.githooks/pre-push`
   lo exige (`git config core.hooksPath .githooks` en cada clon).
+- **Calificado en vivo con 0.2.0, 2026-10-13**: 10 de 10 publicables, de 71.2 a
+  83.4 (Apodaca 78.3, Pesquería 72.3, Salinas 71.2, García 76.9, Ramos Arizpe
+  82.9, Puerto Interior 72.8, El Marqués 76.0, Celaya 81.3, SLP 83.4, León
+  77.8). El SMN volvió a dar su página de WAF: la sequía salió del libro real
+  guardado (corte 2026-09-30). Vía férrea faltó en 5 (Overpass). DENUE y ruta
+  ausentes en todos (sin claves). Capturas en `docs/demo/`.
+- **Demo vista por el dueño (2026-10-13)**. Lo que da pena antes de una junta:
+  mapa base de CARTO con "API KEY REQUIRED", la ficha muestra JSON crudo y el
+  Oráculo pega URLs largas. Faltan también las instantáneas inmutables y el memo
+  PDF (semana 2). Un intento con agentes se detuvo sin dejar nada: está por hacer.
 - Pruebas sin red: 136 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite 70.82% (piso 70).
 
 ## Bloqueos (con causa)
@@ -79,7 +89,7 @@
 ## Sigue
 
 1. Desplegar la demo en Railway: mide Docker y el SMN desde una red normal.
-2. Calificar los 10 sitios con 0.2.0 y actualizar la tabla de verificación.
+2. Arreglar la demo (mapa base sin clave, ficha legible, fuentes cortas) y la semana 2 (instantáneas y memo PDF).
 3. Pedir las claves INEGI (DENUE), SAKBÉ y Anthropic; después Banxico, INEGI BIE y FIRMS.
    Volver a medir CENACE PML, ANR y SSN desde el servidor de producción.
 4. Holgura eléctrica por corredor firmada contra PRODESEN (`DECISIONS.md` D-003).
@@ -95,6 +105,7 @@
 - El contacto con nombre en Fibra Mty, FIBRA Prologis y Vesta.
 - ¿Compras públicas con nombre de DGED o por un socio?
 - Confirmar en BMV la fecha de la compra de USD 32.7 M de FIBRA Prologis (¿2023 o 2026?).
+- ¿Producto de auditoría catastral (ley catastral aprobada en Diputados el 07/10, falta Senado)? Ofrecido, sin respuesta.
 - Quién revisa los primeros diez sitios (alguien que haya trabajado parque en NL).
 - El punto de `salinas-hofusan` cae en el polígono de General Zuazua, no de
   Salinas Victoria: ¿se mueve el punto o se renombra?
