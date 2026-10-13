@@ -273,3 +273,79 @@ vehículo al mes (telemática, D).
 | **Comprador típico** | Transportista mediano mexicano (50–300 tractocamiones) en el corredor Monterrey–Nuevo Laredo; agentes aduanales; plantas IMMEX con cruces diarios (index NL como canal, `09-portafolio-90-dias.md`) |
 | **Lógica** | El dato del momento es gratis (A), así que solo se cobra el **pronóstico** y su calibración publicada. Se queda debajo de SupplyMaven (USD 299/mes) porque es un solo dato, y en pesos porque el comprador es transportista mexicano. Un tractocamión parado una hora cuesta más que la mensualidad (inferencia; no hay cifra pública medida aquí) |
 | **Qué se mide antes de vender** | (1) Que el feed de CBP para carga comercial responda desde un servidor y con qué huecos; (2) un pronóstico ingenuo (misma hora, semana pasada) como base: si el modelo no le gana por un margen que se ve en n ≥ 30 días de holdout, no hay producto. Es el producto más lejano de lo que Atlas ya hace: va último en el orden |
+
+## 6. Análisis de anomalías en compras públicas
+
+Quién lo vende y quién lo financia. Compradores posibles: auditores (ASF,
+auditorías superiores estatales), órganos internos de control, periodismo de
+datos, organizaciones civiles y las empresas que le venden al gobierno.
+
+### 6.1 Comparables — quién lo vende
+
+| # | Comparable | Precio público | Modelo de cobro | Comprador típico | Fuente (consulta 2026-10-13) |
+|---|---|---|---|---|---|
+| A | **Tussell** (Reino Unido; datos de contratos y gasto público) | **Público en G-Cloud 14**: **GBP 11,400 por licencia al año**; prueba de 7 días; descuento a educación. Niveles Starter/Plus/Pro y API sin precio publicado | Suscripción anual por licencia | Proveedores del gobierno, investigación de políticas | [G-Cloud 14, Tussell](https://www.applytosupply.digitalmarketplace.service.gov.uk/g-cloud-14/services/430518247842905) · [Tussell, FAQ](https://www.tussell.com/faqs) |
+| B | **GovSpend** (EE. UU.; órdenes de compra estatales y locales) | **No publicado** (su FAQ: suscripción anual, plurianual opcional). **De tercero**: mediana USD 11,576/año, rango USD 8,500–24,750 (competidor) | Suscripción anual por módulos y asientos | Proveedores del gobierno | [GovSpend, FAQ](https://govspend.com/faq/) · [Fed-Spend, 2026](https://fed-spend.com/blog/govspend-pricing-2026-cost-alternatives) |
+| C | **IMCO, Índice de Riesgos de Corrupción** (México; 11 indicadores sobre ComprasMX/CompraNet desde 2024) | **Gratis** al público. Edición 2025: MXN 3,792 M en contratos a proveedores sancionados; MXN 808 M a empresas creadas el año previo al contrato | Financiado (fuente de financiamiento del índice: **no encontrada** en lo revisado) | Prensa, auditores, sociedad civil | [IMCO, metodología 2024 (PDF)](https://imco.org.mx/wp-content/uploads/2024/12/RiesgosdeCorrupcion_IMCO.pdf) · [Expansión, 2025-12-11](https://politica.expansion.mx/mexico/2025/12/11/gobierno-otorgo-contratos-por-3-792-millones-a-empresas-sancionadas-revela-el-imco) |
+| D | **Open Contracting Partnership** — guía de banderas rojas (73 indicadores sobre el estándar OCDS, 2024) | **Gratis**; la metodología es pública y es la que usan los tableros de la región | Financiado por donantes | Gobiernos, sociedad civil | [OCP, Red Flags 2024 (PDF)](https://open-contracting.org/wp-content/uploads/2024/12/OCP2024-RedFlagProcurement-1.pdf) |
+
+### 6.2 Quién lo financia (México)
+
+| Financiador → receptor | Monto | Para qué | Fuente |
+|---|---|---|---|
+| MacArthur → Mexicanos contra la Corrupción y la Impunidad (MCCI) | **USD 160,000** en 2017–2019: USD 30,000 (2017, 1 año) y USD 130,000 (2019, 18 meses) | 2017: rendición de cuentas tras los sismos de septiembre, base de datos de daños en CDMX y periodismo; 2019: litigio y monitoreo de la fiscalía anticorrupción | [MacArthur, ficha de MCCI](https://www.macfound.org/grantee/mexicanos-contra-la-corrupcion-y-la-impunidad-10114652/) |
+| Ford → MCCI | **De tercero (buscador)**: USD 120,000, oct 2018–sep 2019. La página de Ford pidió verificación humana y no se pudo leer | — | [Ford Foundation, base de donativos](https://www.fordfoundation.org/work/our-grants/awarded-grants/grants-database/mexicans-vs-corruption-and-impunity-130037/) |
+| USAID → MCCI | **De prensa**: USD 2,250,000 en 2018–2021 (dato de la agencia citado por CNN Chile). La cooperación de USAID se recortó después; financiamiento extranjero de estas organizaciones es tema político en México | — | [CNN Chile](https://www.cnnchile.com/mundo/mexico-acusa-estados-unidos-financiar-grupo-opositor/) · [La Razón](https://www.razon.com.mx/mexico/exhibe-uif-donacion-eu-mexicanos-corrupcion-impunidad-96-7-mdp-588819) |
+| Hewlett → Transparencia Mexicana | **De tercero (buscador)**: USD 200,000 (2015-12) y USD 600,000 (2016-11) para un índice nacional de corrupción y buen gobierno. La URL de Hewlett redirigió a otra página el 2026-10-13 y no se verificó | — | [Hewlett (no verificado)](https://hewlett.org/grants/transparencia-mexicana-for-the-creation-of-a-national-index-of-corruption-and-good-governance) |
+
+**No encontrado**: ninguna empresa mexicana que **venda** análisis de
+anomalías de compras públicas con precio publicado; ningún contrato público
+(ComprasMX) de una auditoría superior u órgano de control comprando una
+herramienta así; la fuente de financiamiento del índice del IMCO.
+
+**Lectura**: en México esto **no se vende, se financia**. Del lado comercial
+(A, B) quien paga es la empresa que le vende al gobierno, para inteligencia
+competitiva, a USD 8,500–25,000 por año. Del lado de rendición de cuentas
+quien paga es una fundación, con donativos de USD 30,000–130,000 por proyecto
+(MacArthur) y hasta cientos de miles (Hewlett, USAID).
+
+### 6.3 Propuesta para DGED (inferencia)
+
+| Comprador | Precio | Lógica |
+|---|---|---|
+| **Empresa proveedora del gobierno** (inteligencia de licitaciones y competidores) | **MXN 12,000 al mes** (≈ USD 8,000/año), anual, 3 usuarios | En el piso del rango de GovSpend (B) y muy abajo de Tussell (A), porque ComprasMX es más pobre que los datos del Reino Unido y el comprador es mexicano |
+| **Proyecto financiado** (periodismo, OSC, academia) | **USD 60,000–120,000 por 12 meses**, escrito como propuesta a una fundación, con el código y la metodología abiertos | Dentro del tamaño de donativo observado (MacArthur USD 30,000–130,000). Al periodista no se le cobra: se le entrega |
+| **Órgano de control o auditoría superior estatal** | **MXN 350,000 por ejercicio fiscal auditado** de una entidad (proyecto), con informe de banderas rojas citadas al expediente | Sin comparable público (inferencia pura). Se cotiza por proyecto porque el gobierno compra por procedimiento, no por suscripción |
+
+**Condiciones**: (1) un indicador de anomalía **no es una acusación** —la regla
+del IMCO: mapa de riesgos, no sentencia—; el producto dice qué regla se
+disparó y con qué documento, nunca "corrupción"; (2) es el producto con más
+riesgo reputacional y político del portafolio; el dueño decide si DGED pone su
+nombre o lo hace a través de un aliado (OSC o universidad); (3) se mide antes
+que ComprasMX responda desde un servidor y con qué campos, igual que cualquier
+fuente.
+
+---
+
+## 7. Resumen de precios propuestos
+
+Todo lo de esta tabla es **propuesta** con su lógica arriba; ninguna es decisión
+hasta que el dueño la apruebe y se agregue a `DECISIONS.md`. n de comparables
+por producto entre 3 y 6: no concluye, ancla.
+
+| Producto | Precio propuesto | Modelo | Comparable más fuerte |
+|---|---|---|---|
+| 1. Revisión de adquisiciones (D-013) | **USD 3,500 por nave**, mínimo 3 naves (USD 10,500), **tope USD 45,000 por memo de hasta 60 naves**; arriba, tramos de 60 | Por activo con tope | PCA USD 8,000–15,000 por nave de 100–500 mil ft² (APERS) |
+| 2. Avance de obra | **MXN 6,000 por obra al mes**, mínimo 10 obras × 6 meses; imagen de 50 cm a costo + 15% | Por activo-mes | Inspección humana USD 100–300 por visita |
+| 3. Construcciones nuevas | **USD 1,200 al mes por corredor** (USD 14,400/año), 3 asientos | Suscripción por área | ConstructConnect Premium USD 10,000/año (de tercero) |
+| 4. Desastres y daños | **USD 24,000–54,000/año** por aseguradora según prima expuesta; **USD 6,000 por evento** sin suscripción; USD 2,500 por evento para FIBRAs | Anual escalado + por evento | ICEYE EUR 34,000–99,000/año (público) |
+| 5. Cruces fronterizos | **MXN 3,500 al mes por empresa** (MXN 9,000 con API) | Suscripción plana | SupplyMaven USD 299–499/mes (directorios) |
+| 6. Compras públicas | **MXN 12,000/mes** a proveedores; **USD 60,000–120,000** por proyecto financiado; **MXN 350,000** por ejercicio auditado | Suscripción, donativo o proyecto | Tussell GBP 11,400/licencia/año (G-Cloud) |
+
+## 8. Lo que es del dueño
+
+1. Aprobar o cambiar los montos de D-013 (§1.5) y escribirlos como decisión
+   nueva en `DECISIONS.md`.
+2. Confirmar en el aviso de la BMV la fecha de la compra de FIBRA Prologis de
+   USD 32.7 M (§1.3) antes de citarla en una propuesta.
+3. Decidir si el producto 6 lleva el nombre de DGED o va por un aliado.
