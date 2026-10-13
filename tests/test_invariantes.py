@@ -153,3 +153,12 @@ def test_verificar_corre_lo_mismo_que_el_ci():
         assert paso in ci and paso in local, f"paso que no está en los dos: {paso}"
     gancho = (RAIZ / ".githooks" / "pre-push").read_text(encoding="utf-8")
     assert "herramientas/verificar.sh" in gancho
+
+
+# XXXI — la nube asigna el puerto. Railway pasa $PORT y revisa /api/health:
+# un puerto fijo arranca "sano" en local y en la nube nunca recibe tráfico.
+def test_contenedor_escucha_en_el_puerto_que_asigna_la_nube():
+    docker = (RAIZ / "Dockerfile").read_text(encoding="utf-8")
+    assert "${PORT:-8080}" in docker
+    railway = json.loads((RAIZ / "railway.json").read_text(encoding="utf-8"))
+    assert railway["deploy"]["healthcheckPath"] == "/api/health"

@@ -35,6 +35,7 @@
 | XXVIII | El reverdecimiento nunca cuenta como posible obra | `satelite/indices.py` | `services/satelite/tests/` `test_posible_obra_suma_todo_menos_reverdecimiento` |
 | XXIX | Ningún artefacto generado (`.coverage`, cachés, `.pyc`) vive en git | `.gitignore` | `tests/test_invariantes.py::test_sin_artefactos_generados_en_git` |
 | XXX | Sin GitHub Actions, `herramientas/verificar.sh` corre lo mismo que el CI y el pre-push lo exige (D-015) | `herramientas/verificar.sh`, `.githooks/pre-push` | `tests/test_invariantes.py::test_verificar_corre_lo_mismo_que_el_ci` |
+| XXXI | El contenedor escucha en `$PORT` (8080 en local) y Railway revisa `/api/health` | `Dockerfile`, `railway.json` | `tests/test_invariantes.py::test_contenedor_escucha_en_el_puerto_que_asigna_la_nube` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

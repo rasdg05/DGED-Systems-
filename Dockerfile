@@ -9,4 +9,5 @@ ENV ONTOLOGY_PATH=/ontology/atlas.ontology.json
 ENV ATLAS_CACHE=/var/cache/atlas
 RUN mkdir -p /var/cache/atlas
 EXPOSE 8080
-CMD ["uvicorn", "atlas.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Railway (y casi toda nube) asigna el puerto en $PORT; en local queda 8080.
+CMD ["sh", "-c", "exec uvicorn atlas.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
