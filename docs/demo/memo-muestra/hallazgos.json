@@ -1,0 +1,344 @@
+{
+  "fecha_corte": "2026-10-13",
+  "meses": 12,
+  "modelo": "claude-opus-5-5",
+  "modo": "grabado",
+  "banderas": [
+    {
+      "bandera": "contrato_vence_pronto",
+      "severidad": "alta",
+      "detalle": "Inquilino Ficticio Alfa, S.A. de C.V.: el contrato vence el 2027-03-31, dentro de 12 meses desde 2026-10-13.",
+      "evidencia": [
+        {
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "vence el 31 de marzo de 2027"
+        }
+      ]
+    },
+    {
+      "bandera": "inquilino_sin_contrato",
+      "severidad": "alta",
+      "detalle": "Inquilino Ficticio Gamma, S.A. de C.V. aparece en la relación de rentas y no hay contrato suyo leído en el cuarto de datos.",
+      "evidencia": [
+        {
+          "documento": "relacion_rentas.pdf",
+          "pagina": 1,
+          "cita": "Inquilino Ficticio Gamma, S.A. de C.V. - Nave 3"
+        }
+      ]
+    },
+    {
+      "bandera": "permiso_vencido",
+      "severidad": "alta",
+      "detalle": "LICENCIA DE USO DE SUELO: vigente solo hasta el 2025-06-30; vencido a la fecha de corte 2026-10-13.",
+      "evidencia": [
+        {
+          "documento": "permisos.pdf",
+          "pagina": 1,
+          "cita": "Esta licencia es vigente hasta el 30 de junio de 2025."
+        }
+      ]
+    },
+    {
+      "bandera": "superficie_no_cuadra",
+      "severidad": "alta",
+      "detalle": "Nave 2: los contratos rentan 9,200.00 m² y la escritura dice 8,500.00 m² construidos (se renta más de lo que la escritura ampara).",
+      "evidencia": [
+        {
+          "documento": "escritura_parque.pdf",
+          "pagina": 1,
+          "cita": "Nave 2 con una superficie construida de 8,500 m²."
+        },
+        {
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "La Nave 2 tiene una superficie rentable de 9,200 m² de construcción."
+        }
+      ]
+    },
+    {
+      "bandera": "contrato_sin_garantia",
+      "severidad": "media",
+      "detalle": "Inquilino Ficticio Beta, S.A. de C.V.: no se localizó depósito en garantía, fianza ni carta de crédito.",
+      "evidencia": [
+        {
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "la otra Inquilino Ficticio Beta, S.A. de C.V. (en lo sucesivo, el Arrendatario)"
+        },
+        {
+          "documento": "contrato_nave_2.pdf",
+          "pagina": null,
+          "cita": null,
+          "nota": "no se localizó en las 2 página(s) leídas"
+        }
+      ]
+    }
+  ],
+  "rent_roll": [
+    {
+      "documento": "contrato_nave_1.pdf",
+      "campos": {
+        "inquilino": {
+          "valor": "Inquilino Ficticio Alfa, S.A. de C.V.",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "la otra Inquilino Ficticio Alfa, S.A. de C.V. (en lo sucesivo, el Arrendatario)"
+        },
+        "arrendador": {
+          "valor": "Arrendadora Muestra Uno, S.A. de C.V.",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "por una parte Arrendadora Muestra Uno, S.A. de C.V. (en lo sucesivo, el Arrendador)"
+        },
+        "identificador_nave": {
+          "valor": "Nave 1",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "la Nave 1 del Parque Industrial Ficticio Uno"
+        },
+        "ubicacion": {
+          "valor": "Avenida de la Muestra 100, Municipio de Ejemplo, Estado de Muestra",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "ubicada en Avenida de la Muestra 100, Municipio de Ejemplo, Estado de Muestra"
+        },
+        "superficie_m2": {
+          "valor": "12000",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "La Nave 1 tiene una superficie rentable de 12,000 m² de construcción."
+        },
+        "renta_mensual": {
+          "valor": "66000.00",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "una renta mensual de USD 66,000.00"
+        },
+        "moneda": {
+          "valor": "USD",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "una renta mensual de USD 66,000.00"
+        },
+        "fecha_inicio": {
+          "valor": "2022-04-01",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "El arrendamiento inicia el 1 de abril de 2022"
+        },
+        "fecha_vencimiento": {
+          "valor": "2027-03-31",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 1,
+          "cita": "vence el 31 de marzo de 2027"
+        },
+        "incrementos": {
+          "valor": "3% anual en cada aniversario",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 2,
+          "cita": "La renta se incrementará en cada aniversario del contrato en 3% anual."
+        },
+        "garantia": {
+          "valor": "Depósito equivalente a dos meses de renta",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 2,
+          "cita": "El Arrendatario entrega un depósito en garantía equivalente a dos meses de renta."
+        },
+        "mantenimiento": {
+          "valor": "Arrendatario",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 2,
+          "cita": "El mantenimiento de la nave y de las áreas comunes corre por cuenta del Arrendatario."
+        },
+        "predial": {
+          "valor": "Arrendador",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 2,
+          "cita": "El impuesto predial es a cargo del Arrendador."
+        },
+        "terminacion_anticipada": {
+          "valor": "Con pena de seis meses de renta",
+          "documento": "contrato_nave_1.pdf",
+          "pagina": 2,
+          "cita": "podrá terminar anticipadamente el contrato pagando una pena equivalente a seis meses de renta."
+        }
+      }
+    },
+    {
+      "documento": "contrato_nave_2.pdf",
+      "campos": {
+        "inquilino": {
+          "valor": "Inquilino Ficticio Beta, S.A. de C.V.",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "la otra Inquilino Ficticio Beta, S.A. de C.V. (en lo sucesivo, el Arrendatario)"
+        },
+        "arrendador": {
+          "valor": "Arrendadora Muestra Uno, S.A. de C.V.",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "por una parte Arrendadora Muestra Uno, S.A. de C.V. (en lo sucesivo, el Arrendador)"
+        },
+        "identificador_nave": {
+          "valor": "Nave 2",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "la Nave 2 del Parque Industrial Ficticio Uno"
+        },
+        "ubicacion": {
+          "valor": "Avenida de la Muestra 100, Municipio de Ejemplo, Estado de Muestra",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "ubicada en Avenida de la Muestra 100, Municipio de Ejemplo, Estado de Muestra"
+        },
+        "superficie_m2": {
+          "valor": "9200",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "La Nave 2 tiene una superficie rentable de 9,200 m² de construcción."
+        },
+        "renta_mensual": {
+          "valor": "780000.00",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "una renta mensual de MXN 780,000.00"
+        },
+        "moneda": {
+          "valor": "MXN",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "una renta mensual de MXN 780,000.00"
+        },
+        "fecha_inicio": {
+          "valor": "2023-07-01",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "El arrendamiento inicia el 1 de julio de 2023"
+        },
+        "fecha_vencimiento": {
+          "valor": "2033-06-30",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 1,
+          "cita": "vence el 30 de junio de 2033"
+        },
+        "incrementos": {
+          "valor": "Anual conforme al INPC",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 2,
+          "cita": "La renta se actualizará cada año conforme al Índice Nacional de Precios al Consumidor."
+        },
+        "mantenimiento": {
+          "valor": "Arrendatario",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 2,
+          "cita": "El mantenimiento de la nave corre por cuenta del Arrendatario."
+        },
+        "predial": {
+          "valor": "Arrendador",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 2,
+          "cita": "El impuesto predial es a cargo del Arrendador."
+        },
+        "seguro": {
+          "valor": "Arrendador asegura el edificio; Arrendatario sus contenidos",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 2,
+          "cita": "El Arrendador asegura el edificio y el Arrendatario asegura sus contenidos."
+        },
+        "terminacion_anticipada": {
+          "valor": "No permitida durante los primeros cinco años",
+          "documento": "contrato_nave_2.pdf",
+          "pagina": 2,
+          "cita": "Ninguna de las partes podrá terminar anticipadamente el contrato durante los primeros cinco años."
+        }
+      }
+    }
+  ],
+  "transcripciones_suministro": [
+    {
+      "documento": "oficio_suministro.pdf",
+      "pagina": 1,
+      "cita": "Emisor: Suministrador Eléctrico Ficticio, en el lugar de la empresa suministradora.",
+      "campo": "emisor",
+      "texto": "Según el oficio (oficio_suministro.pdf, p. 1): «Emisor: Suministrador Eléctrico Ficticio, en el lugar de la empresa suministradora.»"
+    },
+    {
+      "documento": "oficio_suministro.pdf",
+      "pagina": 1,
+      "cita": "el servicio solicitado se atenderá en media tensión, tarifa GDMTH.",
+      "campo": "tipo_servicio",
+      "texto": "Según el oficio (oficio_suministro.pdf, p. 1): «el servicio solicitado se atenderá en media tensión, tarifa GDMTH.»"
+    },
+    {
+      "documento": "oficio_suministro.pdf",
+      "pagina": 1,
+      "cita": "La carga solicitada de 1,500 kW queda sujeta a la ejecución de obras de refuerzo en la red por cuenta del solicitante.",
+      "campo": "lo_que_dice",
+      "texto": "Según el oficio (oficio_suministro.pdf, p. 1): «La carga solicitada de 1,500 kW queda sujeta a la ejecución de obras de refuerzo en la red por cuenta del solicitante.»"
+    },
+    {
+      "documento": "oficio_suministro.pdf",
+      "pagina": 1,
+      "cita": "Fecha: 3 de febrero de 2026.",
+      "campo": "fecha",
+      "texto": "Según el oficio (oficio_suministro.pdf, p. 1): «Fecha: 3 de febrero de 2026.»"
+    }
+  ],
+  "descartados": [
+    {
+      "documento": "contrato_nave_1.pdf",
+      "campo": "seguro",
+      "valor": "Arrendatario paga todos los seguros",
+      "pagina": 2,
+      "cita": "El Arrendatario paga todos los seguros del inmueble.",
+      "motivo": "la cita no aparece literal en el texto de esa página"
+    }
+  ],
+  "no_revisado": [],
+  "documentos": [
+    {
+      "documento": "contrato_nave_1.pdf",
+      "tipo": "contrato_renta",
+      "paginas": 2,
+      "valores_verificados": 14,
+      "descartados": 1
+    },
+    {
+      "documento": "contrato_nave_2.pdf",
+      "tipo": "contrato_renta",
+      "paginas": 2,
+      "valores_verificados": 14,
+      "descartados": 0
+    },
+    {
+      "documento": "escritura_parque.pdf",
+      "tipo": "escritura",
+      "paginas": 1,
+      "valores_verificados": 10,
+      "descartados": 0
+    },
+    {
+      "documento": "oficio_suministro.pdf",
+      "tipo": "oficio_cfe",
+      "paginas": 1,
+      "valores_verificados": 4,
+      "descartados": 0
+    },
+    {
+      "documento": "permisos.pdf",
+      "tipo": "permiso",
+      "paginas": 2,
+      "valores_verificados": 11,
+      "descartados": 0
+    },
+    {
+      "documento": "relacion_rentas.pdf",
+      "tipo": "lista_rentas",
+      "paginas": 1,
+      "valores_verificados": 15,
+      "descartados": 0
+    }
+  ]
+}
