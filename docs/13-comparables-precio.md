@@ -198,3 +198,45 @@ USD 10,000/año (A, Premium); B, de tercero, USD 6,000–24,000/año.
 | **Comprador típico** | Proveedores que venden a naves nuevas (techos, estructuras, subestaciones, seguridad, montacargas), corredores inmobiliarios, desarrolladores que vigilan la competencia, gobierno estatal (promoción) |
 | **Lógica** | Arriba del Premium de ConstructConnect (USD 10,000/año) porque México no tiene base de permisos abierta equivalente y la alternativa es mandar gente a recorrer el corredor; **abajo** del corredor extra de Atlas Operate (USD 48,000/año, D-006), que trae re-score y talleres. Si un cliente de Operate la quiere, va incluida |
 | **Qué se mide antes de vender** | Precisión y oportunidad contra una lista pública: Colliers reporta **55 naves en construcción en Monterrey** (2T 2026, `08-mercado.md` §2.1). Si el detector sobre Sentinel-2 encuentra ≥ 80% de ellas y las ve antes que el reporte, se vende; con n = 55 alcanza para concluir (n ≥ 30). Si no, va al cementerio con su número |
+
+## 4. Alertas de desastre y evaluación rápida de daños con satélite
+
+Para aseguradoras (respuesta a catástrofe, despacho de ajustadores, moratoria de
+suscripción), portafolios inmobiliarios y estructuras paramétricas.
+
+### 4.1 Comparables
+
+| # | Comparable | Precio público | Modelo de cobro | Comprador típico | Fuente (consulta 2026-10-13) |
+|---|---|---|---|---|---|
+| A | **ICEYE Flood** (alerta temprana, impacto rápido y dato final de inundación, radar SAR propio) | **Público**, anual, sin impuestos, por prima suscrita expuesta a catástrofe (GWP): < EUR 300 M → **EUR 34,000**; 300–500 M → 46,000; 500 M–1,000 M → 61,000; 1,000–2,000 M → 68,000; ≥ 2,000 M → **99,000**. Licencia de 12 meses, solo siete países europeos; usos: severidad del evento, costo estimado, despacho de ajustadores, moratoria de suscripción | **Suscripción anual escalada por tamaño del cliente** (prima expuesta), no por evento ni por activo | Aseguradoras de daños | [ICEYE, Flood Rapid Impact](https://www.iceye.com/solutions/insurance/flood-rapid-impact) (sin fecha en la página; el paquete enlazado se titula "Flood Solutions 2025") |
+| B | **Bonos catastróficos de México** (IBRD CAR, 2024) — el precio del riesgo paramétrico | **Público**: USD 420 M en tres clases (sismo A USD 225 M, sismo B 70 M, tormenta Atlántico C 125 M), 2024-04 a 2028-04; margen de riesgo anual **4% / 11% / 13.5%** + 0.22% de fondeo sobre SOFR. Disparo paramétrico por ocurrencia. Un bono adicional de USD 175 M por tormentas del Pacífico paga 1,200 pb | Prima anual como % de la cobertura | Gobierno federal (Hacienda) | [Banco Mundial, 2024-04-17](https://www.worldbank.org/en/news/press-release/2024/04/17/world-bank-issues-420-million-in-catastrophe-bonds-for-renewed-disaster-risk-protection-for-mexico) · [DevelopmentAid, bono del Pacífico](https://www.developmentaid.org/news-stream/post/179396/world-bank-mexicos-pacific-hurricane-risk) |
+| C | **Seguro para Catástrofes del gobierno federal 2026–2027** | Suma asegurada **MXN 10,400 M** (10,000 M paramétrico + 400 M de fondo de administración de pérdidas), Agroasemex, 2026-06-05 a 2027-05-05. **Prima: no publicada** en la nota | Póliza anual | Hacienda | [El Imparcial, 2026-06-09](https://www.elimparcial.com/mexico/2026/06/09/mexico-duplica-a-10-mil-400-millones-de-pesos-su-seguro-contra-catastrofes-para-responder-ante-sismos-huracanes-erupciones-volcanicas-e-inundaciones/) |
+| D | **Paramétricos privados en México** (Lockton y otros) | **No publicado**: la prensa dice que crecen entre corporativos y propiedades de alto valor en zonas turísticas; ninguna tarifa | Prima por póliza | Corporativos, hoteles | [Lockton México](https://global.lockton.com/mx/es/noticias/seguros-parametricos-la-herramienta-que-permite-a-las-empresas-recuperarse) · [El Financiero, 2024-10-15](https://www.elfinanciero.com.mx/empresas/2024/10/15/aseguradoras-recortan-en-50-su-oferta-en-las-zonas-turisticas/) |
+| E | **Climate X Spectra Lite** (riesgo físico por activo, sin respuesta a evento) | **Público**: USD 20,000 base + USD 57–62 por activo comercial | Base + por activo | Bancos, inmobiliario | citado en `08-mercado.md` §1.2 |
+
+**No encontrado**: precio por evento (pago por activación) de ICEYE o de
+cualquier otro proveedor; honorarios de un **agente de cálculo** de un
+paramétrico (quién certifica que se cumplió el disparo); tarifa de
+McKenzie Intelligence, EagleView o Verisk para respuesta a catástrofe.
+
+**Competidor gratuito que hay que nombrar**: Copernicus Emergency Management
+Service y la Carta Internacional "Espacio y Grandes Catástrofes" entregan mapas
+de daño a gobiernos sin costo cuando se activan. Al gobierno no se le vende el
+mapa; a la aseguradora se le vende **su cartera cruzada con el mapa**, a tiempo.
+
+**Rango observable**: EUR 34,000–99,000/año por aseguradora (A). El riesgo
+paramétrico de México se paga a 4–13.5% anual de la suma cubierta (B): es el
+dinero alrededor, no el precio de nuestro servicio.
+
+### 4.2 Propuesta para DGED (inferencia)
+
+| | |
+|---|---|
+| **Precio** | **Suscripción anual por tamaño de aseguradora**, copiando la escalera de ICEYE un escalón abajo: prima expuesta a catástrofe < MXN 5,000 M → **USD 24,000/año**; 5,000–20,000 M → USD 36,000; > 20,000 M → USD 54,000. Incluye todos los eventos del año en México (sismo M ≥ 6, huracán que toca tierra, inundación con declaratoria) y la cartera del cliente cruzada con el área afectada en ≤ 24 h desde la primera imagen útil |
+| **Sin suscripción** | **USD 6,000 por evento** por cartera de hasta 2,000 ubicaciones; acreditable a la suscripción si firma en 30 días |
+| **Portafolios inmobiliarios** (FIBRAs) | Complemento de P4 / Operate: **USD 2,500 por evento** que toque la cartera |
+| **Modelo** | Como ICEYE (A): anual y escalado por la prima expuesta del cliente, que es lo que mide cuánto le vale saber antes |
+| **Comprador típico** | Área de siniestros y de reaseguro de aseguradoras de daños (AMIS como canal), FIBRAs, corredores de reaseguro que estructuran paramétricos |
+| **Lógica** | ICEYE cobra EUR 34,000 por su escalón más chico con radar propio y solo en Europa; DGED no tiene satélite, usa Sentinel-1/2 gratuitos + CENAPRED/SMN/USGS ya medidos en Atlas, y su ventaja es la cartera mexicana y la fuente oficial citada. Por eso entra un escalón abajo. Otis costó ~MXN 35,500 M en indemnizaciones (`09-portafolio-90-dias.md`, cuenta 17): una sola decisión de despacho de ajustadores bien hecha paga años de suscripción (inferencia, no medida) |
+| **Paramétricos** | No se vende "disparo" ni se actúa como agente de cálculo: eso lleva responsabilidad contractual. Se vende la **verificación independiente** de que el índice oficial publicado (USGS, SMN) cayó dentro o fuera de la caja, con la cita y la hora, a USD 3,000 por evento (inferencia, sin comparable público) |
+| **Qué se mide antes de vender** | Tiempo real de revisita de Sentinel-1 sobre el norte y el Bajío y cuántas horas tarda la primera imagen útil después de un evento; si son días, la promesa de 24 h no se escribe |
