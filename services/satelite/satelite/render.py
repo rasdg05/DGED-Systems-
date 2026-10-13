@@ -85,5 +85,6 @@ def dibujar(
             dib.text((x + 2, 2 + 14 * k), linea, fill=(235, 235, 235))
     ley = "naranja: vegetacion->suelo   magenta: suelo->construido   verde: reverdecimiento   gris: nube/sombra"
     dib.text((4, ancho + cab + 3), ley, fill=(200, 200, 200))
-    lienzo.save(ruta, optimize=True)
+    # 256 colores con difuminado: un tercio del peso y se lee igual.
+    lienzo.quantize(256, dither=Image.Dither.FLOYDSTEINBERG).save(ruta, optimize=True)
     return ruta

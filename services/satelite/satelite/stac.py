@@ -152,8 +152,43 @@ def a_escena(item, nub_recorte: float) -> Escena:
     )
 
 
+#: Nubosidad del recorte con la que una escena cuenta como "limpia" para emparejar por fecha.
+LIMPIA = 0.05
+
+
+def _dia_del_anio(fecha: str) -> int:
+    from datetime import date
+
+    return date.fromisoformat(fecha[:10]).timetuple().tm_yday
+
+
+def emparejar(cand_a: list[tuple], cand_d: list[tuple], limpia: float = LIMPIA):
+    """Elige una escena por ventana. Sin red.
+
+    `cand_*` son tuplas `(fecha_iso, nubosidad_recorte, objeto)`. Entre las
+    escenas limpias (recorte ≤ `limpia`) se elige el par con el día del año más
+    parecido: así el cambio de vegetación por estación pesa menos. Si una ventana
+    no tiene escena limpia, en cada una se toma la menos nublada.
+    """
+    if not cand_a or not cand_d:
+        mejor = lambda c: min(c, key=lambda x: x[1]) if c else None  # noqa: E731
+        return mejor(cand_a), mejor(cand_d)
+    la = [c for c in cand_a if c[1] <= limpia]
+    ld = [c for c in cand_d if c[1] <= limpia]
+    if la and ld:
+
+        def distancia(par):
+            dd = abs(_dia_del_anio(par[0][0]) - _dia_del_anio(par[1][0]))
+            return (min(dd, 365 - dd), max(par[0][1], par[1][1]))
+
+        return min(((x, y) for x in la for y in ld), key=distancia)
+    return min(cand_a, key=lambda x: x[1]), min(cand_d, key=lambda x: x[1])
+
+
 def elegir_par(lat: float, lon: float, radio_m: float, ventana_antes, ventana_despues, log=None):
-    """Elige, por mosaico MGRS común, la escena con menos nubes EN EL RECORTE de cada ventana.
+    """Elige, por mosaico MGRS común, una escena por ventana según las nubes EN EL RECORTE.
+
+    Entre las limpias, el par de fechas más parecidas en el año (`emparejar`).
 
     Las dos fechas deben salir del mismo mosaico (misma proyección y rejilla),
     si no los píxeles no se corresponden. Devuelve
@@ -177,9 +212,9 @@ def elegir_par(lat: float, lon: float, radio_m: float, ventana_antes, ventana_de
         muestra = (ga.get(m) or gd.get(m))[0]
         epsg = _epsg(muestra)
         recorte = Recorte.para(lat, lon, radio_m, epsg)
-        elegidas = []
+        evaluadas = []
         for grupo in (ga.get(m, []), gd.get(m, [])):
-            top = None
+            lista = []
             for it in grupo[:CANDIDATAS_POR_MOSAICO]:
                 try:
                     nub, scl = nubosidad_del_recorte(it, recorte)
@@ -187,11 +222,10 @@ def elegir_par(lat: float, lon: float, radio_m: float, ventana_antes, ventana_de
                     log(f"  {it.id}: no se pudo leer el SCL ({type(e).__name__})")
                     continue
                 log(f"  {m} {it.id}: escena {it.properties.get('eo:cloud_cover'):.1f}% · recorte {nub:.1%}")
-                if top is None or nub < top[1]:
-                    top = (it, nub, scl)
-                if nub == 0.0:
-                    break
-            elegidas.append(top)
+                lista.append((it.properties.get("datetime"), nub, (it, nub, scl)))
+            evaluadas.append(lista)
+        a, d = emparejar(evaluadas[0], evaluadas[1])
+        elegidas = [a[2] if a else None, d[2] if d else None]
         peor = max((e[1] if e else 1.0) for e in elegidas)
         if mejor is None or peor < mejor[0]:
             mejor = (peor, recorte, elegidas[0], elegidas[1])

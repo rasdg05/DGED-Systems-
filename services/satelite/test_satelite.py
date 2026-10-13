@@ -10,6 +10,7 @@ from satelite import indices as ix
 from satelite.indices import Bandas, clasificar, disco, filtrar_por_area, nubosidad
 from satelite.render import dibujar
 from satelite.resultado import Escena, assert_citado, construir, motivo_para_no_concluir
+from satelite.stac import emparejar
 
 N = 60  # píxeles por lado del recorte sintético (600 m)
 
@@ -223,6 +224,27 @@ def test_png_se_dibuja_sin_red(tmp_path):
     from PIL import Image
 
     with Image.open(ruta) as im:
-        assert im.width > 3 * N and im.mode == "RGB"
+        assert im.width > 3 * N and im.mode in ("RGB", "P")
     # Y sin escenas también se dibuja (paneles vacíos), sin inventar nada.
     dibujar(None, None, None, ("a", "b", "NO CONCLUYE"), str(tmp_path / "y.png"))
+
+
+# --- Emparejar fechas -------------------------------------------------------
+
+def test_entre_escenas_limpias_se_empareja_por_dia_del_anio():
+    a = [("2024-01-19T17:00:00Z", 0.0, "a-ene"), ("2024-03-29T17:00:00Z", 0.01, "a-mar")]
+    d = [("2026-01-05T17:00:00Z", 0.03, "d-ene"), ("2026-03-26T17:00:00Z", 0.0, "d-mar")]
+    x, y = emparejar(a, d)
+    assert (x[2], y[2]) == ("a-mar", "d-mar")  # 4 días de diferencia contra 14
+
+
+def test_sin_escena_limpia_gana_la_menos_nublada_y_puede_no_concluir():
+    a = [("2024-01-19T17:00:00Z", 0.40, "a1"), ("2024-02-19T17:00:00Z", 0.30, "a2")]
+    d = [("2026-02-19T17:00:00Z", 0.0, "d1")]
+    x, y = emparejar(a, d)
+    assert (x[2], y[2]) == ("a2", "d1")
+    assert motivo_para_no_concluir(_esc("A", x[1]), _esc("B", y[1])) is not None
+
+
+def test_ventana_vacia_no_inventa_escena():
+    assert emparejar([], [("2026-02-19T17:00:00Z", 0.0, "d1")])[0] is None
