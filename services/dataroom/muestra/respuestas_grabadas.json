@@ -1,0 +1,420 @@
+{
+ "contrato_nave_1.pdf": {
+  "tipo": "contrato_renta",
+  "motivo": "Contrato de arrendamiento de la Nave 1.",
+  "extraccion": {
+   "campos": {
+    "inquilino": {
+     "valor": "Inquilino Ficticio Alfa, S.A. de C.V.",
+     "pagina": 1,
+     "cita": "la otra Inquilino Ficticio Alfa, S.A. de C.V. (en lo sucesivo, el Arrendatario)"
+    },
+    "arrendador": {
+     "valor": "Arrendadora Muestra Uno, S.A. de C.V.",
+     "pagina": 1,
+     "cita": "por una parte Arrendadora Muestra Uno, S.A. de C.V. (en lo sucesivo, el Arrendador)"
+    },
+    "identificador_nave": {
+     "valor": "Nave 1",
+     "pagina": 1,
+     "cita": "la Nave 1 del Parque Industrial Ficticio Uno"
+    },
+    "ubicacion": {
+     "valor": "Avenida de la Muestra 100, Municipio de Ejemplo, Estado de Muestra",
+     "pagina": 1,
+     "cita": "ubicada en Avenida de la Muestra 100, Municipio de Ejemplo, Estado de Muestra"
+    },
+    "superficie_m2": {
+     "valor": "12000",
+     "pagina": 1,
+     "cita": "La Nave 1 tiene una superficie rentable de 12,000 m² de construcción."
+    },
+    "renta_mensual": {
+     "valor": "66000.00",
+     "pagina": 1,
+     "cita": "una renta mensual de USD 66,000.00"
+    },
+    "moneda": {
+     "valor": "USD",
+     "pagina": 1,
+     "cita": "una renta mensual de USD 66,000.00"
+    },
+    "fecha_inicio": {
+     "valor": "2022-04-01",
+     "pagina": 1,
+     "cita": "El arrendamiento inicia el 1 de abril de 2022"
+    },
+    "fecha_vencimiento": {
+     "valor": "2027-03-31",
+     "pagina": 1,
+     "cita": "vence el 31 de marzo de 2027"
+    },
+    "incrementos": {
+     "valor": "3% anual en cada aniversario",
+     "pagina": 2,
+     "cita": "La renta se incrementará en cada aniversario del contrato en 3% anual."
+    },
+    "garantia": {
+     "valor": "Depósito equivalente a dos meses de renta",
+     "pagina": 2,
+     "cita": "El Arrendatario entrega un depósito en garantía equivalente a dos meses de renta."
+    },
+    "mantenimiento": {
+     "valor": "Arrendatario",
+     "pagina": 2,
+     "cita": "El mantenimiento de la nave y de las áreas comunes corre por cuenta del Arrendatario."
+    },
+    "predial": {
+     "valor": "Arrendador",
+     "pagina": 2,
+     "cita": "El impuesto predial es a cargo del Arrendador."
+    },
+    "seguro": {
+     "valor": "Arrendatario paga todos los seguros",
+     "pagina": 2,
+     "cita": "El Arrendatario paga todos los seguros del inmueble."
+    },
+    "terminacion_anticipada": {
+     "valor": "Con pena de seis meses de renta",
+     "pagina": 2,
+     "cita": "podrá terminar anticipadamente el contrato pagando una pena equivalente a seis meses de renta."
+    }
+   }
+  }
+ },
+ "contrato_nave_2.pdf": {
+  "tipo": "contrato_renta",
+  "motivo": "Contrato de arrendamiento de la Nave 2.",
+  "extraccion": {
+   "campos": {
+    "inquilino": {
+     "valor": "Inquilino Ficticio Beta, S.A. de C.V.",
+     "pagina": 1,
+     "cita": "la otra Inquilino Ficticio Beta, S.A. de C.V. (en lo sucesivo, el Arrendatario)"
+    },
+    "arrendador": {
+     "valor": "Arrendadora Muestra Uno, S.A. de C.V.",
+     "pagina": 1,
+     "cita": "por una parte Arrendadora Muestra Uno, S.A. de C.V. (en lo sucesivo, el Arrendador)"
+    },
+    "identificador_nave": {
+     "valor": "Nave 2",
+     "pagina": 1,
+     "cita": "la Nave 2 del Parque Industrial Ficticio Uno"
+    },
+    "ubicacion": {
+     "valor": "Avenida de la Muestra 100, Municipio de Ejemplo, Estado de Muestra",
+     "pagina": 1,
+     "cita": "ubicada en Avenida de la Muestra 100, Municipio de Ejemplo, Estado de Muestra"
+    },
+    "superficie_m2": {
+     "valor": "9200",
+     "pagina": 1,
+     "cita": "La Nave 2 tiene una superficie rentable de 9,200 m² de construcción."
+    },
+    "renta_mensual": {
+     "valor": "780000.00",
+     "pagina": 1,
+     "cita": "una renta mensual de MXN 780,000.00"
+    },
+    "moneda": {
+     "valor": "MXN",
+     "pagina": 1,
+     "cita": "una renta mensual de MXN 780,000.00"
+    },
+    "fecha_inicio": {
+     "valor": "2023-07-01",
+     "pagina": 1,
+     "cita": "El arrendamiento inicia el 1 de julio de 2023"
+    },
+    "fecha_vencimiento": {
+     "valor": "2033-06-30",
+     "pagina": 1,
+     "cita": "vence el 30 de junio de 2033"
+    },
+    "incrementos": {
+     "valor": "Anual conforme al INPC",
+     "pagina": 2,
+     "cita": "La renta se actualizará cada año conforme al Índice Nacional de Precios al Consumidor."
+    },
+    "garantia": {
+     "valor": "",
+     "pagina": 0,
+     "cita": ""
+    },
+    "mantenimiento": {
+     "valor": "Arrendatario",
+     "pagina": 2,
+     "cita": "El mantenimiento de la nave corre por cuenta del Arrendatario."
+    },
+    "predial": {
+     "valor": "Arrendador",
+     "pagina": 2,
+     "cita": "El impuesto predial es a cargo del Arrendador."
+    },
+    "seguro": {
+     "valor": "Arrendador asegura el edificio; Arrendatario sus contenidos",
+     "pagina": 2,
+     "cita": "El Arrendador asegura el edificio y el Arrendatario asegura sus contenidos."
+    },
+    "terminacion_anticipada": {
+     "valor": "No permitida durante los primeros cinco años",
+     "pagina": 2,
+     "cita": "Ninguna de las partes podrá terminar anticipadamente el contrato durante los primeros cinco años."
+    }
+   }
+  }
+ },
+ "escritura_parque.pdf": {
+  "tipo": "escritura",
+  "motivo": "Escritura pública del parque.",
+  "extraccion": {
+   "campos": {
+    "propietario": {
+     "valor": "Arrendadora Muestra Uno, S.A. de C.V.",
+     "pagina": 1,
+     "cita": "comparece Arrendadora Muestra Uno, S.A. de C.V., propietaria del inmueble"
+    },
+    "ubicacion": {
+     "valor": "Avenida de la Muestra 100, Municipio de Ejemplo",
+     "pagina": 1,
+     "cita": "ubicado en Avenida de la Muestra 100, Municipio de Ejemplo."
+    },
+    "superficie_terreno_m2": {
+     "valor": "45000",
+     "pagina": 1,
+     "cita": "El terreno tiene una superficie de 45,000 m²"
+    },
+    "gravamenes": {
+     "valor": "Libre de gravámenes según certificado",
+     "pagina": 1,
+     "cita": "el inmueble se encuentra libre de gravámenes."
+    }
+   },
+   "renglones": [
+    {
+     "identificador_nave": {
+      "valor": "Nave 1",
+      "pagina": 1,
+      "cita": "Nave 1 con una superficie construida de 12,000 m²."
+     },
+     "superficie_construida_m2": {
+      "valor": "12000",
+      "pagina": 1,
+      "cita": "Nave 1 con una superficie construida de 12,000 m²."
+     }
+    },
+    {
+     "identificador_nave": {
+      "valor": "Nave 2",
+      "pagina": 1,
+      "cita": "Nave 2 con una superficie construida de 8,500 m²."
+     },
+     "superficie_construida_m2": {
+      "valor": "8500",
+      "pagina": 1,
+      "cita": "Nave 2 con una superficie construida de 8,500 m²."
+     }
+    },
+    {
+     "identificador_nave": {
+      "valor": "Nave 3",
+      "pagina": 1,
+      "cita": "Nave 3 con una superficie construida de 6,000 m²."
+     },
+     "superficie_construida_m2": {
+      "valor": "6000",
+      "pagina": 1,
+      "cita": "Nave 3 con una superficie construida de 6,000 m²."
+     }
+    }
+   ]
+  }
+ },
+ "permisos.pdf": {
+  "tipo": "permiso",
+  "motivo": "Licencia de uso de suelo y dictamen de protección civil.",
+  "extraccion": {
+   "campos": {
+    "titular": {
+     "valor": "Arrendadora Muestra Uno, S.A. de C.V.",
+     "pagina": 1,
+     "cita": "Titular: Arrendadora Muestra Uno, S.A. de C.V."
+    }
+   },
+   "renglones": [
+    {
+     "tipo_permiso": {
+      "valor": "LICENCIA DE USO DE SUELO",
+      "pagina": 1,
+      "cita": "LICENCIA DE USO DE SUELO"
+     },
+     "alcance": {
+      "valor": "Naves 1, 2 y 3",
+      "pagina": 1,
+      "cita": "uso de suelo industrial para las Naves 1, 2 y 3 del Parque Industrial Ficticio Uno."
+     },
+     "autoridad": {
+      "valor": "Dirección de Desarrollo Urbano del Municipio de Ejemplo",
+      "pagina": 1,
+      "cita": "Autoridad: Dirección de Desarrollo Urbano del Municipio de Ejemplo."
+     },
+     "fecha_emision": {
+      "valor": "2020-06-15",
+      "pagina": 1,
+      "cita": "Fecha de emisión: 15 de junio de 2020."
+     },
+     "vigencia_hasta": {
+      "valor": "2025-06-30",
+      "pagina": 1,
+      "cita": "Esta licencia es vigente hasta el 30 de junio de 2025."
+     }
+    },
+    {
+     "tipo_permiso": {
+      "valor": "DICTAMEN DE PROTECCIÓN CIVIL",
+      "pagina": 2,
+      "cita": "DICTAMEN DE PROTECCIÓN CIVIL"
+     },
+     "alcance": {
+      "valor": "Naves 1, 2 y 3",
+      "pagina": 2,
+      "cita": "el programa interno para las Naves 1, 2 y 3 del Parque Industrial Ficticio Uno."
+     },
+     "autoridad": {
+      "valor": "Coordinación de Protección Civil del Estado de Muestra",
+      "pagina": 2,
+      "cita": "Autoridad: Coordinación de Protección Civil del Estado de Muestra."
+     },
+     "fecha_emision": {
+      "valor": "2025-06-01",
+      "pagina": 2,
+      "cita": "Fecha de emisión: 1 de junio de 2025."
+     },
+     "vigencia_hasta": {
+      "valor": "2028-05-31",
+      "pagina": 2,
+      "cita": "Este dictamen es vigente hasta el 31 de mayo de 2028."
+     }
+    }
+   ]
+  }
+ },
+ "relacion_rentas.pdf": {
+  "tipo": "lista_rentas",
+  "motivo": "Relación de rentas del vendedor.",
+  "extraccion": {
+   "renglones": [
+    {
+     "inquilino": {
+      "valor": "Inquilino Ficticio Alfa, S.A. de C.V.",
+      "pagina": 1,
+      "cita": "Inquilino Ficticio Alfa, S.A. de C.V. - Nave 1"
+     },
+     "identificador_nave": {
+      "valor": "Nave 1",
+      "pagina": 1,
+      "cita": "Inquilino Ficticio Alfa, S.A. de C.V. - Nave 1"
+     },
+     "superficie_m2": {
+      "valor": "12000",
+      "pagina": 1,
+      "cita": "Nave 1 - 12,000 m²"
+     },
+     "renta_mensual": {
+      "valor": "66000.00",
+      "pagina": 1,
+      "cita": "USD 66,000.00 mensuales"
+     },
+     "moneda": {
+      "valor": "USD",
+      "pagina": 1,
+      "cita": "USD 66,000.00 mensuales"
+     }
+    },
+    {
+     "inquilino": {
+      "valor": "Inquilino Ficticio Beta, S.A. de C.V.",
+      "pagina": 1,
+      "cita": "Inquilino Ficticio Beta, S.A. de C.V. - Nave 2"
+     },
+     "identificador_nave": {
+      "valor": "Nave 2",
+      "pagina": 1,
+      "cita": "Inquilino Ficticio Beta, S.A. de C.V. - Nave 2"
+     },
+     "superficie_m2": {
+      "valor": "9200",
+      "pagina": 1,
+      "cita": "Nave 2 - 9,200 m²"
+     },
+     "renta_mensual": {
+      "valor": "780000.00",
+      "pagina": 1,
+      "cita": "MXN 780,000.00 mensuales"
+     },
+     "moneda": {
+      "valor": "MXN",
+      "pagina": 1,
+      "cita": "MXN 780,000.00 mensuales"
+     }
+    },
+    {
+     "inquilino": {
+      "valor": "Inquilino Ficticio Gamma, S.A. de C.V.",
+      "pagina": 1,
+      "cita": "Inquilino Ficticio Gamma, S.A. de C.V. - Nave 3"
+     },
+     "identificador_nave": {
+      "valor": "Nave 3",
+      "pagina": 1,
+      "cita": "Inquilino Ficticio Gamma, S.A. de C.V. - Nave 3"
+     },
+     "superficie_m2": {
+      "valor": "6000",
+      "pagina": 1,
+      "cita": "Nave 3 - 6,000 m²"
+     },
+     "renta_mensual": {
+      "valor": "510000.00",
+      "pagina": 1,
+      "cita": "MXN 510,000.00 mensuales"
+     },
+     "moneda": {
+      "valor": "MXN",
+      "pagina": 1,
+      "cita": "MXN 510,000.00 mensuales"
+     }
+    }
+   ]
+  }
+ },
+ "oficio_suministro.pdf": {
+  "tipo": "oficio_cfe",
+  "motivo": "Oficio de factibilidad de suministro eléctrico.",
+  "extraccion": {
+   "campos": {
+    "emisor": {
+     "valor": "Suministrador Eléctrico Ficticio",
+     "pagina": 1,
+     "cita": "Emisor: Suministrador Eléctrico Ficticio, en el lugar de la empresa suministradora."
+    },
+    "tipo_servicio": {
+     "valor": "media tensión, tarifa GDMTH",
+     "pagina": 1,
+     "cita": "el servicio solicitado se atenderá en media tensión, tarifa GDMTH."
+    },
+    "lo_que_dice": {
+     "valor": "La carga solicitada de 1,500 kW queda sujeta a la ejecución de obras de refuerzo en la red por cuenta del solicitante.",
+     "pagina": 1,
+     "cita": "La carga solicitada de 1,500 kW queda sujeta a la ejecución de obras de refuerzo en la red por cuenta del solicitante."
+    },
+    "fecha": {
+     "valor": "2026-02-03",
+     "pagina": 1,
+     "cita": "Fecha: 3 de febrero de 2026."
+    }
+   }
+  }
+ }
+}

@@ -22,7 +22,7 @@ jobs:
       - name: Dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r services/api/requirements.txt -r requirements-dev.txt
+          pip install -r services/api/requirements.txt -r services/dataroom/requirements.txt -r requirements-dev.txt
 
       - name: Lint
         run: ruff check .
@@ -30,6 +30,9 @@ jobs:
       - name: Score live, Oráculo, acceso e invariantes (sin red), con cobertura
         # Piso: cobertura medida tras integrar los cinco agentes (65.81%, 2026-10-12). Sube; no baja.
         run: python -m pytest -q --cov --cov-report=term --cov-fail-under=65
+
+      - name: Lector del cuarto de datos (sin red ni clave, cliente grabado)
+        run: python -m pytest -q services/dataroom/tests
 
       - name: Score de escritorio
         run: node --test packages/score/score.test.mjs
