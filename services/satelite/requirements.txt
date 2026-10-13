@@ -1,0 +1,6 @@
+# Ojo satelital (prototipo). Aislado de services/api: no entra al número.
+# Comprobado en Python 3.12 y 3.13 el 2026-10-13.
+numpy==2.5.3
+rasterio==1.4.3
+pystac-client==0.9.0
+Pillow==12.3.0
