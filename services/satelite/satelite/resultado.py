@@ -112,6 +112,11 @@ def construir(
             "estado": "concluye",
             "motivo": None,
             "hectareas_cambiadas": cambio.hectareas(),
+            # Lo que puede ser obra: desmonte o suelo que se volvió techo/pavimento.
+            # El reverdecimiento se reporta aparte y no cuenta aquí.
+            "hectareas_posible_obra": round(
+                cambio.hectareas("vegetacion_a_suelo") + cambio.hectareas("suelo_a_construido"), 2
+            ),
             "hectareas_por_tipo": {nombre: cambio.hectareas(nombre) for nombre in TIPOS.values()},
             "zonas": zonas,
         }
@@ -141,6 +146,7 @@ def _no_concluye(base: dict, motivo: str) -> dict:
             "estado": "no_concluye",
             "motivo": motivo,
             "hectareas_cambiadas": None,
+            "hectareas_posible_obra": None,
             "hectareas_por_tipo": None,
             "zonas": [],
         }

@@ -22,7 +22,7 @@ jobs:
       - name: Dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r services/api/requirements.txt -r requirements-dev.txt
+          pip install -r services/api/requirements.txt -r services/satelite/requirements.txt -r requirements-dev.txt
 
       - name: Lint
         run: ruff check .
@@ -30,6 +30,11 @@ jobs:
       - name: Score live, Oráculo, acceso e invariantes (sin red), con cobertura
         # Piso: cobertura medida tras integrar los cinco agentes (65.81%, 2026-10-12). Sube; no baja.
         run: python -m pytest -q --cov --cov-report=term --cov-fail-under=65
+
+      - name: Ojo satelital (services/satelite, arreglos sintéticos, sin red)
+        # También corre dentro del paso anterior (testpaths); aquí va solo para
+        # que un rojo del satélite se vea con su nombre.
+        run: python -m pytest -q services/satelite -p no:cacheprovider
 
       - name: Score de escritorio
         run: node --test packages/score/score.test.mjs
