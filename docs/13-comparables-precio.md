@@ -240,3 +240,36 @@ dinero alrededor, no el precio de nuestro servicio.
 | **Lógica** | ICEYE cobra EUR 34,000 por su escalón más chico con radar propio y solo en Europa; DGED no tiene satélite, usa Sentinel-1/2 gratuitos + CENAPRED/SMN/USGS ya medidos en Atlas, y su ventaja es la cartera mexicana y la fuente oficial citada. Por eso entra un escalón abajo. Otis costó ~MXN 35,500 M en indemnizaciones (`09-portafolio-90-dias.md`, cuenta 17): una sola decisión de despacho de ajustadores bien hecha paga años de suscripción (inferencia, no medida) |
 | **Paramétricos** | No se vende "disparo" ni se actúa como agente de cálculo: eso lleva responsabilidad contractual. Se vende la **verificación independiente** de que el índice oficial publicado (USGS, SMN) cayó dentro o fuera de la caja, con la cita y la hora, a USD 3,000 por evento (inferencia, sin comparable público) |
 | **Qué se mide antes de vender** | Tiempo real de revisita de Sentinel-1 sobre el norte y el Bajío y cuántas horas tarda la primera imagen útil después de un evento; si son días, la promesa de 24 h no se escribe |
+
+## 5. Predicción de tiempos de cruce fronterizo y visibilidad logística
+
+Para transportistas, agentes aduanales y embarcadores que cruzan por Nuevo
+Laredo/Laredo, Colombia (NL), Reynosa/Pharr y Juárez/El Paso.
+
+### 5.1 Comparables
+
+| # | Comparable | Precio público | Modelo de cobro | Comprador típico | Fuente (consulta 2026-10-13) |
+|---|---|---|---|---|---|
+| A | **CBP Border Wait Times** (tiempo de espera publicado por la aduana de EE. UU., carga comercial incluida) | **Gratis**: dato en tiempo real, sin llave; hay envoltorios de terceros (Apify, desde USD 0.01 por 1,000 resultados) | Gratuito | Todos | [CBP, Border Wait Times](https://bwt.cbp.gov/) · [Apify, Border Wait Times Tracker](https://apify.com/martc03/border-wait-times) |
+| B | **SupplyMaven** (riesgo de cadena de suministro; monitorea cruces fronterizos y congestión de puertos cada 15 min, alertas por correo y SMS) | **De tercero (directorios)**: desde **USD 299/mes** tarifa plana (Capterra); plan API Pro **USD 499/mes** (Software Advice) | Suscripción plana por empresa | Embarcadores, compras | [Capterra](https://www.capterra.com/p/10039785/SupplyMaven/) · [Software Advice](https://www.softwareadvice.com/product/546347-SupplyMaven/) |
+| C | **FreightWaves SONAR** (inteligencia de mercado de carga) | **Público**: Quick Rates USD 24.99/mes o USD 249/año; Freight Market Monitor USD 199/mes; SONAR completo "pida demo". **De tercero** (Vendr): empresa paga mediana USD 98,725/año, rango 38,850–218,725 | Autoservicio + contrato empresarial | Transportistas, brókers, embarcadores | [FreightWaves, 2026-05-04](https://www.freightwaves.com/news/sonar-launches-self-serve-quick-rates-freight-intelligence-without-the-sales-call) · [Vendr](https://www.vendr.com/marketplace/freightwaves-sonar) |
+| D | **Samsara** (telemática de flotilla; visibilidad de la unidad, no del cruce) | **De tercero**: USD 27–60 por vehículo al mes, hardware USD 150–300 por vehículo, contratos de 3 años (guía de compra, jul 2026). Precio oficial para México: no publicado | Por vehículo al mes | Flotillas de 20+ unidades | [Softabase, guía de software de flotas](https://softabase.com/es/guides/guia-compra-software-gestion-flotas) · [Samsara México](https://www.samsara.com/mx/docs) |
+| E | **Investigación pública** (TTI/Texas A&M, BTS): medición de cruce en Laredo World Trade Bridge y Colombia-Solidaridad; un artículo de 2021 dice que **falta** medida predictiva útil — lo que hay es "después del hecho" | Gratis | — | Gobierno | [BTS ROSA P, TTI](https://rosap.ntl.bts.gov/view/dot/23209) · [Research in Transportation Economics, 2021](https://ideas.repec.org/a/eee/retrec/v89y2021ics0739885921000068.html) |
+
+**No encontrado**: ningún proveedor que venda **pronóstico** del tiempo de
+cruce comercial en Laredo por suscripción con precio publicado. Tampoco precio
+de project44 o FourKites (visibilidad de embarques): cotización a la medida.
+
+**Rango observable**: gratis (dato del momento, A) → USD 249/año
+(autoservicio, C) → USD 299–499/mes (riesgo con alertas, B) → USD 27–60 por
+vehículo al mes (telemática, D).
+
+### 5.2 Propuesta para DGED (inferencia)
+
+| | |
+|---|---|
+| **Precio** | **MXN 3,500 al mes por empresa** (≈ USD 190) hasta 3 puertos y 5 usuarios: pronóstico por hora a 24 h del cruce comercial, alerta cuando el pronóstico pasa de un umbral que pone el cliente. **MXN 9,000 al mes** con API e integración a su TMS |
+| **Modelo** | Suscripción plana por empresa, mensual, sin contrato largo. No por vehículo: el valor es planear la salida del patio, no rastrear la unidad |
+| **Comprador típico** | Transportista mediano mexicano (50–300 tractocamiones) en el corredor Monterrey–Nuevo Laredo; agentes aduanales; plantas IMMEX con cruces diarios (index NL como canal, `09-portafolio-90-dias.md`) |
+| **Lógica** | El dato del momento es gratis (A), así que solo se cobra el **pronóstico** y su calibración publicada. Se queda debajo de SupplyMaven (USD 299/mes) porque es un solo dato, y en pesos porque el comprador es transportista mexicano. Un tractocamión parado una hora cuesta más que la mensualidad (inferencia; no hay cifra pública medida aquí) |
+| **Qué se mide antes de vender** | (1) Que el feed de CBP para carga comercial responda desde un servidor y con qué huecos; (2) un pronóstico ingenuo (misma hora, semana pasada) como base: si el modelo no le gana por un margen que se ve en n ≥ 30 días de holdout, no hay producto. Es el producto más lejano de lo que Atlas ya hace: va último en el orden |
