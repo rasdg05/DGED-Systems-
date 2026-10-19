@@ -1,4 +1,4 @@
 # Solo para desarrollo y CI. El servicio usa services/api/requirements.txt.
 pytest==9.1.1
 pytest-cov==7.1.0
-ruff==0.16.8
+ruff==0.17.1
