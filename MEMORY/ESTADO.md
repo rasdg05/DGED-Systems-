@@ -13,11 +13,15 @@
   de los webhooks de coexistencia, perfil con origen por renglón y versiones que
   enciende el dueño, cotizador por reglas de datos, candado de cifra, voz, respuestas
   guardadas, tope de gasto, sombra con la vara, MCP de afinación y servidor (webhook
-  firmado, pantalla de revisión). 60 tests sin red; las 8 invariantes del doc 15 son
+  firmado, pantalla de revisión). 68 tests sin red; las 8 invariantes del doc 15 son
   la XXXII–XXXIX. Muestra **ficticia** de finca y quinta en `services/agente/muestra/`.
   **No medido**: contra Meta (falta la app de DGED como Tech Provider) ni contra la API
   de Anthropic (sin clave). La demo del 2026-10-22 sigue siendo presentación + captura
   de datos; el código enseña el flujo con la muestra, no con datos del familiar.
+- **Lector por QR vinculado, solo lectura** (D-018): `services/agente/agente/vinculado.py`, página
+  `/espacios/<id>/vincular`. Desplegable en Railway como servicio aparte del mismo repo
+  (`services/agente/railway.json`). Medido: WhatsApp entrega el QR al contenedor. **Falta**:
+  el escaneo real y medir cuánto historial manda.
 
 - **Atlas** en `main` (`ed7752e`, score 0.1.0). La rama
   `claude/dged-systems-ai-space-f8pm53` lleva lo siguiente, sin pasar a `main`.
@@ -85,7 +89,7 @@
   mapa base de CARTO con "API KEY REQUIRED", la ficha muestra JSON crudo y el
   Oráculo pega URLs largas. Faltan también las instantáneas inmutables y el memo
   PDF (semana 2). Un intento con agentes se detuvo sin dejar nada: está por hacer.
-- Pruebas sin red: 197 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite + agente 78.26% (piso 70).
+- Pruebas sin red: 205 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite + agente 78.95% (piso 70).
 
 ## Bloqueos (con causa)
 

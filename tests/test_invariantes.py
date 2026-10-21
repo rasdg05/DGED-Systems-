@@ -153,7 +153,7 @@ def test_verificar_corre_lo_mismo_que_el_ci():
     local = (RAIZ / "herramientas" / "verificar.sh").read_text(encoding="utf-8")
     for paso in ("ruff check .", "--cov-fail-under", "node --test packages/score/score.test.mjs",
                  "import atlas.score, atlas.main, atlas.access, atlas.oracle",
-                 "import agente.app, agente.mcp, agente.simbiosis", "docker compose config -q"):
+                 "import agente.app, agente.mcp, agente.simbiosis, agente.vinculado", "docker compose config -q"):
         assert paso in ci and paso in local, f"paso que no está en los dos: {paso}"
     gancho = (RAIZ / ".githooks" / "pre-push").read_text(encoding="utf-8")
     assert "herramientas/verificar.sh" in gancho

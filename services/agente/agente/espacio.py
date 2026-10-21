@@ -42,8 +42,12 @@ def llave_de(cliente_id: str, secreto: str | None = None) -> str:
 
 
 def llave_valida(cliente_id: str, llave: str | None) -> bool:
-    esperada = llave_de(cliente_id)
-    return bool(esperada and llave) and hmac.compare_digest(esperada, llave or "")
+    """La llave del cliente abre su espacio. `TENANT_INTERNAL_TOKEN` mismo es la
+    llave del dueño de DGED y abre todos; la derivada de un cliente no abre otro."""
+    secreto = os.environ.get(VARIABLE_LLAVE, "").strip()
+    if not secreto or not llave:
+        return False
+    return hmac.compare_digest(llave_de(cliente_id, secreto), llave) or hmac.compare_digest(secreto, llave)
 
 
 class Espacio:
@@ -87,7 +91,13 @@ class Espacio:
         ruta = self.ruta(nombre)
         if not ruta.exists():
             return []
-        return [json.loads(linea) for linea in ruta.read_text(encoding="utf-8").splitlines() if linea.strip()]
+        salida = []
+        for linea in ruta.read_text(encoding="utf-8").splitlines():
+            try:
+                salida.append(json.loads(linea))
+            except json.JSONDecodeError:  # el lector vinculado puede estar a media línea
+                continue
+        return salida
 
     def borrar(self) -> None:
         """Fin del contrato: se va todo lo del cliente, sin respaldo aparte."""

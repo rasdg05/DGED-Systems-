@@ -49,7 +49,7 @@ jobs:
 
       - name: Smoke import del agente
         working-directory: services/agente
-        run: python -c "import agente.app, agente.mcp, agente.simbiosis"
+        run: python -c "import agente.app, agente.mcp, agente.simbiosis, agente.vinculado"
 
       - name: docker-compose válido
         run: docker compose config -q

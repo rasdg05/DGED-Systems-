@@ -44,6 +44,7 @@
 | XXXVII | Un cambio de un agente de código queda como versión nueva; solo el dueño del negocio la enciende y la anterior se conserva | `perfil.py::proponer/aprobar`, `mcp.py` | `test_agente_invariantes.py::test_inv6_el_mcp_propone_y_no_enciende` |
 | XXXVIII | Sin conector oficial (o en sombra) el agente no envía nada; sin `ANTHROPIC_API_KEY` no redacta | `canal.py`, `modelo.py` | `test_agente_invariantes.py` (`test_inv7_*`) |
 | XXXIX | Los datos de los clientes finales viven solo en el espacio del negocio, nunca en git, y se borran al terminar el contrato | `espacio.py::borrar`, `.gitignore` | `test_agente_invariantes.py` (`test_inv8_*`) |
+| XL | El lector vinculado (QR, D-018) solo lee: no envía, no marca leído, no anuncia presencia | `services/agente/agente/vinculado.py` | `services/agente/tests/test_agente_vinculado.py::test_vinc_el_lector_no_llama_nada_que_escriba_a_whatsapp` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

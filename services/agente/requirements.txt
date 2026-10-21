@@ -2,3 +2,4 @@
 fastapi==0.115.6
 uvicorn==0.34.0
 anthropic==1.13.0
+qrcode==8.2

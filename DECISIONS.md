@@ -83,3 +83,9 @@ Primera sesión de código de D-016 (`services/agente/`). Se reescribió el núc
 - `httpx` entra a `requirements-dev.txt` (el TestClient de FastAPI lo pide); el servicio no lo usa.
 
 Lo que no se pudo: medir la coexistencia contra Meta (necesita la cuenta de DGED como Tech Provider; `MEMORY/FUENTES.md`) y llamar a la API real (sin clave en esta sesión). Gestor no trae `MEMORY/` propia: su memoria vive en `rasdg05/gestor-personal`, que no se agregó.
+
+## D-018 — 2026-10-21 — Lector por QR vinculado, solo lectura, para la primera ingesta
+
+Decisión del dueño, con el riesgo a la vista: la coexistencia oficial necesita que DGED sea Tech Provider (días o semanas) y la demo es ya. El historial del negocio se lee vinculando un dispositivo con neonize, como el worker de Gestor Morelos (`services/agente/agente/vinculado.py`). Es el canal no oficial que D-016 prohibió para **enviar**; aquí **solo lee**: el módulo no llama nada que escriba a WhatsApp (ni envío, ni acuse de lectura, ni presencia) y un test lo revisa en el código. Lo que el agente redacte sigue saliendo solo por la Cloud API. Riesgo que queda: WhatsApp puede castigar números con sesiones vinculadas de clientes no oficiales; leyendo sin enviar es bajo, no cero. La sesión vive en el espacio del cliente (volumen `/data`), y si `numero_negocio` está en su config y se vincula otro número, no se importa nada.
+
+Despliegue: el agente es otro servicio de Railway del **mismo repo** (`services/agente/railway.json`, `Dockerfile` propio), no otro repositorio: comparte la vara, las invariantes y el pre-push. Se separa en su repo si un día tiene equipo o ciclo de despliegue propio. Web y lector van en un solo contenedor porque en Railway un volumen se monta en un servicio. Medido el 2026-10-21 desde un contenedor: el lector arranca y WhatsApp entrega el QR (`esperando_qr`), y la página lo dibuja.

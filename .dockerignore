@@ -5,3 +5,4 @@
 docs
 *.md
 !README.md
+**/datos/espacios

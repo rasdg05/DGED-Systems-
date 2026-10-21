@@ -177,12 +177,15 @@ def construir_perfil(espacio: Espacio, client=None, *, desde_ts: int | None = No
                      nombre: str = "simbiosis") -> tuple[int, list[dict]]:
     gasto.exigir_saldo(espacio)
     client = client or cliente_real()
-    respuesta = client.beta.messages.create(
+    # Con salida larga se transmite: una llamada sin stream de este tamaño
+    # choca con el límite de tiempo HTTP del SDK.
+    with client.beta.messages.stream(
         model=MODELO_GRANDE, max_tokens=32000,
         output_config={"effort": "high", "format": {"type": "json_schema", "schema": ESQUEMA_PERFIL}},
         betas=[FALLBACK_BETA], fallbacks="default",
         messages=[{"role": "user", "content": f"{_material(espacio, desde_ts)}\n\n{INSTRUCCION_PERFIL}"}],
-    )
+    ) as flujo:
+        respuesta = flujo.get_final_message()
     gasto.registrar(espacio, MODELO_GRANDE, getattr(respuesta, "usage", None), motivo="perfil")
     if respuesta.stop_reason in ("refusal", "max_tokens"):
         raise RuntimeError(f"la pasada del perfil no terminó ({respuesta.stop_reason}); no se propone a medias")

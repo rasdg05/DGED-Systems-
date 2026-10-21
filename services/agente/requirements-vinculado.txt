@@ -1,0 +1,3 @@
+# Solo el lector vinculado (D-018, agente/vinculado.py): QR de WhatsApp Web, SOLO LECTURA.
+# Mismo pin que el worker de Gestor Morelos. No se instala en CI.
+neonize==0.4.3.post0

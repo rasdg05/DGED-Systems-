@@ -19,7 +19,7 @@ echo "== smoke import del API"
 (cd services/api && python3 -c "import atlas.score, atlas.main, atlas.access, atlas.oracle")
 
 echo "== smoke import del agente"
-(cd services/agente && python3 -c "import agente.app, agente.mcp, agente.simbiosis")
+(cd services/agente && python3 -c "import agente.app, agente.mcp, agente.simbiosis, agente.vinculado")
 
 echo "== docker-compose válido"
 if command -v docker >/dev/null 2>&1; then

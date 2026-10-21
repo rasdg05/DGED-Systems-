@@ -24,7 +24,18 @@ class ModeloFalso:
         self.stop_reason = stop_reason
         self.llamadas: list[dict] = []
         self.messages = SimpleNamespace(create=self._create)
-        self.beta = SimpleNamespace(messages=SimpleNamespace(create=self._create))
+        self.beta = SimpleNamespace(messages=SimpleNamespace(create=self._create, stream=self._stream))
+
+    def _stream(self, **kwargs):
+        respuesta = self._create(**kwargs)
+
+        class Flujo:
+            def __enter__(self):
+                return SimpleNamespace(get_final_message=lambda: respuesta)
+
+            def __exit__(self, *_):
+                return False
+        return Flujo()
 
     def _create(self, **kwargs):
         self.llamadas.append(kwargs)
