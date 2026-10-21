@@ -2,3 +2,5 @@
 pytest==9.1.1
 pytest-cov==7.1.0
 ruff==0.16.8
+# El servidor del agente se prueba con el TestClient de FastAPI, que lo pide.
+httpx==0.28.1

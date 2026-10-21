@@ -13,8 +13,8 @@ select = ["E", "F", "W", "B", "I"]
 ignore = ["E501"]
 
 [tool.pytest.ini_options]
-pythonpath = ["services/api", "services/dataroom", "services/satelite"]
-testpaths = ["services/api", "services/dataroom/tests", "services/satelite", "tests"]
+pythonpath = ["services/api", "services/dataroom", "services/satelite", "services/agente"]
+testpaths = ["services/api", "services/dataroom/tests", "services/satelite", "services/agente/tests", "tests"]
 
 [tool.coverage.run]
-source = ["services/api/atlas", "services/dataroom/dataroom", "services/satelite/satelite"]
+source = ["services/api/atlas", "services/dataroom/dataroom", "services/satelite/satelite", "services/agente/agente"]

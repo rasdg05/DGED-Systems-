@@ -451,3 +451,47 @@ python3 herramientas/medir_fuentes.py --solo stac.planetary.s1,stac.earthsearch.
    arranca con lo estatal que sí se lee (NL).
 4. Re-medir desde producción `compranet.hacienda.gob.mx`, `contratacionesabiertas.hacienda.gob.mx`
    y el acceso anónimo al bucket `sentinel-s1-l1c`.
+
+## Medición del 2026-10-21 — WhatsApp coexistencia (Producto 4, D-016)
+
+Paso 2 de `docs/15-agente-a-la-medida.md`, antes de escribir el conector. Lo que se
+pudo medir desde aquí es **la documentación oficial y que la Graph API responde**; el
+alta de verdad necesita la cuenta de Meta Business de DGED, que es del dueño.
+
+### `meta.whatsapp.coexistencia` — Embedded Signup con la app de WhatsApp Business — NO CONCLUYE (documentación favorable)
+
+- **Desde un servidor**: `graph.facebook.com/v23.0/me` sin token responde **400**
+  (responde; pide token). La documentación en markdown
+  (`developers.facebook.com/documentation/business-messaging/whatsapp/embedded-signup/onboarding-business-app-users.md`)
+  responde 200, 65 KB.
+- **Qué exige a DGED**: ser **Tech Provider** (o Solution Partner): verificación del
+  negocio en Meta, luego App Review con video de envío de mensajes y manejo de
+  plantillas, para tener *Advanced access* a `whatsapp_business_messaging` y
+  `whatsapp_business_management`. Embedded Signup con *session logging* y un webhook
+  que reciba y procese bien.
+- **Qué exige al cliente**: app de WhatsApp Business **2.24.17 o mayor**; escanea el QR
+  desde su app, toca "Connect", acepta compartir el historial. Hay **24 horas** para
+  sincronizar el historial después del alta, o hay que darlo de baja y repetir.
+- **Historial que llega**: webhooks `history` con lo enviado y recibido en los **180
+  días** previos al alta, por fases (0: día 0–1; 1: día 1–90; 2: día 90–180) y porciones
+  (`chunk_order`, `progress` hasta 100). **Sin grupos.** Los medios llegan como
+  `media_placeholder` sin contenido; su id solo si son de los últimos **14 días**. Si el
+  negocio no acepta compartir, llega un aviso con el error 2593109.
+- **Mensajes nuevos**: `messages` (del cliente final) y `smb_message_echoes` (lo que el
+  negocio manda desde su app). Contactos por `smb_app_state_sync`.
+- **Límites**: 20 mensajes por segundo fijos; en la app se apagan mensajes temporales,
+  "ver una vez", ubicación en vivo y listas de difusión (quedan de solo lectura); los
+  dispositivos vinculados se desvinculan (no hay WhatsApp para Windows).
+- **Precio**: lo que el negocio manda desde su app sigue gratis; lo que sale por la
+  Cloud API paga la tarifa de la Cloud API. La ventana de 24 h solo se abre con
+  mensajes que llegan **después** del alta.
+- **México**: la página de Meta no publica lista de países. Ninguna de las listas de
+  "no soportados" que circulan (UE/RU, Nigeria, Sudáfrica, Australia, Japón, Corea,
+  Filipinas, Rusia, Turquía) incluye a México, y un proveedor (Chakra, 2026) lo lista
+  con soporte completo. **Fuente de tercero, no de Meta**: no concluye.
+- **Veredicto**: NO CONCLUYE hasta que el alta corra con un número mexicano real. El
+  conector se escribió contra la forma documentada (`services/agente/agente/historial.py`,
+  `canal.py`) y queda **no medido contra Meta**.
+- **Para que concluya** (del dueño): verificación de negocio de DGED en Meta, app con
+  Embedded Signup y App Review; luego un alta de prueba con el número de la demo y
+  contar cuántos mensajes y de qué fechas llegan.

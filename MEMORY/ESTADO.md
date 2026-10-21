@@ -8,10 +8,16 @@
   14 láminas con lo que ya existe y sus precios aprobados. Versión web privada en
   https://claude.ai/artifact/W415FmFrJxFN4W7X8yuaVQ (se comparte desde su menú).
   No usa las capturas de `docs/demo/` (marca "API KEY REQUIRED" del mapa base).
-- **Producto 4 en especificación** (D-016, `docs/15-agente-a-la-medida.md`): agente
-  de WhatsApp que se construye con los datos de cada negocio. **Sin código.**
-  Primera demo el 2026-10-22 con dos propiedades vacacionales (finca y quinta);
-  la demo es presentación + captura de datos, no producto.
+- **Producto 4 en código, en sombra** (D-016, D-017, `services/agente/`, rama
+  `claude/agente-a-la-medida`): espacio por cliente con llave, historial en la forma
+  de los webhooks de coexistencia, perfil con origen por renglón y versiones que
+  enciende el dueño, cotizador por reglas de datos, candado de cifra, voz, respuestas
+  guardadas, tope de gasto, sombra con la vara, MCP de afinación y servidor (webhook
+  firmado, pantalla de revisión). 60 tests sin red; las 8 invariantes del doc 15 son
+  la XXXII–XXXIX. Muestra **ficticia** de finca y quinta en `services/agente/muestra/`.
+  **No medido**: contra Meta (falta la app de DGED como Tech Provider) ni contra la API
+  de Anthropic (sin clave). La demo del 2026-10-22 sigue siendo presentación + captura
+  de datos; el código enseña el flujo con la muestra, no con datos del familiar.
 
 - **Atlas** en `main` (`ed7752e`, score 0.1.0). La rama
   `claude/dged-systems-ai-space-f8pm53` lleva lo siguiente, sin pasar a `main`.
@@ -79,7 +85,7 @@
   mapa base de CARTO con "API KEY REQUIRED", la ficha muestra JSON crudo y el
   Oráculo pega URLs largas. Faltan también las instantáneas inmutables y el memo
   PDF (semana 2). Un intento con agentes se detuvo sin dejar nada: está por hacer.
-- Pruebas sin red: 136 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite 70.82% (piso 70).
+- Pruebas sin red: 197 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite + agente 78.26% (piso 70).
 
 ## Bloqueos (con causa)
 
@@ -97,8 +103,11 @@
 
 ## Sigue
 
-0. **Producto 4** en una sesión nueva: seguir el orden de `docs/15-agente-a-la-medida.md`
-   (agregar Gestor-Morelos y fq-bot, medir la coexistencia de Meta antes del conector).
+0. **Producto 4**: con los datos de la demo (con permiso), cargar el alta y 20–50
+   conversaciones reales a un espacio, correr la simbiosis con clave y medir la primera
+   llamada real (salida estructurada + `fallbacks` en Opus; lote en Haiku). Del dueño:
+   Meta Business de DGED, verificación y App Review para medir la coexistencia
+   (`MEMORY/FUENTES.md`). Después: 30 días de sombra; n < 30 no concluye.
 
 1. Desplegar la demo en Railway: mide Docker y el SMN desde una red normal.
 2. Arreglar la demo (mapa base sin clave, ficha legible, fuentes cortas) y la semana 2 (instantáneas y memo PDF).

@@ -23,6 +23,7 @@ anterior.
 | `../DECISIONS.md` | Decisiones de arquitectura y producto, append-only |
 | `../docs/` | Arquitectura, MVP, fuentes, ontología, precios, riesgos, stack, plan 12 semanas |
 | `../docs/15-agente-a-la-medida.md` | Producto 4 (D-016): especificación y orden de trabajo para la siguiente sesión |
+| `../services/agente/` | Producto 4 en código (D-017): un espacio por cliente, en sombra de fábrica |
 | `../docs/presentacion/` | Presentación del negocio en PDF |
 
 ## Tres reglas de oro

@@ -69,3 +69,17 @@ El dueño no tiene gasto de GitHub por ahora: cada corrida de CI muere en ~2 s s
 ## D-016 — 2026-10-21 — Producto 4: el agente se construye con los datos de cada negocio
 
 Dirección del dueño. El agente de WhatsApp (P1) se empaqueta como plataforma que se arma alrededor de cada cliente: datos básicos, conexión por QR y, desde el historial del propio negocio, perfil (contrato JSON por cliente, como la ontología de Atlas), voz citada y reglas de cotización como datos, todo aprobado por el dueño del negocio antes de encenderse. Hereda el núcleo de Gestor Morelos y la vara de fq-bot. Desde la primera instalación hay llave interna y un MCP para afinar con un agente de código, con cada cambio como versión nueva aprobada. El QR es el de la **coexistencia oficial de Meta** (Embedded Signup sobre la app de WhatsApp Business), no el de WhatsApp Web: el worker no oficial pone en riesgo el número del cliente (P1, `08-mercado.md` §1.5). Se mide antes de escribir el conector. El costo de API se diseña con tope por cliente, modelo chico para rutina y lote, una pasada grande por perfil y caché. Precio el de P1. Detalle y orden de trabajo en `docs/15-agente-a-la-medida.md`.
+
+## D-017 — 2026-10-21 — Producto 4 en código: un espacio por cliente, cifra solo del cotizador, sombra de fábrica
+
+Primera sesión de código de D-016 (`services/agente/`). Se reescribió el núcleo de Gestor Morelos para un cliente por espacio en vez de extraerlo tal cual: el código de Gestor es de gestoría vehicular (tarifas de Morelos en Python, SQLModel, su worker) y no se separa sin arrastrar el giro. Lo que se tomó es el patrón: cifra que solo pone el código, voz revisada antes de salir, META para escalar, sombra y la vara. Decisiones con efecto:
+
+- **El texto del modelo no lleva ningún número**, ni horas ni fechas: se revisa por código y, si trae, va a la persona con el borrador. Más estricto que Gestor (que bloquea montos); se afloja solo con datos de la sombra.
+- **Cotizador por reglas de datos con origen**; si dos reglas igual de específicas chocan (p. ej. temporada alta contra fin de semana) **no se elige**: la cotización sale incompleta y va a la persona. El dueño lo arregla con una regla explícita.
+- **El perfil tira lo que no prueba su origen**: cita literal en un mensaje del negocio de ese mismo espacio (o en el alta o un documento suyo) y, si el renglón trae cifra, la cifra dentro de la cita.
+- **Nace en sombra**: `encendido` de fábrica es `sombra` (nada sale). `sin_cifra` deja salir guardadas y respuestas sin cifra; la cotización siempre con aprobación.
+- **Sin tope configurado, el tope es 0**: no se gasta hasta que alguien diga cuánto.
+- **Costo** con precios de la skill `claude-api` (2026-10-06): con supuestos explícitos (`gasto.estimar_mes`), un cliente de 300 conversaciones al mes cuesta ~USD 3.2 de API (USD 1.1 de ellos la pasada única del perfil). La escalada a Opus es la mitad del costo recurrente. No es medición.
+- `httpx` entra a `requirements-dev.txt` (el TestClient de FastAPI lo pide); el servicio no lo usa.
+
+Lo que no se pudo: medir la coexistencia contra Meta (necesita la cuenta de DGED como Tech Provider; `MEMORY/FUENTES.md`) y llamar a la API real (sin clave en esta sesión). Gestor no trae `MEMORY/` propia: su memoria vive en `rasdg05/gestor-personal`, que no se agregó.

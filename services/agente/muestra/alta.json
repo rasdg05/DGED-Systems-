@@ -1,0 +1,16 @@
+{
+ "giro": "renta vacacional (MUESTRA FICTICIA)",
+ "nombre_comercial": "Finca y Quinta de Muestra",
+ "que_vende": "Renta de una finca para eventos y familias grandes y de una quinta más chica",
+ "como_cobra": "Por noche, más caro viernes y sábado; los eventos aparte",
+ "horario": "Contestamos de 9 a 21 h",
+ "aprobador": "Dueña de muestra",
+ "aprobador_telefono": "5210000000000",
+ "asesores": [
+  "Encargado de muestra"
+ ],
+ "propiedades": [
+  "finca",
+  "quinta"
+ ]
+}

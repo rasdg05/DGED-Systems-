@@ -36,6 +36,14 @@
 | XXIX | Ningún artefacto generado (`.coverage`, cachés, `.pyc`) vive en git | `.gitignore` | `tests/test_invariantes.py::test_sin_artefactos_generados_en_git` |
 | XXX | Sin GitHub Actions, `herramientas/verificar.sh` corre lo mismo que el CI y el pre-push lo exige (D-015) | `herramientas/verificar.sh`, `.githooks/pre-push` | `tests/test_invariantes.py::test_verificar_corre_lo_mismo_que_el_ci` |
 | XXXI | El contenedor escucha en `$PORT` (8080 en local) y Railway revisa `/api/health` | `Dockerfile`, `railway.json` | `tests/test_invariantes.py::test_contenedor_escucha_en_el_puerto_que_asigna_la_nube` |
+| XXXII | Ninguna cifra sale en un mensaje del agente si no la puso el cotizador de ese cliente; el texto del modelo no lleva números y una respuesta guardada no lleva montos | `services/agente/agente/agente.py`, `guardia.py` | `services/agente/tests/test_agente_invariantes.py` (`test_inv1_*`) |
+| XXXIII | Ninguna cotización del agente sale sin aprobación de una persona registrada en el alta | `agente.py::aprobar_salida`, `canal.py` | `test_agente_invariantes.py::test_inv2_cotizacion_no_sale_sin_aprobacion` |
+| XXXIV | Ningún renglón del perfil existe sin mensaje, alta o documento de ese cliente con la cita literal (y la cifra dentro de la cita) | `services/agente/agente/perfil.py::validar` | `test_agente_invariantes.py` (`test_inv3_*`) |
+| XXXV | Los datos de un cliente no aparecen en el contexto, la caché, la llave ni las herramientas de otro | `espacio.py`, `modelo.py::system_de`, `mcp.py` | `test_agente_invariantes.py::test_inv4_el_contexto_es_solo_del_espacio` |
+| XXXVI | Al tope de gasto (o sin tope configurado), cero llamadas a la API para ese cliente | `gasto.py`, `modelo.py::turno` | `test_agente_invariantes.py` (`test_inv5_*`) |
+| XXXVII | Un cambio de un agente de código queda como versión nueva; solo el dueño del negocio la enciende y la anterior se conserva | `perfil.py::proponer/aprobar`, `mcp.py` | `test_agente_invariantes.py::test_inv6_el_mcp_propone_y_no_enciende` |
+| XXXVIII | Sin conector oficial (o en sombra) el agente no envía nada; sin `ANTHROPIC_API_KEY` no redacta | `canal.py`, `modelo.py` | `test_agente_invariantes.py` (`test_inv7_*`) |
+| XXXIX | Los datos de los clientes finales viven solo en el espacio del negocio, nunca en git, y se borran al terminar el contrato | `espacio.py::borrar`, `.gitignore` | `test_agente_invariantes.py` (`test_inv8_*`) |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

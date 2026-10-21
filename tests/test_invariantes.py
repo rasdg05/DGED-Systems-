@@ -85,12 +85,15 @@ def test_ningun_test_tapa_a_otro():
 
 # VIII — las claves viven en .env, nunca en el ejemplo versionado.
 def test_env_example_sin_claves():
-    lineas = (RAIZ / ".env.example").read_text(encoding="utf-8").splitlines()
-    con_valor = [
-        linea for linea in lineas
-        if linea.strip() and not linea.lstrip().startswith("#") and "=" in linea and linea.split("=", 1)[1].strip()
-    ]
-    assert not con_valor, f".env.example trae valores: {[linea.split('=')[0] for linea in con_valor]}"
+    for ejemplo in sorted(RAIZ.glob("**/.env.example")):
+        if ".git" in ejemplo.parts:
+            continue
+        lineas = ejemplo.read_text(encoding="utf-8").splitlines()
+        con_valor = [
+            linea for linea in lineas
+            if linea.strip() and not linea.lstrip().startswith("#") and "=" in linea and linea.split("=", 1)[1].strip()
+        ]
+        assert not con_valor, f"{ejemplo.relative_to(RAIZ)} trae valores: {[linea.split('=')[0] for linea in con_valor]}"
 
 
 # IX — toda variable que declara .env.example llega al contenedor de la API.
@@ -149,7 +152,8 @@ def test_verificar_corre_lo_mismo_que_el_ci():
     ci = (RAIZ / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     local = (RAIZ / "herramientas" / "verificar.sh").read_text(encoding="utf-8")
     for paso in ("ruff check .", "--cov-fail-under", "node --test packages/score/score.test.mjs",
-                 "import atlas.score, atlas.main, atlas.access, atlas.oracle", "docker compose config -q"):
+                 "import atlas.score, atlas.main, atlas.access, atlas.oracle",
+                 "import agente.app, agente.mcp, agente.simbiosis", "docker compose config -q"):
         assert paso in ci and paso in local, f"paso que no está en los dos: {paso}"
     gancho = (RAIZ / ".githooks" / "pre-push").read_text(encoding="utf-8")
     assert "herramientas/verificar.sh" in gancho

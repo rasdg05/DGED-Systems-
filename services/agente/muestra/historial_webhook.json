@@ -1,0 +1,436 @@
+{
+ "object": "whatsapp_business_account",
+ "entry": [
+  {
+   "id": "000000000000000",
+   "changes": [
+    {
+     "field": "history",
+     "value": {
+      "messaging_product": "whatsapp",
+      "metadata": {
+       "display_phone_number": "5210000000000",
+       "phone_number_id": "100000000000001"
+      },
+      "history": [
+       {
+        "metadata": {
+         "phase": 1,
+         "chunk_order": 1,
+         "progress": 100
+        },
+        "threads": [
+         {
+          "id": "5210000000001",
+          "messages": [
+           {
+            "from": "5210000000001",
+            "id": "wamid.MUESTRA0100",
+            "timestamp": "1780301400",
+            "type": "text",
+            "text": {
+             "body": "Hola, buenas tardes. Quiero informes de la finca para un cumpleaños"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0101",
+            "timestamp": "1780302060",
+            "type": "text",
+            "text": {
+             "body": "Buenas tardes, con gusto. Para que fecha seria y cuantas personas?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000001",
+            "id": "wamid.MUESTRA0102",
+            "timestamp": "1780302780",
+            "type": "text",
+            "text": {
+             "body": "Sería el 14 de noviembre, unas 25 personas"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0103",
+            "timestamp": "1780303560",
+            "type": "text",
+            "text": {
+             "body": "La finca entre semana sale en $6,000 la noche y viernes o sábado en $8,500. El evento se cobra aparte, $5,000."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000001",
+            "id": "wamid.MUESTRA0104",
+            "timestamp": "1780304400",
+            "type": "text",
+            "text": {
+             "body": "Va, lo platico y le aviso"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000002",
+          "messages": [
+           {
+            "from": "5210000000002",
+            "id": "wamid.MUESTRA0200",
+            "timestamp": "1780391400",
+            "type": "text",
+            "text": {
+             "body": "Buenas, ¿la quinta acepta mascotas?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0201",
+            "timestamp": "1780392060",
+            "type": "text",
+            "text": {
+             "body": "Si, aceptamos mascotas en la quinta, solo le pedimos que no se suban a las camas."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000002",
+            "id": "wamid.MUESTRA0202",
+            "timestamp": "1780392780",
+            "type": "text",
+            "text": {
+             "body": "Perfecto gracias"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000003",
+          "messages": [
+           {
+            "from": "5210000000003",
+            "id": "wamid.MUESTRA0300",
+            "timestamp": "1780479780",
+            "type": "text",
+            "text": {
+             "body": "Hola cuál es el horario de entrada?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0301",
+            "timestamp": "1780480440",
+            "type": "text",
+            "text": {
+             "body": "La entrada es a las 3 de la tarde y la salida a las 12 del dia."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000003",
+            "id": "wamid.MUESTRA0302",
+            "timestamp": "1780481160",
+            "type": "text",
+            "text": {
+             "body": "Ok"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000004",
+          "messages": [
+           {
+            "from": "5210000000004",
+            "id": "wamid.MUESTRA0400",
+            "timestamp": "1780568160",
+            "type": "text",
+            "text": {
+             "body": "Buen día, para diciembre cuánto cuesta la finca?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0401",
+            "timestamp": "1780568820",
+            "type": "text",
+            "text": {
+             "body": "En temporada alta, del 15 de diciembre al 6 de enero, la noche en la finca es de $9,500."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000004",
+            "id": "wamid.MUESTRA0402",
+            "timestamp": "1780569540",
+            "type": "text",
+            "text": {
+             "body": "Y cuántas personas caben?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0403",
+            "timestamp": "1780570320",
+            "type": "text",
+            "text": {
+             "body": "En la finca duermen hasta 30 personas. Arriba de 20 personas se cobran $250 por persona extra por noche."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000005",
+          "messages": [
+           {
+            "from": "5210000000005",
+            "id": "wamid.MUESTRA0500",
+            "timestamp": "1780657320",
+            "type": "text",
+            "text": {
+             "body": "Qué incluye la quinta?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0501",
+            "timestamp": "1780657980",
+            "type": "text",
+            "text": {
+             "body": "La quinta tiene alberca, asador y cuatro recamaras. Caben 12 personas."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000005",
+            "id": "wamid.MUESTRA0502",
+            "timestamp": "1780658700",
+            "type": "text",
+            "text": {
+             "body": "Y el precio?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0503",
+            "timestamp": "1780659480",
+            "type": "text",
+            "text": {
+             "body": "La quinta sale en $3,500 la noche entre semana y $4,500 viernes o sábado. Mínimo 2 noches."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000006",
+          "messages": [
+           {
+            "from": "5210000000006",
+            "id": "wamid.MUESTRA0600",
+            "timestamp": "1780746480",
+            "type": "text",
+            "text": {
+             "body": "Hola cómo aparto?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0601",
+            "timestamp": "1780747140",
+            "type": "text",
+            "text": {
+             "body": "Se aparta con el 50% de anticipo y el resto al llegar. Además se deja un depósito de $3,000 que se regresa al salir."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000006",
+            "id": "wamid.MUESTRA0602",
+            "timestamp": "1780747860",
+            "type": "text",
+            "text": {
+             "body": "Gracias"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000007",
+          "messages": [
+           {
+            "from": "5210000000007",
+            "id": "wamid.MUESTRA0700",
+            "timestamp": "1780834860",
+            "type": "text",
+            "text": {
+             "body": "Oiga me cobraron de más el depósito, no me lo regresaron"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0701",
+            "timestamp": "1780835520",
+            "type": "text",
+            "text": {
+             "body": "Disculpe, eso lo revisa directamente el encargado, ahorita le marca."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000008",
+          "messages": [
+           {
+            "from": "5210000000008",
+            "id": "wamid.MUESTRA0800",
+            "timestamp": "1780922520",
+            "type": "text",
+            "text": {
+             "body": "Hasta qué hora puede durar la música en un evento?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0801",
+            "timestamp": "1780923180",
+            "type": "text",
+            "text": {
+             "body": "La música es hasta las 2 de la mañana, por los vecinos."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000008",
+            "id": "wamid.MUESTRA0802",
+            "timestamp": "1780923900",
+            "type": "text",
+            "text": {
+             "body": "Ok gracias"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000009",
+          "messages": [
+           {
+            "from": "5210000000009",
+            "id": "wamid.MUESTRA0900",
+            "timestamp": "1781010900",
+            "type": "text",
+            "text": {
+             "body": "Buenas, para la finca también es mínimo 2 noches?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000000",
+            "id": "wamid.MUESTRA0901",
+            "timestamp": "1781011560",
+            "type": "text",
+            "text": {
+             "body": "Si, en la finca el minimo es de 2 noches."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000009",
+            "id": "wamid.MUESTRA0902",
+            "timestamp": "1781012280",
+            "type": "text",
+            "text": {
+             "body": "Va"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,4 @@
+# Agente a la medida (services/agente, D-016). Aislado de services/api.
+fastapi==0.115.6
+uvicorn==0.34.0
+anthropic==1.13.0

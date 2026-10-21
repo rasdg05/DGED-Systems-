@@ -1,0 +1,275 @@
+{
+ "trato": "usted",
+ "datos": [
+  {
+   "objeto": "Propiedad",
+   "id": "finca",
+   "campo": "capacidad_personas",
+   "valor": 30,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0403",
+    "cita": "En la finca duermen hasta 30 personas"
+   }
+  },
+  {
+   "objeto": "Propiedad",
+   "id": "quinta",
+   "campo": "incluye",
+   "valor": "alberca, asador y cuatro recamaras",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0501",
+    "cita": "La quinta tiene alberca, asador y cuatro recamaras"
+   }
+  },
+  {
+   "objeto": "Propiedad",
+   "id": "quinta",
+   "campo": "mascotas",
+   "valor": "sí, sin subirse a las camas",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0201",
+    "cita": "aceptamos mascotas en la quinta"
+   }
+  },
+  {
+   "objeto": "Regla",
+   "id": "musica",
+   "campo": "hora_limite",
+   "valor": "2 de la mañana",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0801",
+    "cita": "La música es hasta las 2 de la mañana"
+   }
+  }
+ ],
+ "temporadas": [
+  {
+   "nombre": "alta",
+   "desde": "12-15",
+   "hasta": "01-06",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0401",
+    "cita": "En temporada alta, del 15 de diciembre al 6 de enero"
+   }
+  }
+ ],
+ "voz": [
+  {
+   "frase": "Buenas tardes, con gusto. Para que fecha seria y cuantas personas?",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0101",
+    "cita": "Buenas tardes, con gusto. Para que fecha seria y cuantas personas?"
+   }
+  },
+  {
+   "frase": "Si, aceptamos mascotas en la quinta, solo le pedimos que no se suban a las camas.",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0201",
+    "cita": "Si, aceptamos mascotas en la quinta, solo le pedimos que no se suban a las camas."
+   }
+  },
+  {
+   "frase": "Perfecto gracias",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0202",
+    "cita": "Perfecto gracias"
+   }
+  }
+ ],
+ "reglas": [
+  {
+   "propiedad": "finca",
+   "tipo": "noche",
+   "dias": "entre_semana",
+   "monto_centavos": 600000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0103",
+    "cita": "La finca entre semana sale en $6,000 la noche"
+   }
+  },
+  {
+   "propiedad": "finca",
+   "tipo": "noche",
+   "dias": "fin_de_semana",
+   "monto_centavos": 850000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0103",
+    "cita": "viernes o sábado en $8,500"
+   }
+  },
+  {
+   "propiedad": "finca",
+   "tipo": "noche",
+   "temporada": "alta",
+   "monto_centavos": 950000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0401",
+    "cita": "la noche en la finca es de $9,500"
+   }
+  },
+  {
+   "propiedad": "finca",
+   "tipo": "evento",
+   "monto_centavos": 500000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0103",
+    "cita": "El evento se cobra aparte, $5,000"
+   }
+  },
+  {
+   "propiedad": "finca",
+   "tipo": "capacidad",
+   "personas": 30,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0403",
+    "cita": "En la finca duermen hasta 30 personas"
+   }
+  },
+  {
+   "propiedad": "finca",
+   "tipo": "persona_extra",
+   "personas": 20,
+   "monto_centavos": 25000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0403",
+    "cita": "Arriba de 20 personas se cobran $250 por persona extra por noche"
+   }
+  },
+  {
+   "propiedad": "finca",
+   "tipo": "minimo_noches",
+   "noches": 2,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0901",
+    "cita": "en la finca el minimo es de 2 noches"
+   }
+  },
+  {
+   "propiedad": "finca",
+   "tipo": "anticipo",
+   "pct": 50,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0601",
+    "cita": "Se aparta con el 50% de anticipo"
+   }
+  },
+  {
+   "propiedad": "finca",
+   "tipo": "deposito",
+   "monto_centavos": 300000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0601",
+    "cita": "un depósito de $3,000 que se regresa al salir"
+   }
+  },
+  {
+   "propiedad": "quinta",
+   "tipo": "noche",
+   "dias": "entre_semana",
+   "monto_centavos": 350000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0503",
+    "cita": "La quinta sale en $3,500 la noche entre semana"
+   }
+  },
+  {
+   "propiedad": "quinta",
+   "tipo": "noche",
+   "dias": "fin_de_semana",
+   "monto_centavos": 450000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0503",
+    "cita": "$4,500 viernes o sábado"
+   }
+  },
+  {
+   "propiedad": "quinta",
+   "tipo": "capacidad",
+   "personas": 12,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0501",
+    "cita": "Caben 12 personas"
+   }
+  },
+  {
+   "propiedad": "quinta",
+   "tipo": "minimo_noches",
+   "noches": 2,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0503",
+    "cita": "Mínimo 2 noches"
+   }
+  },
+  {
+   "propiedad": "quinta",
+   "tipo": "anticipo",
+   "pct": 50,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0601",
+    "cita": "Se aparta con el 50% de anticipo"
+   }
+  },
+  {
+   "propiedad": "quinta",
+   "tipo": "evento",
+   "monto_centavos": 200000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0503",
+    "cita": "La quinta sale en $3,500 la noche"
+   }
+  }
+ ],
+ "faq": [
+  {
+   "pregunta": "Cuál es el horario de entrada y salida?",
+   "respuesta": "La entrada es a las 3 de la tarde y la salida a las 12 del dia.",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0301",
+    "cita": "La entrada es a las 3 de la tarde y la salida a las 12 del dia."
+   }
+  },
+  {
+   "pregunta": "La quinta acepta mascotas?",
+   "respuesta": "Si, aceptamos mascotas en la quinta, solo le pedimos que no se suban a las camas.",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0201",
+    "cita": "aceptamos mascotas en la quinta"
+   }
+  }
+ ],
+ "escala": [
+  {
+   "caso": "reclamo por el depósito",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.MUESTRA0700",
+    "cita": "me cobraron de más el depósito"
+   }
+  }
+ ]
+}

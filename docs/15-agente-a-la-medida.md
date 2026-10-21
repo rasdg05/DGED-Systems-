@@ -175,3 +175,53 @@ lista de espera para fechas llenas.
 - Si el familiar es cliente que paga o caso de demostración citado (y con qué
   nombre se cita).
 - El tope de gasto por cliente que se acepta antes de ajustar la mensualidad.
+
+## Avance — 2026-10-21, primera sesión de código (D-017)
+
+Hecho en `services/agente/` (rama `claude/agente-a-la-medida`), siguiendo el orden de
+trabajo:
+
+| Paso | Estado | Dónde |
+|---|---|---|
+| 1. Gestor y fq-bot | Leídos. Gestor no trae `MEMORY/` (vive en `gestor-personal`, no agregado). Se tomó el patrón, no el código: el de Gestor es de gestoría vehicular | D-017 |
+| 2. Coexistencia de Meta | Medida la documentación: NO CONCLUYE hasta un alta real (Tech Provider) | `MEMORY/FUENTES.md` |
+| 3. Núcleo con un cliente por espacio | Hecho: espacio con llave, candado de cifra, voz, META, respuestas guardadas | `espacio.py`, `guardia.py`, `voz.py`, `modelo.py`, `agente.py` |
+| 4. Perfil como contrato y aprobación | Hecho: origen por renglón, versiones, pantalla mínima de revisión | `perfil.py`, `app.py`, `simbiosis.py` |
+| 5. Cotizador por reglas de datos | Hecho, con la muestra ficticia de finca y quinta | `cotizador.py`, `muestra/` |
+| 6. Sombra y vara | Hecho: acierto con cobertura, placebo, holdout fuera de tiempo, n < 30 | `sombra.py` |
+| 7. Llave interna y MCP | Hecho: llave por cliente derivada de `TENANT_INTERNAL_TOKEN`; MCP por stdio que propone y no enciende | `espacio.py`, `mcp.py` |
+| 8. Tope y contador | Hecho: tope 0 si nadie lo fija | `gasto.py` |
+
+Las ocho invariantes tienen test (`services/agente/tests/test_agente_invariantes.py`) y
+subieron a `MEMORY/CONSTITUCION.md` como XXXII–XXXIX.
+
+**Costo estimado de un cliente típico** (`gasto.estimar_mes`, precios de la skill
+`claude-api` del 2026-10-06; supuestos, no medición): 4 turnos por conversación, 30%
+contestado con respuesta guardada, perfil de 6,000 tokens en caché, 1,500 de
+conversación, 150 de salida, 5% sube a Opus, 3,000 mensajes de historial clasificados
+en lote y una pasada del perfil de 200K tokens de entrada.
+
+| Conversaciones al mes | Rutina (Haiku) | Escala a Opus | Lote | Perfil (una vez) | Total USD |
+|---|---|---|---|---|---|
+| 150 | 0.23 | 0.76 | 0.08 | 1.12 | 2.18 |
+| 300 | 0.46 | 1.51 | 0.08 | 1.12 | 3.17 |
+| 600 | 0.93 | 3.02 | 0.08 | 1.12 | 5.15 |
+
+Contra MXN 9,000–18,000 de mensualidad, la API no decide el precio; el tope por cliente
+protege contra un bucle, no contra el costo normal. Se vuelve a calcular con el `usage`
+real de la sombra.
+
+**Cómo correrlo** (desde `services/agente`, con `pip install -r requirements.txt`):
+
+```bash
+python muestra/generar_muestra.py                     # regenera la muestra ficticia
+python -m pytest -q tests                              # sin red ni clave
+TENANT_INTERNAL_TOKEN=... AGENTE_DATOS=... uvicorn agente.app:app --port 8090
+AGENTE_ESPACIO=<cliente> AGENTE_LLAVE=<llave> TENANT_INTERNAL_TOKEN=... python -m agente.mcp
+```
+
+**Sigue**: (1) con permiso del familiar, alta y 20–50 conversaciones reales a un
+espacio, y la primera llamada real de la simbiosis (salida estructurada con
+`fallbacks` en Opus, lote en Haiku); (2) el dueño abre Meta Business de DGED, verifica
+y pide App Review; (3) alta de prueba por coexistencia y medir cuánto historial llega;
+(4) 30 días de sombra antes de pasar a `sin_cifra`.
