@@ -1,8 +1,17 @@
-# Estado — 2026-10-12
+# Estado — 2026-10-21
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
 ## Corre
+
+- **Presentación del negocio** (2026-10-21): `docs/presentacion/DGED-presentacion.pdf`,
+  14 láminas con lo que ya existe y sus precios aprobados. Versión web privada en
+  https://claude.ai/artifact/W415FmFrJxFN4W7X8yuaVQ (se comparte desde su menú).
+  No usa las capturas de `docs/demo/` (marca "API KEY REQUIRED" del mapa base).
+- **Producto 4 en especificación** (D-016, `docs/15-agente-a-la-medida.md`): agente
+  de WhatsApp que se construye con los datos de cada negocio. **Sin código.**
+  Primera demo el 2026-10-22 con dos propiedades vacacionales (finca y quinta);
+  la demo es presentación + captura de datos, no producto.
 
 - **Atlas** en `main` (`ed7752e`, score 0.1.0). La rama
   `claude/dged-systems-ai-space-f8pm53` lleva lo siguiente, sin pasar a `main`.
@@ -88,6 +97,9 @@
 
 ## Sigue
 
+0. **Producto 4** en una sesión nueva: seguir el orden de `docs/15-agente-a-la-medida.md`
+   (agregar Gestor-Morelos y fq-bot, medir la coexistencia de Meta antes del conector).
+
 1. Desplegar la demo en Railway: mide Docker y el SMN desde una red normal.
 2. Arreglar la demo (mapa base sin clave, ficha legible, fuentes cortas) y la semana 2 (instantáneas y memo PDF).
 3. Pedir las claves INEGI (DENUE), SAKBÉ y Anthropic; después Banxico, INEGI BIE y FIRMS.
@@ -99,6 +111,9 @@
 6. Primeras cuentas (D-012): Fibra Mty, FIBRA Prologis, Vesta.
 
 ## Lo que es del dueño
+
+- Producto 4: cuenta de Meta Business de DGED y su app para el Embedded Signup; tope
+  de gasto por cliente; si el familiar de la demo es cliente que paga o caso citado.
 
 - Claves INEGI (DENUE), SAKBÉ y Anthropic, y `ATLAS_ACCESS_TOKEN`.
 - Acceso a Railway y un dominio para la demo pública.

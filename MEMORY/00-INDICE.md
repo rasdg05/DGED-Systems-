@@ -22,6 +22,8 @@ anterior.
 | `VISION.md` | Las tres fases de la empresa y los principios de trabajo |
 | `../DECISIONS.md` | Decisiones de arquitectura y producto, append-only |
 | `../docs/` | Arquitectura, MVP, fuentes, ontología, precios, riesgos, stack, plan 12 semanas |
+| `../docs/15-agente-a-la-medida.md` | Producto 4 (D-016): especificación y orden de trabajo para la siguiente sesión |
+| `../docs/presentacion/` | Presentación del negocio en PDF |
 
 ## Tres reglas de oro
 
