@@ -25,6 +25,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 
@@ -161,6 +162,8 @@ def publicar(espacio: Espacio, estado: str, **extra) -> None:
     anterior.update(extra, estado=estado, en=datetime.now(timezone.utc).isoformat(timespec="seconds"))
     if estado != "esperando_qr":
         anterior.pop("qr", None)
+    if estado != "esperando_codigo":
+        anterior.pop("codigo", None)
     espacio.escribir_json(ESTADO, anterior)
 
 
@@ -207,9 +210,26 @@ def main() -> int:  # pragma: no cover - necesita WhatsApp de verdad
     client = NewClient(str(espacio.ruta(SESION)))
     publicar(espacio, "arrancando")
 
+    # Sin cámara a la mano: "Vincular con número de teléfono". Se pide UNA vez,
+    # con el cliente ya corriendo (cuando WhatsApp manda el primer QR).
+    telefono = "".join(c for c in os.environ.get("AGENTE_VINCULAR_TELEFONO", "") if c.isdigit())
+    pedido = {"hecho": False}
+
+    def pedir_codigo():
+        try:
+            publicar(espacio, "esperando_codigo", codigo=client.PairPhone(telefono, True))
+        except Exception as error:  # el QR sigue sirviendo
+            logger.exception("No se pudo pedir el código de vinculación")
+            publicar(espacio, "esperando_qr", detalle=f"código: {error!r}")
+
     @client.qr
     def on_qr(_c, data_qr):
         codigo = data_qr.decode() if isinstance(data_qr, (bytes, bytearray)) else str(data_qr)
+        if telefono:
+            if not pedido["hecho"]:
+                pedido["hecho"] = True
+                threading.Thread(target=pedir_codigo, daemon=True).start()
+            return
         publicar(espacio, "esperando_qr", qr=codigo)
 
     @client.event(PairStatusEv)

@@ -121,3 +121,13 @@ def test_vinc_lineas_a_medias_no_tumban_la_lectura(espacio):
     with espacio.ruta(historial.ARCHIVO).open("a", encoding="utf-8") as f:
         f.write('{"id": "medio')
     assert len(historial.cargar(espacio)) > 0
+
+
+def test_vinc_codigo_de_vinculacion_se_ve_y_se_limpia(espacio):
+    from agente.app import app
+    from fastapi.testclient import TestClient
+    vinculado.publicar(espacio, "esperando_codigo", codigo="ABCD-EFGH")
+    pagina = TestClient(app).get(f"/espacios/{espacio.cliente_id}/vincular", params={"llave": "secreto-de-prueba"}).text
+    assert "ABCD-EFGH" in pagina and "número de teléfono" in pagina
+    vinculado.publicar(espacio, "conectado")
+    assert "codigo" not in vinculado.leer_estado(espacio)

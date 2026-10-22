@@ -226,12 +226,16 @@ def vincular(cliente_id: str, llave: str | None = None) -> str:
         "sin_lector": "El lector no está corriendo para este espacio (revise AGENTE_ESPACIO_VINCULADO).",
         "arrancando": "Arrancando…",
         "esperando_qr": "En el teléfono del negocio: WhatsApp Business → Dispositivos vinculados → Vincular un dispositivo.",
+        "esperando_codigo": "En el teléfono del negocio: Dispositivos vinculados → Vincular un dispositivo → "
+                            "Vincular con número de teléfono, y teclee el código.",
         "vinculado": "Vinculado. Esperando el historial…",
         "conectado": "Conectado. El historial llega por partes: deje el teléfono abierto y con internet unos minutos.",
         "numero_ajeno": "Se vinculó un número que no es el del negocio: no se importa nada. Desvincúlelo desde el teléfono.",
         "desconectado": "La sesión se cerró desde el teléfono. Reinicie el servicio para un QR nuevo.",
     }
     qr = f"<div class=qr>{_qr_svg(estado['qr'])}</div>" if estado.get("estado") == "esperando_qr" and estado.get("qr") else ""
+    if estado.get("estado") == "esperando_codigo" and estado.get("codigo"):
+        qr = f"<p style='font-size:40px;letter-spacing:6px'><b>{html.escape(estado['codigo'])}</b></p>"
     cuerpo = (f"<meta http-equiv=refresh content=5><h1>Vincular WhatsApp: {html.escape(cliente_id)}</h1>"
               f"<p><b>{html.escape(estado.get('estado', ''))}</b> — {html.escape(lineas.get(estado.get('estado'), ''))}</p>"
               f"{qr}<p>Mensajes guardados: {sum(len(v) for v in hilos.values())} en {len(hilos)} conversaciones.</p>"
