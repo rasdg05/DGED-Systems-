@@ -49,8 +49,9 @@ def _por_numero(phone_number_id: str) -> Espacio | None:
 
 
 @app.get("/health")
+@app.get("/api/health")  # si Railway lee el railway.json de la raíz (el de Atlas), su healthcheck es éste
 def health() -> dict:
-    return {"ok": True, "commit": os.environ.get("GIT_COMMIT", "")}
+    return {"ok": True, "service": "dged-agente", "commit": os.environ.get("GIT_COMMIT", "")}
 
 
 @app.get("/webhook", response_class=PlainTextResponse)

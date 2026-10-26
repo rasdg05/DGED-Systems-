@@ -343,6 +343,7 @@ def test_webhook_verificacion_y_firma(http):
     assert http.post("/webhook", content=datos, headers=dict(cabeceras, **{"X-Hub-Signature-256": "sha256=00"})).status_code == 401
     assert http.post("/webhook", content=datos, headers=cabeceras).status_code == 200
     assert http.get("/health").json()["ok"] is True
+    assert http.get("/api/health").json()["service"] == "dged-agente"
 
 
 def test_webhook_mensaje_vivo_queda_en_sombra(http, espacio):
