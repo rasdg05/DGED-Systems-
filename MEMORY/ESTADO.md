@@ -27,8 +27,10 @@
   persona, el "ok" que aplaza; banco pass^k con red team. No se trajo la MEMORIA de Gestor: vive en
   `rasdg05/gestor-personal`, que no se agregó. Lo que el banco cazó se corrigió también en Gestor
   (`4f03c48` en su main, desplegado): cifra de la IA revisada por código, también con letra; "grax".
-- **UX/UI**: el dueño pidió "el Airbnb de Apple". Brief para la sesión de arranque en frío:
-  `docs/16-arranque-ux-ui.md` (Basecoat propuesto, no aprobado).
+- **UX/UI** (D-020, 2026-10-27): rediseño "Airbnb de Apple" hecho, sin Basecoat. `/v/` con portada
+  (foto o degradado del color del negocio), código en casillas, estado en vivo; pantallas internas
+  con listas agrupadas y pestañas abajo. Color y foto se ponen en el alta. **Falta**: pedir a Finca
+  Emiliano su foto original y el verde exacto de su volante, y subirlos desde su alta.
 - **Lector por QR vinculado, solo lectura** (D-018): `services/agente/agente/vinculado.py`, página
   `/espacios/<id>/vincular`. Desplegable en Railway como servicio aparte del mismo repo
   (`services/agente/railway.json`). Medido: WhatsApp entrega el QR al contenedor. **Falta**:

@@ -32,7 +32,7 @@ Material visual que ellos publican: volante "Desconectar entre semana ¡Sí se
 puede!" (verde bosque, serif, fotos de alberca, jardín, terraza, mesa de evento);
 pedir las fotos originales para usarlas.
 
-## Dirección propuesta (no aprobada todavía)
+## Dirección propuesta (superada por D-020: se hizo a mano, sin Basecoat)
 
 - **Componentes: Basecoat** (`github.com/hunvreus/basecoat`, MIT): shadcn/ui en
   HTML + Tailwind sin React, con plantillas Jinja. Encaja con páginas hechas en el

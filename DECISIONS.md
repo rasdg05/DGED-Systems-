@@ -97,3 +97,14 @@ Dirección del dueño: llevar al esqueleto lo que hace útil al agente de Gestor
 El banco de Gestor (`banco.py`) entra como compuerta: pass^k sobre cinco variantes de escritura y un red team con modelo adversario, en una copia del espacio. Al nacer cazó dos huecos que ahora tienen test: "grax" no era acuse, y una cifra escrita con letra ("seis mil") pasaba el candado. El texto del modelo ya no lleva cantidades de ninguna forma ("mil gracias" sí). Las pantallas del espacio (tablero, alta, WhatsApp, conversaciones con teléfonos enmascarados, perfil, banco) se rehicieron con la paleta de Atlas, pensadas para el celular.
 
 Despliegue: el `railway.json` de la raíz ya no fija `dockerfilePath` (le ganaba a `RAILWAY_DOCKERFILE_PATH` y el servicio del agente construía Atlas); hay test que lo cuida.
+
+## D-020 — 2026-10-27 — Pantallas del agente: iOS nativo hecho a mano, sin Basecoat; la foto y el color del negocio mandan
+
+Encargo del dueño: "el Airbnb de Apple", empezando por lo que ve el negocio (`/v/`). Se decidió **no** usar Basecoat (propuesto en `docs/16`): trae Tailwind (compilado vendido o CDN), y su estética es la de un SaaS web, no la de Apple; una pantalla que abre el negocio desde su celular no debe depender de un CDN. En su lugar, un solo `CSS` propio en `paginas.py`, sin dependencias:
+
+- **Apple**: fuente del sistema (SF en iPhone), título grande, listas agrupadas con separadores con sangría, barra superior y **pestañas abajo** con vidrio (`backdrop-filter`), modo oscuro con los grises de iOS, movimiento sutil que respeta `prefers-reduced-motion`. Sin píldoras: el estado es un punto y una palabra.
+- **Airbnb**: en `/v/` la **portada es la foto del negocio** (o, sin foto, un degradado de su color con su inicial en vidrio) y una hoja blanca que sube encima. Un solo acento: el color del negocio (`config.marca_color`, `#rrggbb` validado), que pinta botones, pestaña activa y burbujas propias.
+- **Celular primero**: el código de vinculación en casillas como las de WhatsApp y con botón de copiar (sin guion); aviso, solo en pantallas táctiles, de que el QR no se puede escanear desde el mismo teléfono; progreso Preparar · Vincular · Copiar; la página se actualiza **en su lugar** (fetch + View Transitions) y, sin JS, con `<meta refresh>` en `<noscript>`.
+- **Portada**: se sube desde el alta (el teléfono la achica a 2000 px JPG antes de mandarla), se juzga por sus bytes (JPG/PNG/WebP, ≤ 8 MB), queda una sola en el espacio y `/v/<id>/portada` solo abre con el enlace del negocio.
+
+Invariantes nuevas con test: en **ningún** estado del lector `/v/` enseña menú, conteos, detalle técnico, número vinculado ni enlaces a lo interno; color fuera de `#rrggbb` se rechaza; portada sin llave o que no es imagen se rechaza. Medido con Playwright a 390 px, claro y oscuro: ninguna pantalla con scroll horizontal. Sin fotos reales de Finca Emiliano todavía: su `/v/` sale con degradado e inicial hasta que suban la suya.

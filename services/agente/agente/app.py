@@ -127,8 +127,9 @@ def aprobar_salida(cliente_id: str, salida_id: str, aprobador: str = Body(..., e
 # --------------------------------------------------------------------------- #
 @app.get("/", response_class=HTMLResponse)
 def inicio() -> str:
-    return paginas.pagina(None, None, "", "Inicio", "<div class='card'><h2>DGED — agente a la medida</h2>"
-                          "<p class='lede'>Servicio privado. Entre con el enlace de su espacio.</p></div>")
+    return paginas._documento(None, "DGED", "<main class='contenido aparece' style='padding-top:22vh'>"
+                              "<p class='sobre'>DGED</p><h1 class='titulo-grande'>Servicio privado</h1>"
+                              "<p class='lede'>Entre con el enlace de su espacio.</p></main>")
 
 
 @app.post("/espacios/{cliente_id}/alta")
@@ -138,15 +139,34 @@ def alta_guardar(cliente_id: str, datos: dict, x_tenant_key: str | None = Header
 
     espacio = _espacio(cliente_id, x_tenant_key or llave)
     numero = "".join(c for c in str(datos.pop("numero_negocio", "") or "") if c.isdigit())
+    color = str(datos.pop("color_marca", "") or "").strip()
+    if color and not paginas.HEX.match(color):
+        raise HTTPException(422, "color de marca inválido: debe ser #rrggbb")
     try:
         registrada = alta.registrar(espacio, datos, parcial=True)
     except alta.AltaIncompleta as error:
         raise HTTPException(422, str(error)) from error
-    if numero:
+    if numero or color:
         config = espacio.config()
-        config["numero_negocio"] = numero
+        if numero:
+            config["numero_negocio"] = numero
+        if color:
+            config["marca_color"] = color.lower()
         espacio.escribir_json("config.json", config)
     return {"alta": sorted(registrada), "faltan": alta.faltan(registrada)}
+
+
+@app.post("/espacios/{cliente_id}/portada")
+async def portada_guardar(cliente_id: str, request: Request, x_tenant_key: str | None = Header(default=None),
+                          llave: str | None = None) -> dict:
+    """La foto del negocio para su pantalla. Se juzga por sus bytes, no por el Content-Type."""
+    espacio = _espacio(cliente_id, x_tenant_key or llave)
+    datos = await request.body()
+    try:
+        ext = paginas.guardar_portada(espacio, datos)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    return {"portada": ext, "bytes": len(datos)}
 
 
 @app.get("/espacios/{cliente_id}/historial.jsonl", response_class=PlainTextResponse)
