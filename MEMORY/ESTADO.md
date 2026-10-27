@@ -34,7 +34,15 @@
   maestra; con la del cliente, 404. Barra, barra lateral, íconos de color e instalable, como Gestor.
   Subcuentas: pendiente. D-023: `/negocios` da de alta un negocio nuevo sin código (runbook
   `docs/17-plug-and-play.md`); reglas de Safari en iPhone con test. **Cuello para revender**: un
-  lector vinculado por servicio de Railway (`AGENTE_ESPACIO_VINCULADO`). Color y foto se ponen en el alta. **Falta**: pedir a Finca
+  lector vinculado por servicio de Railway (`AGENTE_ESPACIO_VINCULADO`).
+- **Finca Emiliano vinculado (2026-10-27, noche)** tras D-024 a D-026: el código de 8 se pedía en
+  cada arranque (429 de WhatsApp por los redespliegues), el respaldo no enseñaba el QR, y el número
+  propio salía "equivocado" (`str()` del JID). Hoy: QR siempre, código a pedido, botón "Generar QR
+  nuevo", número por `.User` y confirmado con `get_me()`. **Regla**: no redesplegar el agente
+  mientras un negocio vincula. **Siguiente sesión**: confirmar en el panel que el historial entró
+  (si son 0, cerrar "ia" en el teléfono y volver a vincular), luego el taller
+  (`/espacios/finca-quinta/banco` con la llave maestra): proponer perfil, que Mariana lo apruebe en
+  Asistente, banco y 30 conversaciones en sombra. Color y foto se ponen en el alta. **Falta**: pedir a Finca
   Emiliano su foto original y el verde exacto de su volante, y subirlos desde su alta.
 - **Lector por QR vinculado, solo lectura** (D-018): `services/agente/agente/vinculado.py`, página
   `/espacios/<id>/vincular`. Desplegable en Railway como servicio aparte del mismo repo
