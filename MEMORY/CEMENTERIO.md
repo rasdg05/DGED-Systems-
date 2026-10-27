@@ -90,3 +90,19 @@
   **403** con captcha ("verificar que eres humano"). La portada responde 200 con un
   User-Agent y 403 de Cloudflare con el de curl. La portada no es dato.
 - Revivir si la consulta o una descarga masiva responde sin captcha desde un servidor.
+
+## Agente a la medida — probado y no (2026-10-27, `services/agente/vara/intentos.jsonl`)
+
+### Respuestas guardadas sacadas del historial como capa sin modelo — 2026-10-27
+- Perfil del enjambre (285 renglones citados, 48 preguntas frecuentes) sobre Finca Emiliano:
+  acierto literal **0.4%** en desarrollo con el perfil purgado por plática (1.4% sin purga:
+  la guardada "acertaba" con la respuesta de su propio momento) y 0.4% en el holdout.
+  DSR 0.0 contra pasar todo a una persona. n = 498 dev, 251 holdout.
+- Revivir con preguntas frecuentes escritas por el dueño (no sacadas de pláticas sueltas)
+  y medidas en el holdout siguiente.
+
+### Redacción sin cotizador capaz — 2026-10-27
+- El enjambre redactó 60 momentos de desarrollo con el perfil: puntaje 0.28 contra 0.30
+  de la línea base (DSR 0.0); 41 de 60 terminan en una persona (cotizar, disponibilidad,
+  candados). Sin la lista de precios ni el calendario, redactar mejor no mueve la vara.
+- Revivir cuando exista la lista de precios del dueño y el cotizador elija propiedad por grupo.

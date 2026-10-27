@@ -86,6 +86,20 @@ con el esquema de `simbiosis.ESQUEMA_PERFIL`: cada renglón con
 con `--de-verdad` queda como propuesta en producción y la enciende el dueño
 del negocio en Asistente. Es la misma validación que la de Opus.
 
+## Medir antes de subir (D-028)
+
+Un perfil o una ronda se miden con la vara antes de proponerse
+(`python -m agente.vara medir <id> --variante <x> --perfil perfil.json --contra base`):
+
+- **El enjambre solo lee material de desarrollo** (`vara.material_de_desarrollo`): mensajes
+  anteriores al límite del desarrollo y de pláticas que no están en el holdout. Un perfil que
+  cita el embargo o el holdout no lo abre.
+- Para medir la redacción, el enjambre redacta sobre una muestra de **desarrollo** (n ≥ 30) donde
+  el agente iría al modelo, sin ver la respuesta de la casa, y se pasa con `--redacciones`: los
+  borradores cruzan los mismos candados del turno.
+- Las reglas de voz que revisa el candado (`voz.reglas_para_redactar`) van en la instrucción del
+  subagente: sin ¿ ni ¡ si el negocio no los usa, sin emojis si no los usa, trato del negocio.
+
 ## Al terminar
 
 Lo que quedó para el dueño, en una lista con el teléfono enmascarado

@@ -103,3 +103,43 @@ su 7% medía el clasificador, no al bot).
 - Rotar `TENANT_INTERNAL_TOKEN` (pasó por un chat).
 - La lista de precios de Finca Emiliano como documento (hoy está en imágenes).
 - Que Mariana apruebe el perfil en Asistente; la orden escrita para la primera ronda.
+
+## Hecho en la sesión (2026-10-27) — D-028 a D-030
+
+```bash
+cd services/agente
+python -m agente.local bajar finca-quinta                      # copia local (tope 0, en sombra)
+python -m agente.vara medir finca-quinta --variante base       # desarrollo; el holdout no se abre
+python -m agente.vara medir finca-quinta --variante p --perfil perfil.json --contra base
+python -m agente.vara medir finca-quinta --variante p --perfil perfil.json --redacciones r.json --contra base
+python -m agente.vara medir finca-quinta --variante p --perfil perfil.json --contra base --abrir-holdout   # UNA vez
+python -m agente.corpus finca-quinta                           # corpus {{cifra}} y faltaba_al_cotizar
+```
+
+| Paso | Dónde | Medido |
+|---|---|---|
+| Jugadas y clasificador | `agente/jugadas.py` (`finca-1`) | `otra` 1.8% en dev; 36/40 contra etiqueta a mano ciega |
+| La vara | `agente/vara.py`, `vara/intentos.jsonl` | 1,003 momentos · holdout 251 desde 2026-10-15 · dev 498 (209 pláticas) · oráculo 100 → 13.3% con placebo |
+| Perfil en local | enjambre de 4 agentes, solo desarrollo | 285 renglones citados, 0 descartados; **no se subió** |
+| Redacción | enjambre de 3 agentes, 60 momentos de dev | candados del turno: 12 de 60 detenidos (9 por ¿, 3 por "dos") |
+| Banco | `banco.CASOS_REALES` (12) | pass^k 1.0, cero caros (cazó "anotado grax") |
+| Backtest | `agente/backtest.py`, al arrancar y en el taller | 349 momentos (12–26 oct), sin regresión |
+| Corpus | `agente/corpus.py` (fuera de git) | 675 pláticas, 250 montos tapados |
+
+**Resultado**: base 0.30 (dev y holdout); perfil del enjambre 0.115 dev / 0.097 holdout; con
+redacción 0.28 en su submuestra. DSR 0.0: **nada se enciende**. Lo que mueve la vara no es redactar
+mejor sino lo estructural: la lista de precios (precio por propiedad y tamaño de grupo) y el
+calendario (31 momentos de disponibilidad en dev). `faltaba_al_cotizar`: propiedad 96%, personas
+15%, fechas 8% (n = 202).
+
+**Lecturas de la vara que no se deben olvidar**
+- A_pol de la base es 100% porque la política acepta pasarlo todo: la alineación se compra con
+  silencio. Por eso se reporta junto a la cobertura y el puntaje con costos, y el placebo no cae con
+  un agente constante (y sí con el oráculo).
+- El backtest mira los últimos 14 días, que se enciman con el holdout: es alarma de despliegue, no
+  material para afinar.
+- La huella del candidato es el código que decide + el perfil; editar la vara no reabre el holdout.
+
+**Siguiente sesión**: con la lista de precios del dueño, un cotizador que elija propiedad por grupo
+(y la regla con su origen en el documento), medido como intento nuevo; holdout nuevo cuando entren
+momentos de producción posteriores al 2026-10-27 (el viejo pasa a desarrollo).

@@ -1,8 +1,30 @@
-# Estado — 2026-10-27 (noche)
+# Estado — 2026-10-27 (sesión de alineamiento y entrene)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
 ## Corre
+
+- **Alineamiento y entrene del agente con el rigor de Gestor** (2026-10-27, `docs/18`, D-028 a D-030,
+  rama `claude/agente-a-la-medida`). Cero llamadas a la API; nada subido a producción.
+  - **La vara** (`python -m agente.vara medir finca-quinta --variante <x>`): 1,003 momentos reales,
+    holdout sellado desde el 2026-10-15 (251), desarrollo purgado 498 en 209 pláticas, CPCV, placebo y
+    oráculo, DSR, PBO, libro sellado, bitácora `services/agente/vara/intentos.jsonl` (11 intentos).
+    Clasificador `finca-1`: 90% contra etiqueta a mano ciega (36/40). Holdout abierto una vez para la
+    base y una para el perfil del enjambre; un tercer intento se rechazó.
+  - **Resultado**: nada pasa la compuerta. Base (todo a una persona) 0.30 en dev y holdout; perfil del
+    enjambre 0.115 dev / 0.097 holdout; enjambre redactando 60 momentos de dev 0.28. DSR 0.0 en todos.
+  - **Lo estructural** (medido): en 96% de las cifras de la casa el cliente no dijo la propiedad (la
+    casa la elige por grupo) y los precios se negocian por grupo. Hace falta la **lista de precios del
+    dueño** y un cotizador que elija propiedad por grupo; disponibilidad necesita el calendario.
+  - **Arreglado en el turno, con test** (D-029): la bienvenida automática ya no calla al agente 24 h
+    (339 de 1,003 momentos); "persona" de conteo ya no pide una persona (11 de 11 falsos); "pendiente de
+    mi presupuesto" ya no se calla; montos "12.000" y "$600,00"; el redactor recibe las reglas de voz
+    del candado. Pendientes: 143 esperan, **90** nunca tuvieron persona (antes decía 111).
+  - **Perfil en local** (enjambre, solo desarrollo): 285 renglones citados, 0 descartados, en
+    `datos/espacios/finca-quinta/enjambre/perfil/perfil.json` (fuera de git). **No se subió**: subirlo
+    con `--de-verdad` y aprobarlo es del dueño, y la vara dice que hoy no mejora nada.
+  - **Backtest por despliegue** (`agente/backtest.py`, `GET/POST /espacios/<id>/backtest[.json]` con la
+    maestra, sección en `/banco`) y **corpus** con `{{cifra}}` (`python -m agente.corpus finca-quinta`).
 
 - **Presentación del negocio** (2026-10-21): `docs/presentacion/DGED-presentacion.pdf`,
   14 láminas con lo que ya existe y sus precios aprobados. Versión web privada en
@@ -139,7 +161,7 @@
   mapa base de CARTO con "API KEY REQUIRED", la ficha muestra JSON crudo y el
   Oráculo pega URLs largas. Faltan también las instantáneas inmutables y el memo
   PDF (semana 2). Un intento con agentes se detuvo sin dejar nada: está por hacer.
-- Pruebas sin red: 270 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite + agente 78.95% (piso 70).
+- Pruebas sin red: 374 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite + agente 81.5% (piso 70).
 
 ## Bloqueos (con causa)
 
@@ -177,6 +199,10 @@
 6. Primeras cuentas (D-012): Fibra Mty, FIBRA Prologis, Vesta.
 
 ## Lo que es del dueño
+- **Agente (de esta sesión)**: la lista de precios de Finca Emiliano como documento (propiedad ×
+  personas/habitaciones × temporada) y su calendario de ocupación; si quiere, subir el perfil del enjambre
+  como propuesta (`python -m agente.local proponer finca-quinta <perfil.json> --de-verdad`); rotar
+  `TENANT_INTERNAL_TOKEN` (volvió a pasar por un chat el 2026-10-27).
 
 - Producto 4: cuenta de Meta Business de DGED y su app para el Embedded Signup; tope
   de gasto por cliente; si el familiar de la demo es cliente que paga o caso citado.
