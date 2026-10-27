@@ -131,3 +131,33 @@ def test_vinc_codigo_de_vinculacion_se_ve_y_se_limpia(espacio):
     assert "ABCD-EFGH" in pagina and "número de teléfono" in pagina
     vinculado.publicar(espacio, "conectado")
     assert "codigo" not in vinculado.leer_estado(espacio)
+
+
+def test_vinc_si_el_codigo_falla_se_ve_el_qr_y_se_reintenta_despues(espacio):
+    """Finca Emiliano, 2026-10-27: WhatsApp dio 429 al código y el negocio vio "Preparando" sin QR."""
+    from agente.app import app
+    from agente.espacio import llave_de_vinculacion
+    from fastapi.testclient import TestClient
+    ahora = [1000.0]
+
+    def limitado(_tel):
+        raise RuntimeError("PairPhoneError('info query returned status 429: rate-overlimit')")
+    e = vinculado.Emparejar(espacio, "5217770000000", limitado, reintento_s=3600, reloj=lambda: ahora[0])
+    assert e.al_recibir_qr("2@primero") is True
+    e.pedir_codigo()
+    estado = vinculado.leer_estado(espacio)
+    assert estado["estado"] == "esperando_qr" and estado["qr"] == "2@primero" and "429" not in estado["detalle"]
+    assert e.al_recibir_qr("2@segundo") is False and vinculado.leer_estado(espacio)["qr"] == "2@segundo"
+    v = TestClient(app).get(f"/v/{espacio.cliente_id}", params={"t": llave_de_vinculacion(espacio.cliente_id)}).text
+    assert "<svg" in v and "Escanee este código" in v and "Preparando" not in v
+    ahora[0] += 3601  # pasada la espera se vuelve a pedir, y el código manda sobre los QR
+    e.pedir = lambda _tel: "ABCD-EFGH"
+    assert e.al_recibir_qr("2@tercero") is True
+    e.pedir_codigo()
+    assert e.al_recibir_qr("2@cuarto") is False
+    assert vinculado.leer_estado(espacio)["codigo"] == "ABCD-EFGH"
+
+
+def test_vinc_sin_telefono_siempre_qr(espacio):
+    e = vinculado.Emparejar(espacio, "", lambda _t: "NO")
+    assert e.al_recibir_qr("2@x") is False and vinculado.leer_estado(espacio)["qr"] == "2@x"

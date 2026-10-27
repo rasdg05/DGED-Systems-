@@ -167,6 +167,52 @@ def publicar(espacio: Espacio, estado: str, **extra) -> None:
     espacio.escribir_json(ESTADO, anterior)
 
 
+class Emparejar:
+    """Qué se le enseña al negocio para vincular: el código de 8 si se puede, si no el QR.
+
+    WhatsApp limita los códigos por número (429 rate-overlimit; medido el 2026-10-27 con
+    Finca Emiliano tras varios reinicios del servicio). Antes, al fallar el código se
+    anunciaba "esperando_qr" SIN el QR y los QR siguientes se ignoraban: el negocio veía
+    "Preparando" para siempre. Ahora el último QR se publica en cuanto el código falla,
+    y el código se vuelve a pedir solo pasado `reintento_s`.
+    """
+
+    def __init__(self, espacio: Espacio, telefono: str, pedir, reintento_s: int = 3600, reloj=time.time):
+        self.espacio, self.telefono, self.pedir = espacio, telefono, pedir
+        self.reintento_s, self.reloj = reintento_s, reloj
+        self.ultimo_qr = ""
+        self.estado = "sin_pedir"  # sin_pedir | pidiendo | mostrado | fallo
+        self.fallo_en = 0.0
+
+    def al_recibir_qr(self, qr: str) -> bool:
+        """Devuelve True si hay que pedir el código (el llamador lo pide en otro hilo)."""
+        self.ultimo_qr = qr
+        if not self.telefono:
+            publicar(self.espacio, "esperando_qr", qr=qr)
+            return False
+        if self.estado in ("pidiendo", "mostrado"):
+            return False
+        if self.estado == "fallo" and self.reloj() - self.fallo_en < self.reintento_s:
+            publicar(self.espacio, "esperando_qr", qr=qr)
+            return False
+        self.estado = "pidiendo"
+        return True
+
+    def pedir_codigo(self) -> None:
+        try:
+            codigo = self.pedir(self.telefono)
+        except Exception as error:  # el QR sigue sirviendo, y se publica YA
+            logger.warning("No se pudo pedir el código de vinculación: %r", error)
+            self.estado, self.fallo_en = "fallo", self.reloj()
+            espera = "WhatsApp pidió esperar antes de dar otro código." if "429" in repr(error) else \
+                "No se pudo pedir el código."
+            publicar(self.espacio, "esperando_qr", qr=self.ultimo_qr,
+                     detalle=f"{espera} Mientras, escanee el QR desde otra pantalla.")
+            return
+        self.estado = "mostrado"
+        publicar(self.espacio, "esperando_codigo", codigo=codigo)
+
+
 def leer_estado(espacio: Espacio) -> dict:
     return espacio.leer_json(ESTADO, {}) or {"estado": "sin_lector"}
 
@@ -213,24 +259,13 @@ def main() -> int:  # pragma: no cover - necesita WhatsApp de verdad
     # Sin cámara a la mano: "Vincular con número de teléfono". Se pide UNA vez,
     # con el cliente ya corriendo (cuando WhatsApp manda el primer QR).
     telefono = "".join(c for c in os.environ.get("AGENTE_VINCULAR_TELEFONO", "") if c.isdigit())
-    pedido = {"hecho": False}
-
-    def pedir_codigo():
-        try:
-            publicar(espacio, "esperando_codigo", codigo=client.PairPhone(telefono, True))
-        except Exception as error:  # el QR sigue sirviendo
-            logger.exception("No se pudo pedir el código de vinculación")
-            publicar(espacio, "esperando_qr", detalle=f"código: {error!r}")
+    emparejar = Emparejar(espacio, telefono, lambda tel: client.PairPhone(tel, True))
 
     @client.qr
     def on_qr(_c, data_qr):
         codigo = data_qr.decode() if isinstance(data_qr, (bytes, bytearray)) else str(data_qr)
-        if telefono:
-            if not pedido["hecho"]:
-                pedido["hecho"] = True
-                threading.Thread(target=pedir_codigo, daemon=True).start()
-            return
-        publicar(espacio, "esperando_qr", qr=codigo)
+        if emparejar.al_recibir_qr(codigo):
+            threading.Thread(target=emparejar.pedir_codigo, daemon=True).start()
 
     @client.event(PairStatusEv)
     def on_pair(_c, event):
