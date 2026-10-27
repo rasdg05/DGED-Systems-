@@ -61,6 +61,8 @@ def motivo_para_no_enviar(espacio: Espacio, salida: Salida) -> str:
         return "espacio en sombra: el agente redacta y no envía"
     if salida.a_persona:
         return "la contesta la persona"
+    if salida.via == "silencio" or not salida.texto.strip():
+        return "no hay nada que mandar: el agente calla"
     return ""
 
 

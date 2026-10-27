@@ -19,12 +19,14 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 
-from . import cotizador, gasto, guardia, historial, modelo, perfil, respuestas, voz
+from . import conversacion, cotizador, gasto, guardia, historial, modelo, perfil, respuestas, voz
 from .espacio import Espacio
 from .historial import Mensaje
 
 ARCHIVO = "salidas.jsonl"
 CONTEXTO_MENSAJES = 20
+#: Si una persona del negocio escribió en estas horas, el agente calla (Gestor, `fuera_de_lugar`).
+HORAS_DE_LA_PERSONA = 24
 LO_CONFIRMO = "Permítame confirmarlo y le escribo en un momento."
 
 
@@ -33,7 +35,7 @@ class Salida:
     cliente_id: str
     hilo: str
     responde_a: str
-    via: str                   # guardada | modelo | cotizador | persona
+    via: str                   # guardada | regla | modelo | cotizador | persona | silencio
     texto: str                 # lo que recibiría el cliente final
     borrador: str = ""         # lo que redactó el modelo, si no salió
     motivo: str = ""
@@ -83,28 +85,66 @@ def _a_persona(base: dict, motivo: str, borrador: str = "") -> Salida:
     return Salida(**base, via="persona", texto=LO_CONFIRMO, borrador=borrador, motivo=motivo)
 
 
-def decidir(espacio: Espacio, entrante: Mensaje, client=None) -> Salida:
+def _callar(base: dict, motivo: str) -> Salida:
+    return Salida(**base, via="silencio", texto="", motivo=motivo)
+
+
+def _lo_lleva_una_persona(espacio: Espacio, entrante: Mensaje) -> bool:
+    """Una persona del negocio escribió en las últimas `HORAS_DE_LA_PERSONA` horas de este hilo."""
+    horas = float(espacio.config().get("horas_de_la_persona", HORAS_DE_LA_PERSONA))
+    return any(m.del_negocio and 0 <= entrante.ts - m.ts <= horas * 3600
+               for m in historial.hilos(espacio).get(entrante.hilo, []) if m.id != entrante.id)
+
+
+def decidir(espacio: Espacio, entrante: Mensaje, client=None, en_vivo: bool = False) -> Salida:
+    """`en_vivo=True` solo en el turno real: ahí el agente no habla encima de una
+    persona. La sombra redacta igual para poder medir (Gestor: `fiel`)."""
     base = {"cliente_id": espacio.cliente_id, "hilo": entrante.hilo, "responde_a": entrante.id}
     activo = perfil.activo(espacio)
     if activo is None:
         return _a_persona(base, "sin perfil aprobado")
-    if not (entrante.texto or "").strip():
+    if not conversacion.tiene_turno(entrante.texto):
         return _a_persona(base, "mensaje sin texto (foto, audio o documento)")
 
-    guardada = respuestas.buscar(activo, entrante.texto)
+    # Lo que Gestor aprendió con clientes reales, antes de gastar un token
+    # (`conversacion.py`): la ráfaga se lee junta y hay cosas que no se contestan.
+    hilo = [m for m in historial.hilos(espacio).get(entrante.hilo, []) if m.ts <= entrante.ts]
+    if not hilo or hilo[-1].id != entrante.id:
+        hilo.append(entrante)
+    dicho = conversacion.rafaga(hilo) or entrante.texto
+    if en_vivo and _lo_lleva_una_persona(espacio, entrante):
+        return _callar(base, "lo lleva una persona: el agente no habla encima")
+    if conversacion.es_reclamo(dicho):
+        return _a_persona(base, "reclamo o molestia: lo atiende una persona")
+    if conversacion.pregunta_si_es_bot(dicho):
+        nombre = activo.get("nombre_comercial") or "este negocio"
+        return Salida(**base, via="regla", texto=(f"Soy el asistente automático de {nombre}. "
+                                                  "Si prefiere, una persona le contesta por aquí."))
+    if conversacion.pide_persona(dicho):
+        return _a_persona(base, "pidió hablar con una persona")
+    if conversacion.es_cierre(dicho):
+        return _callar(base, "el cliente cerró la conversación")
+    if conversacion.es_contestador(dicho):
+        return _callar(base, "contestó otra máquina")
+    if conversacion.nada_que_contestar(dicho, con_si=False):
+        return _callar(base, "acuse: no pide nada")
+
+    guardada = respuestas.buscar(activo, dicho)
     if guardada:
         return Salida(**base, via="guardada", texto=guardada["respuesta"])
 
-    conversacion = _conversacion(espacio, entrante)
+    charla = _conversacion(espacio, entrante)
     try:
-        texto, meta = modelo.turno(espacio, activo, conversacion, client=client)
+        texto, meta = modelo.turno(espacio, activo, charla, client=client)
         if meta.get("dificil") == "si" and gasto.puede_gastar(espacio):
-            texto, meta = modelo.turno(espacio, activo, conversacion, client=client, modelo=modelo.MODELO_GRANDE)
+            texto, meta = modelo.turno(espacio, activo, charla, client=client, modelo=modelo.MODELO_GRANDE)
     except (modelo.Dormido, gasto.TopeAlcanzado, modelo.LlamadaFallida) as error:
         return _a_persona(base, str(error) or type(error).__name__)
 
     if (cifras := guardia.cifras_no_permitidas(texto)):
         return _a_persona(base, f"cifra que no puso el cotizador: {cifras}", texto)
+    if guardia.dice_ser_persona(texto):
+        return _a_persona(base, "el borrador dice ser una persona", texto)
     if (rasgos := voz.hallazgos(texto, activo)):
         return _a_persona(base, "voz ajena: " + "; ".join(rasgos), texto)
     if meta.get("persona") == "si" or not texto:
@@ -124,7 +164,7 @@ def decidir(espacio: Espacio, entrante: Mensaje, client=None) -> Salida:
 
 def atender(espacio: Espacio, entrante: Mensaje, client=None) -> Salida:
     historial.guardar(espacio, [entrante])
-    salida = decidir(espacio, entrante, client=client)
+    salida = decidir(espacio, entrante, client=client, en_vivo=True)
     espacio.agregar_linea(ARCHIVO, salida.a_dict())
     return salida
 

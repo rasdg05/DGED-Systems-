@@ -86,7 +86,7 @@ def _acierto(pares: list[dict], reales: list[str | None]) -> tuple[int, int]:
     """(contestadas por el agente con respuesta real, de esas las que se parecen)."""
     base = aciertos = 0
     for p, real in zip(pares, reales, strict=True):
-        if p["salida"].a_persona or real is None:
+        if p["salida"].via in ("persona", "silencio") or real is None:
             continue
         base += 1
         aciertos += parecido(p["salida"].texto, real) >= PARECIDO
@@ -110,7 +110,7 @@ def metricas(pares: list[dict], semilla: int = 11) -> dict:
     barajadas = reales[:]
     random.Random(semilla).shuffle(barajadas)
     base_p, aciertos_p = _acierto(pares, barajadas)
-    contestadas = sum(not p["salida"].a_persona for p in pares)
+    contestadas = sum(p["salida"].via not in ("persona", "silencio") for p in pares)
     tiempos = [p["real"].ts - p["entrante"].ts for p in pares if p["real"]]
     return {
         "n": n,
@@ -120,6 +120,9 @@ def metricas(pares: list[dict], semilla: int = 11) -> dict:
         "con_respuesta_real": base,
         "placebo": aciertos_p / base_p if base_p else None,
         "errores_de_cifra": sum(error_de_cifra(p["salida"]) for p in pares),
+        "callo": sum(p["salida"].via == "silencio" for p in pares),
+        # Calló y la persona sí contestó: o el detector se equivocó o la persona contestó un acuse.
+        "callo_y_la_persona_contesto": sum(p["salida"].via == "silencio" and p["real"] is not None for p in pares),
         "cotizaciones_esperando_aprobacion": sum(p["salida"].requiere_aprobacion for p in pares),
         "mediana_segundos_respuesta_persona": statistics.median(tiempos) if tiempos else None,
     }
