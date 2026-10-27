@@ -25,6 +25,7 @@ anterior.
 | `../docs/15-agente-a-la-medida.md` | Producto 4 (D-016): especificación y orden de trabajo para la siguiente sesión |
 | `../services/agente/` | Producto 4 en código (D-017): un espacio por cliente, en sombra de fábrica |
 | `../docs/16-arranque-ux-ui.md` | Brief de UX/UI para arrancar en frío ("el Airbnb de Apple") |
+| `../docs/17-plug-and-play.md` | Dar de alta un negocio nuevo en el agente sin código (D-023) |
 | `../docs/presentacion/` | Presentación del negocio en PDF |
 
 ## Tres reglas de oro

@@ -43,6 +43,7 @@ CSS = """
 --sep:rgba(84,84,88,.55);--text:#f5f5f7;--muted:rgba(235,235,245,.6);--good:#30d158;--warn:#ff9f0a;--bad:#ff453a;
 --glass:rgba(22,22,24,.72);--sombra:none;--accent:color-mix(in oklab,var(--marca) 58%,#fff);--accent-ink:#000}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{touch-action:manipulation}
 html,body{margin:0;background:var(--bg);color:var(--text);font:17px/1.47 var(--font);letter-spacing:-.022em;
 -webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 a{color:var(--accent);text-decoration:none}
@@ -78,11 +79,13 @@ nav.tabs .in{display:flex;width:100%;max-width:560px}
 nav.tabs a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 6px;font-size:10.5px;
 font-weight:500;letter-spacing:0;color:var(--muted);transition:color .2s}
 nav.tabs a svg.ic{width:25px;height:25px}nav.tabs a.on{color:var(--accent)}nav.tabs a.on svg.ic{stroke-width:2.1}
-.contenido{max-width:640px;margin:0 auto;padding:14px 16px calc(110px + env(safe-area-inset-bottom))}
+.contenido{max-width:640px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right)) calc(110px + env(safe-area-inset-bottom))
+max(16px,env(safe-area-inset-left))}
 body.con-accion .contenido{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
 .accion{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));z-index:25;padding:10px 16px;
 background:var(--glass);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
 border-top:.5px solid var(--sep)}
+.accion{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
 .accion .in{max-width:640px;margin:0 auto;display:flex;gap:10px;align-items:center}
 .accion input{flex:1;min-width:0}
 /* --- listas agrupadas --- */
@@ -150,14 +153,15 @@ box-shadow:var(--sombra);line-height:1.38}
 .cita{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:var(--fill);font-size:14.5px;color:var(--muted)}
 .cita small{display:block;font-size:11.5px;font-weight:600;letter-spacing:.02em;margin-bottom:2px}
 .cita q{color:var(--text)}
-details.origen summary{list-style:none;cursor:pointer;font-size:13px;color:var(--accent);margin-top:4px}
+details.origen summary{list-style:none;cursor:pointer;font-size:13px;color:var(--accent);margin-top:2px;padding:6px 0;
+min-height:32px;display:flex;align-items:center}
 details.origen summary::-webkit-details-marker{display:none}details.origen .cita{margin-top:8px}
 .fila .der b{color:var(--text);font-size:16px;font-variant-numeric:tabular-nums}
 .punto{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-top:4px}
 .bur.borrador{align-self:flex-end;background:transparent;border:1.5px dashed var(--accent);color:var(--text);box-shadow:none}
 svg.ic.mini{width:13px;height:13px;vertical-align:-2px}
-h2.sec small a{font-size:15px}
-.atras{display:inline-block;font-size:17px;margin:2px 0 0;padding:4px 0}
+h2.sec small a{font-size:15px;display:inline-flex;align-items:center;min-height:44px;padding:0 4px;vertical-align:middle}
+.atras{display:inline-flex;align-items:center;min-height:44px;font-size:17px;margin:0;padding:0 12px 0 0}
 .tarjeta-negocio{display:flex;gap:14px;align-items:center;margin:4px 0 6px}
 .tarjeta-negocio b{display:block;font:700 20px/1.2 var(--display);letter-spacing:-.025em}
 .tarjeta-negocio small{color:var(--muted);font-size:14.5px}
@@ -165,6 +169,10 @@ h2.sec small a{font-size:15px}
 place-items:center;color:#fff;font:600 30px var(--display)}
 .portada-mini.sin-foto{background:linear-gradient(165deg,var(--marca),color-mix(in oklab,var(--marca) 55%,#000))}
 .grupo.datos .fila small{white-space:pre-line}
+.enlaces{display:flex;flex-wrap:wrap;gap:0 16px;margin-top:2px;font-size:14px}
+.enlaces a{display:inline-flex;align-items:center;min-height:44px;color:#007aff;font-weight:500}
+@media (prefers-color-scheme:dark){.enlaces a{color:#0a84ff}}
+.fila:has(.enlaces){align-items:flex-start}
 .ficha{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0;font-size:16px}
 .ficha dt{color:var(--muted)}.ficha dd{margin:0;font-weight:600;overflow-wrap:anywhere}
 /* --- vincular --- */
@@ -189,7 +197,7 @@ stroke-dasharray:30;stroke-dashoffset:0}
 /* --- la página del negocio --- */
 body.negocio{background:var(--hoja)}
 .marco{max-width:560px;margin:0 auto}
-.portada{position:relative;height:min(46vh,400px);min-height:260px;background:var(--marca) center/cover no-repeat;
+.portada{position:relative;height:min(46vh,400px);height:min(46svh,400px);min-height:260px;background:var(--marca) center/cover no-repeat;
 display:grid;place-items:center;overflow:hidden}
 .portada.sin-foto{background:
 radial-gradient(120% 85% at 0% 0%,color-mix(in oklab,var(--marca) 55%,#fff) 0,transparent 62%),
@@ -204,7 +212,7 @@ box-shadow:inset 0 0 0 .5px rgba(255,255,255,.45),0 20px 40px -18px rgba(0,0,0,.
 gap:6px;color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 8px rgba(0,0,0,.35)}
 .seguro svg.ic{width:15px;height:15px;stroke-width:2.2}
 .hoja{position:relative;z-index:3;margin-top:-30px;background:var(--hoja);border-radius:30px 30px 0 0;
-padding:26px 20px calc(40px + env(safe-area-inset-bottom))}
+padding:26px max(20px,env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
 .hoja .grupo,.hoja .bloque{background:var(--bg);box-shadow:none}
 @media (prefers-color-scheme:dark){.hoja .grupo,.hoja .bloque{background:var(--card)}}
 .firma{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;letter-spacing:.02em}
@@ -212,6 +220,10 @@ padding:26px 20px calc(40px + env(safe-area-inset-bottom))}
 @media (min-width:700px){body.negocio{background:var(--bg)}.marco{margin:40px auto;border-radius:30px;overflow:hidden;
 background:var(--hoja);box-shadow:0 30px 80px -30px rgba(0,0,0,.25)}.portada{height:340px}}
 .vacio{color:var(--muted);text-align:center;padding:40px 16px}
+/* iOS 15 y anteriores: sin color-mix, colores enteros en vez de botones vacíos. */
+@supports not (color:color-mix(in oklab,red,blue)){
+@media (prefers-color-scheme:dark){:root{--accent:var(--marca);--accent-ink:var(--marca-ink)}}
+.portada.sin-foto,.portada-mini.sin-foto,.icono-app{background:var(--marca)}}
 /* --- movimiento --- */
 @media (prefers-reduced-motion:no-preference){
 .aparece>*{animation:sube .55s var(--ease) both}.aparece>*:nth-child(2){animation-delay:.04s}
@@ -386,7 +398,8 @@ def _documento(espacio: Espacio | None, titulo: str, cuerpo: str, refrescar: int
     return (f'<!doctype html><html lang="es" style="--marca:{color};--marca-ink:{_tinta(color)}"><head>'
             '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
             f'<meta name="color-scheme" content="light dark"><meta name="theme-color" content="{color}">'
-            f'<meta name="robots" content="noindex"><title>{esc(titulo)}</title><style>{CSS}</style>{vivo}{cabeza}</head>'
+            f'<meta name="robots" content="noindex"><meta name="format-detection" content="telephone=no,email=no,address=no">'
+            f'<title>{esc(titulo)}</title><style>{CSS}</style>{vivo}{cabeza}</head>'
             f'<body class="{clase}">{cuerpo}{_JS_BASE}{_vivo_js(refrescar) if refrescar else ""}</body></html>')
 
 
@@ -420,6 +433,8 @@ def pagina(espacio: Espacio | None, llave: str | None, activa: str, titulo: str,
         cabeza = (f'<link rel="manifest" href="{esc(url(espacio, "app.webmanifest", llave))}">'
                   '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">'
                   f'<meta name="apple-mobile-web-app-title" content="{esc(nombre[:14])}">'
+                  '<meta name="apple-mobile-web-app-status-bar-style" content="default">'
+                  f'<link rel="apple-touch-icon" href="{esc(url(espacio, "icono-180.png", llave))}">'
                   f'<link rel="icon" href="{esc(url(espacio, "icono.svg", llave))}" type="image/svg+xml">')
     return _documento(espacio, f"{titulo} · {nombre}", html_cuerpo + _JS_BARRA, refrescar,
                       "con-accion" if barra else "", cabeza)
@@ -428,7 +443,12 @@ def pagina(espacio: Espacio | None, llave: str | None, activa: str, titulo: str,
 _JS_BARRA = ("<script>(()=>{const b=document.getElementById('barra'),h=document.querySelector('.contenido h1');"
              "if(!b)return;if(!h||!('IntersectionObserver' in window)){b.classList.add('con-titulo');return}"
              "new IntersectionObserver(([e])=>b.classList.toggle('con-titulo',!e.isIntersecting&&e.boundingClientRect.top<80),"
-             "{rootMargin:'-48px 0px 0px 0px'}).observe(h)})()</script>")
+             "{rootMargin:'-48px 0px 0px 0px'}).observe(h)})();"
+             # Instalada en la pantalla de inicio, iOS no tiene "jalar para recargar": al volver tras un
+             # minuto, la pantalla se pone al día sola (salvo con un formulario a medias).
+             "(()=>{let fuera=0;document.addEventListener('visibilitychange',()=>{if(document.hidden){fuera=Date.now();return}"
+             "if(fuera&&Date.now()-fuera>60000&&!document.querySelector('form'))location.reload()});"
+             "addEventListener('pageshow',e=>{if(e.persisted&&!document.querySelector('form'))location.reload()})})()</script>")
 
 
 def _inicial(nombre: str) -> str:
@@ -446,6 +466,32 @@ def manifiesto(cliente_id: str, llave: str | None = None):
         "display": "standalone", "background_color": "#f2f2f7", "theme_color": color, "lang": "es",
         "icons": [{"src": url(espacio, "icono.svg", llave), "sizes": "any", "type": "image/svg+xml", "purpose": "any"}],
     }, media_type="application/manifest+json")
+
+
+@router.get("/espacios/{cliente_id}/icono-180.png")
+def icono_png(cliente_id: str, llave: str | None = None):
+    """El ícono que iOS pone en la pantalla de inicio: PNG cuadrado (iOS redondea las esquinas)."""
+    from fastapi.responses import Response
+    espacio = _espacio(cliente_id, llave)
+    nombre = (espacio.leer_json("alta.json", {}) or {}).get("nombre_comercial") or cliente_id
+    return Response(icono_png_bytes(_inicial(nombre), color_de_marca(espacio)), media_type="image/png",
+                    headers={"Cache-Control": "private, max-age=3600"})
+
+
+def icono_png_bytes(letra: str, color: str, lado: int = 180) -> bytes:
+    import io
+
+    from PIL import Image, ImageDraw, ImageFont
+    rgb = tuple(int(color[i:i + 2], 16) for i in (1, 3, 5))
+    imagen = Image.new("RGB", (lado, lado), rgb)
+    trazo = ImageDraw.Draw(imagen)
+    fuente = ImageFont.load_default(size=int(lado * 0.52))
+    tinta = _tinta(color)  # la letra de Pillow es delgada: un trazo del mismo color la vuelve semibold
+    trazo.text((lado / 2, lado / 2), letra, fill=tinta, font=fuente, anchor="mm", stroke_width=max(1, lado // 45),
+               stroke_fill=tinta)
+    salida = io.BytesIO()
+    imagen.save(salida, "PNG", optimize=True)
+    return salida.getvalue()
 
 
 @router.get("/espacios/{cliente_id}/icono.svg")
@@ -764,6 +810,7 @@ def revision(cliente_id: str, x_tenant_key: str | None = Header(default=None), l
                   "(d.detail||'No se pudo');if(r.ok)setTimeout(()=>location.reload(),900);b.disabled=false}</script>")
         cuerpo = aviso + bloques + fuera + script + '<p class="toast" id="t" style="margin-top:12px"></p>'
         barra = (f'<input id="apr" value="{esc(alta.get("aprobador", ""))}" placeholder="Quién aprueba" '
+                 'autocomplete="name" autocapitalize="words" autocorrect="off" enterkeyhint="done" '
                  'aria-label="Nombre de quien aprueba, como está en el alta">'
                  '<button class="btn" onclick="aprobar(this)">Aprobar</button>')
     else:
@@ -845,7 +892,7 @@ def negocio(cliente_id: str, llave: str | None = None) -> str:
                      url(espacio, "alta", llave), ico("tienda", "c-azul"))
              + _fila("Quién aprueba", esc(alta.get("aprobador", "")) or "Sin definir", url(espacio, "alta", llave),
                      ico("visto", "c-naranja"))
-             + _fila("Propiedades", esc(", ".join(alta.get("propiedades", []) or [])) or "Sin definir",
+             + _fila("Lo que se cotiza", esc(", ".join(alta.get("propiedades", []) or [])) or "Sin definir",
                      url(espacio, "alta", llave), ico("casa", "c-morado"))
              + "</div>")
     cuerpo = tarjeta + whatsapp + marca + datos + _JS_FOTO
@@ -858,14 +905,14 @@ def negocio(cliente_id: str, llave: str | None = None) -> str:
 CAMPOS_ALTA = (
     ("Su negocio", (
         ("nombre_comercial", "Nombre comercial", "Como lo conocen sus clientes.", False),
-        ("giro", "Giro", "Ej. renta de finca para fines de semana y eventos.", False),
-        ("que_vende", "Qué ofrece", "Espacios, capacidad, qué incluye. Con sus palabras.", True),
-        ("propiedades", "Propiedades", "Una por renglón. Cada una se cotiza aparte.", True),
+        ("giro", "Giro", "Ej. renta de finca para eventos, taller mecánico, consultorio dental.", False),
+        ("que_vende", "Qué ofrece", "Lo que vende, qué incluye y para cuántos. Con sus palabras.", True),
+        ("propiedades", "Lo que se cotiza por separado", "Uno por renglón: propiedades, servicios o paquetes.", True),
     )),
     ("Cómo trabaja", (
-        ("como_cobra", "Cómo cobra hoy", "Por noche, fin de semana, evento, persona extra, depósito, anticipo. "
+        ("como_cobra", "Cómo cobra hoy", "Precios, extras, depósito, anticipo, descuentos. "
          "Si es de memoria, dígalo así.", True),
-        ("horario", "Horario", "A qué hora contestan; entrada y salida de huéspedes.", False),
+        ("horario", "Horario", "A qué hora contestan y, si aplica, entradas y salidas.", False),
     )),
     ("Quién decide", (
         ("aprobador", "Quién aprueba las cotizaciones", "Nada con precio sale sin su sí.", False),
@@ -874,6 +921,16 @@ CAMPOS_ALTA = (
          "otro número por error, no se importa nada.", False),
     )),
 )
+
+
+# En iPhone: teclado numérico para teléfonos, mayúscula al empezar nombres, sin autocorrector en lo propio.
+TECLADO_TEXTO = 'autocomplete="off" autocapitalize="sentences"'
+TECLADOS = {
+    "aprobador_telefono": 'type="tel" inputmode="tel" autocomplete="tel"',
+    "numero_negocio": 'type="tel" inputmode="tel" autocomplete="off"',
+    "aprobador": 'autocomplete="name" autocapitalize="words" autocorrect="off"',
+    "nombre_comercial": 'autocomplete="organization" autocapitalize="words" autocorrect="off"',
+}
 
 
 @router.get("/espacios/{cliente_id}/alta", response_class=HTMLResponse)
@@ -888,8 +945,8 @@ def alta_form(cliente_id: str, llave: str | None = None) -> str:
             req = '<span class="req"> *</span>' if c not in ("numero_negocio", "propiedades") else ""
             crudo = actual.get(c, "")
             valor = esc("\n".join(crudo) if isinstance(crudo, list) else crudo)
-            control = (f'<textarea name="{c}" id="c-{c}">{valor}</textarea>' if largo
-                       else f'<input name="{c}" id="c-{c}" value="{valor}" autocomplete="off">')
+            control = (f'<textarea name="{c}" id="c-{c}" autocapitalize="sentences">{valor}</textarea>' if largo
+                       else f'<input name="{c}" id="c-{c}" value="{valor}" {TECLADOS.get(c, TECLADO_TEXTO)}>')
             filas += f'<div class="campo"><label for="c-{c}">{t}{req} <small>{esc(ayuda)}</small></label>{control}</div>'
         bloques += f'<h2 class="sec">{titulo}</h2><div class="grupo">{filas}</div>'
     script = ("<script>const f=document.querySelector('form');f.onsubmit=async e=>{e.preventDefault();"
@@ -1141,3 +1198,78 @@ def vincular_negocio(cliente_id: str, t: str | None = None) -> str:
 @router.get("/v/{cliente_id}/portada")
 def portada_negocio(cliente_id: str, t: str | None = None):
     return _servir_portada(_espacio_negocio(cliente_id, t))
+
+
+# --------------------------------------------------------------------------- #
+#  Negocios: dar de alta uno nuevo en un minuto (solo DGED, llave maestra)     #
+# --------------------------------------------------------------------------- #
+def _todos(raiz: Path) -> list[Espacio]:
+    if not raiz.exists():
+        return []
+    salida = []
+    for carpeta in sorted(p for p in raiz.iterdir() if p.is_dir()):
+        try:
+            salida.append(Espacio(carpeta.name, raiz))
+        except EspacioInvalido:
+            continue
+    return salida
+
+
+def enlaces_del_negocio(espacio: Espacio) -> dict:
+    """Lo que se le entrega a un negocio nuevo: su panel y el enlace para conectar su WhatsApp."""
+    from .espacio import llave_de
+    return {"panel": url(espacio, "", llave_de(espacio.cliente_id)),
+            "conectar": f"/v/{espacio.cliente_id}?t={llave_de_vinculacion(espacio.cliente_id)}"}
+
+
+@router.get("/negocios", response_class=HTMLResponse)
+def negocios(llave: str | None = None) -> str:
+    from .espacio import raiz_por_defecto
+    if not llave_maestra(llave):
+        raise HTTPException(404, "no existe")
+    filas = ""
+    for e in _todos(raiz_por_defecto()):
+        alta = e.leer_json("alta.json", {}) or {}
+        nombre = alta.get("nombre_comercial") or e.cliente_id
+        estado = vinculado.leer_estado(e).get("estado", "sin_lector")
+        tono, _, _ = ESTADOS.get(estado, ("mid", estado, ""))
+        conectado = estado in ("conectado", "vinculado")
+        _, modo, _ = _modo(e)
+        enl = enlaces_del_negocio(e)
+        filas += _fila(esc(nombre), f'<span class="estado {tono if conectado else "mid"}">'
+                       f'{"WhatsApp conectado" if conectado else "Sin WhatsApp"}</span> · {esc(modo)} · {esc(e.cliente_id)}',
+                       # Sin enlace propio: un <a> dentro de otro lo parte el navegador.
+                       None, f'<span class="icono-app" style="--marca:{color_de_marca(e)};'
+                       f'--marca-ink:{_tinta(color_de_marca(e))};width:38px;height:38px;border-radius:10px">'
+                       f'{esc(_inicial(nombre))}</span>',
+                       extra=f'<div class="enlaces" data-panel="{esc(enl["panel"])}" data-conectar="{esc(enl["conectar"])}">'
+                             f'<a href="{esc(url(e, "", llave))}">Abrir</a>'
+                             '<a href="#" onclick="return copiar(this,\'panel\')">Copiar panel</a>'
+                             '<a href="#" onclick="return copiar(this,\'conectar\')">Copiar enlace para conectar</a></div>')
+    lista = f'<div class="grupo ico">{filas}</div>' if filas else '<div class="grupo vacio">Todavía no hay negocios.</div>'
+    alta = (
+        '<h2 class="sec">Nuevo negocio</h2><form id="nuevo" class="grupo">'
+        '<div class="campo"><label for="n-nombre">Nombre comercial</label><input id="n-nombre" name="nombre" required '
+        'autocomplete="off" autocapitalize="words" autocorrect="off"></div>'
+        '<div class="campo"><label for="n-id">Identificador <small>Minúsculas, números y guiones; va en la dirección y no '
+        'cambia.</small></label><input id="n-id" name="id" required pattern="[a-z0-9][a-z0-9\\-]{2,39}" autocapitalize="none" '
+        'autocorrect="off" spellcheck="false"></div>'
+        '<div class="campo"><label for="n-color">Color de su marca</label><input type="color" id="n-color" name="color" '
+        f'value="{MARCA_DEFECTO}"></div>'
+        '<div class="campo"><button class="btn ancho">Crear negocio</button><p class="toast" id="t"></p></div></form>')
+    script = (
+        "<script>const n=document.getElementById('n-nombre'),i=document.getElementById('n-id');let tocado=false;"
+        "i.oninput=()=>tocado=true;n.oninput=()=>{if(!tocado)i.value=n.value.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'')"
+        ".toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)};"
+        "function copiar(a,k){const v=location.origin+a.parentElement.dataset[k];"
+        "(navigator.share&&matchMedia('(pointer:coarse)').matches?navigator.share({url:v}):navigator.clipboard.writeText(v))"
+        ".then(()=>{const t=a.textContent;a.textContent='Listo ✓';setTimeout(()=>a.textContent=t,1600)}).catch(()=>{});return false}"
+        "document.getElementById('nuevo').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));"
+        "const t=document.getElementById('t');t.textContent='Creando…';"
+        "const r=await fetch(location.pathname+location.search,{method:'POST',headers:{'Content-Type':'application/json'},"
+        "body:JSON.stringify(d)});const j=await r.json().catch(()=>({}));"
+        "if(r.ok){location.reload()}else{t.textContent=j.detail||'No se pudo'}}</script>")
+    cuerpo = ('<p class="lede">Cada negocio nace aprendiendo: no le contesta a nadie hasta que su dueño apruebe a su '
+              'asistente. Se le entregan dos enlaces: su panel y el de conectar su WhatsApp.</p>'
+              + lista + alta + script)
+    return pagina(None, llave, "", "Negocios", cuerpo, navegacion=False)

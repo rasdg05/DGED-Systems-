@@ -32,7 +32,9 @@
   con listas agrupadas y pestañas abajo. D-021: cuatro pestañas para administrar (Inicio, Chats,
   Asistente, Negocio). D-022: el taller (`/banco`, historial crudo, simbiosis) solo con la llave
   maestra; con la del cliente, 404. Barra, barra lateral, íconos de color e instalable, como Gestor.
-  Subcuentas: pendiente. Color y foto se ponen en el alta. **Falta**: pedir a Finca
+  Subcuentas: pendiente. D-023: `/negocios` da de alta un negocio nuevo sin código (runbook
+  `docs/17-plug-and-play.md`); reglas de Safari en iPhone con test. **Cuello para revender**: un
+  lector vinculado por servicio de Railway (`AGENTE_ESPACIO_VINCULADO`). Color y foto se ponen en el alta. **Falta**: pedir a Finca
   Emiliano su foto original y el verde exacto de su volante, y subirlos desde su alta.
 - **Lector por QR vinculado, solo lectura** (D-018): `services/agente/agente/vinculado.py`, página
   `/espacios/<id>/vincular`. Desplegable en Railway como servicio aparte del mismo repo

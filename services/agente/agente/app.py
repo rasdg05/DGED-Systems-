@@ -156,6 +156,35 @@ def alta_guardar(cliente_id: str, datos: dict, x_tenant_key: str | None = Header
     return {"alta": sorted(registrada), "faltan": alta.faltan(registrada)}
 
 
+@app.post("/negocios")
+def negocio_nuevo(datos: dict, llave: str | None = None, x_tenant_key: str | None = Header(default=None)) -> dict:
+    """Un negocio nuevo, listo para entregar: nace en sombra, con su nombre y su color (solo DGED)."""
+    from . import alta
+    from .espacio import llave_maestra
+
+    if not llave_maestra(x_tenant_key or llave):
+        raise HTTPException(404, "no existe")
+    cliente_id = str(datos.get("id", "")).strip()
+    nombre = str(datos.get("nombre", "")).strip()
+    color = str(datos.get("color", "") or "").strip().lower()
+    try:
+        espacio = Espacio(cliente_id)
+    except EspacioInvalido as error:
+        raise HTTPException(422, "identificador inválido: minúsculas, números y guiones (3 a 40)") from error
+    if espacio.carpeta.exists():
+        raise HTTPException(409, "ya existe un negocio con ese identificador")
+    if not nombre:
+        raise HTTPException(422, "falta el nombre comercial")
+    if color and not paginas.HEX.match(color):
+        raise HTTPException(422, "color de marca inválido: debe ser #rrggbb")
+    alta.registrar(espacio, {"nombre_comercial": nombre}, parcial=True)  # deja encendido en sombra
+    if color:
+        config = espacio.config()
+        config["marca_color"] = color
+        espacio.escribir_json("config.json", config)
+    return {"id": cliente_id, **paginas.enlaces_del_negocio(espacio)}
+
+
 @app.post("/espacios/{cliente_id}/marca")
 def marca_guardar(cliente_id: str, color: str = Body(..., embed=True), x_tenant_key: str | None = Header(default=None),
                   llave: str | None = None) -> dict:

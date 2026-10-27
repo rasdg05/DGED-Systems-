@@ -190,3 +190,40 @@ def test_pag_se_instala_como_app_del_negocio(http, espacio):
     svg = http.get(f"{base}/icono.svg", params=LLAVE)
     assert svg.headers["content-type"].startswith("image/svg+xml") and ">F</text>" in svg.text
     assert 'rel="manifest"' in http.get(base, params=LLAVE).text
+
+
+def test_pag_negocio_nuevo_de_punta_a_punta(http, tmp_path, monkeypatch):
+    """Plug and play: DGED crea el negocio y entrega dos enlaces que funcionan; el cliente no ve /negocios."""
+    from agente.espacio import VARIABLE_RAIZ, llave_de
+    monkeypatch.setenv(VARIABLE_RAIZ, str(tmp_path))
+    assert http.get("/negocios").status_code == 404
+    nuevo = {"id": "taller-ruiz", "nombre": "Taller Ruiz", "color": "#C0392B"}
+    assert http.post("/negocios", json=nuevo, params={"llave": llave_de("taller-ruiz")}).status_code == 404
+    r = http.post("/negocios", json=nuevo, params=LLAVE)
+    assert r.status_code == 200
+    enl = r.json()
+    assert http.post("/negocios", json=nuevo, params=LLAVE).status_code == 409
+    assert http.post("/negocios", json={**nuevo, "id": "Mal Id"}, params=LLAVE).status_code == 422
+    assert http.post("/negocios", json={**nuevo, "id": "otro-x", "color": "rojo"}, params=LLAVE).status_code == 422
+    panel = http.get(enl["panel"]).text
+    assert "Taller Ruiz" in panel and "Complete los datos del negocio" in panel and "Aprendiendo" in panel
+    assert "--marca:#c0392b" in panel
+    assert "Taller Ruiz" in http.get(enl["conectar"]).text
+    assert http.get("/negocios", params={"llave": llave_de("taller-ruiz")}).status_code == 404
+    lista = http.get("/negocios", params=LLAVE).text
+    assert "Taller Ruiz" in lista and enl["conectar"].replace("&", "&amp;") in lista
+
+
+def test_pag_reglas_de_safari_en_iphone(http, espacio):
+    """Lo que Safari hace distinto: números como enlaces, ícono PNG, teclado de teléfono, zonas seguras."""
+    base = f"/espacios/{espacio.cliente_id}"
+    for ruta in ("", "/alta", "/negocio"):
+        t = http.get(base + ruta, params=LLAVE).text
+        assert 'format-detection" content="telephone=no' in t and "viewport-fit=cover" in t
+        assert 'rel="apple-touch-icon"' in t and "apple-mobile-web-app-capable" in t
+    png = http.get(f"{base}/icono-180.png", params=LLAVE)
+    assert png.content.startswith(b"\x89PNG") and png.headers["content-type"] == "image/png"
+    alta = http.get(f"{base}/alta", params=LLAVE).text
+    assert 'name="aprobador_telefono" id="c-aprobador_telefono" value="5210000000000" type="tel" inputmode="tel"' in alta
+    v = http.get(f"/v/{espacio.cliente_id}", params={"t": __import__("agente.espacio").espacio.llave_de_vinculacion(espacio.cliente_id)}).text
+    assert 'format-detection" content="telephone=no' in v and "safe-area-inset-bottom" in v
