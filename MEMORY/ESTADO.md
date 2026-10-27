@@ -6,8 +6,8 @@
 
 - **Envío por el vinculado** (2026-10-27, D-037, LXIV–LXVI): decisión del dueño, como Gestor. Cola en el
   espacio, al paso de una persona, revisión justo antes; aprobar una ronda completa la encola. 319 tests en
-  verde. **Para encenderlo** en Finca Emiliano: `"canal": "vinculado"` y `"encendido": "sin_cifra"` en su
-  `config.json`, redesplegar (el lector arranca el enviador) y probar con una ronda chica. **No medido**
+  verde. **Para encenderlo** en Finca Emiliano: `python -m agente.local canal finca-quinta vinculado sin_cifra` (o
+  `POST /espacios/<id>/canal`), redesplegar una vez (el lector arranca el enviador) y probar con una ronda chica. **No medido**
   contra WhatsApp. Sigue faltando `AGENTE_URL` + llave maestra en esta sesión para bajar y correr el enjambre.
 - **Calendario antes que enjambre** (2026-10-27, D-036, LXIII): una ronda con fechas entra solo si el
   calendario dice libre, y al enviar se revisa otra vez. 309 tests del agente en verde. **Para lanzar el

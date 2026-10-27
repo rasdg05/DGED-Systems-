@@ -157,3 +157,15 @@ def test_aprobar_la_ronda_completa_solo_con_la_maestra_y_una_persona_del_alta(co
     r = http.post(ruta, json={"aprobador": APROBADOR}, headers=maestra).json()
     assert len(r["encoladas"]) == 1 and not r["no_salen"]
     assert enviador.pendientes(con_pendiente) == r["encoladas"]
+
+
+def test_el_canal_lo_cambia_solo_la_maestra_y_queda_escrito(con_pendiente):
+    http, ruta = TestClient(app), f"/espacios/{con_pendiente.cliente_id}/canal"
+    from agente.espacio import llave_de
+    cuerpo = {"canal": "vinculado", "encendido": "sin_cifra"}
+    assert http.post(ruta, json=cuerpo, headers={"X-Tenant-Key": llave_de(con_pendiente.cliente_id)}).status_code == 404
+    maestra = {"X-Tenant-Key": "secreto-de-prueba"}
+    assert http.post(ruta, json={"canal": "telegram", "encendido": "sin_cifra"}, headers=maestra).status_code == 422
+    r = http.post(ruta, json=cuerpo, headers=maestra).json()
+    assert r["antes"] == {"canal": "oficial", "encendido": "sombra"} and not r["listo"]  # sin lector conectado
+    assert con_pendiente.config()["canal"] == "vinculado" and con_pendiente.leer_lineas("cambios_canal.jsonl")

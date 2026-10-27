@@ -333,6 +333,28 @@ def subir_ronda(cliente_id: str, ronda: dict, probar: bool = True,
     return {"probada": False, "esperan_aprobacion": [s.id for s in salidas], "descartadas": descartadas}
 
 
+@app.post("/espacios/{cliente_id}/canal")
+def cambiar_canal(cliente_id: str, canal_: str = Body(..., embed=True, alias="canal"),
+                  encendido: str = Body(..., embed=True),
+                  x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """Por dónde sale (`oficial` o `vinculado`, D-037) y qué sale (`sombra` o
+    `sin_cifra`). Solo con la llave maestra; queda escrito en `cambios_canal.jsonl`.
+    El enviador del vinculado arranca con el lector: tras cambiar a `vinculado`, se
+    redespliega una vez."""
+    from datetime import datetime, timezone
+
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    if canal_ not in ("oficial", "vinculado") or encendido not in canal.ENCENDIDOS:
+        raise HTTPException(422, f"canal: oficial|vinculado; encendido: {'|'.join(canal.ENCENDIDOS)}")
+    config = espacio.config()
+    antes = {"canal": config.get("canal", "oficial"), "encendido": config.get("encendido", "sombra")}
+    config.update(canal=canal_, encendido=encendido)
+    espacio.escribir_json("config.json", config)
+    espacio.agregar_linea("cambios_canal.jsonl", {"antes": antes, "ahora": {"canal": canal_, "encendido": encendido},
+                                                 "en": datetime.now(timezone.utc).isoformat(timespec="seconds")})
+    return {"antes": antes, "ahora": {"canal": canal_, "encendido": encendido}, "listo": canal.configurado(espacio)}
+
+
 @app.post("/espacios/{cliente_id}/rondas/{nombre}/aprobar")
 def aprobar_ronda(cliente_id: str, nombre: str, aprobador: str = Body(..., embed=True),
                   x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
