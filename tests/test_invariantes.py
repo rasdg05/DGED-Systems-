@@ -166,3 +166,7 @@ def test_contenedor_escucha_en_el_puerto_que_asigna_la_nube():
     assert "${PORT:-8080}" in docker
     railway = json.loads((RAIZ / "railway.json").read_text(encoding="utf-8"))
     assert railway["deploy"]["healthcheckPath"] == "/api/health"
+    # Sin dockerfilePath: cada servicio del repo elige el suyo con RAILWAY_DOCKERFILE_PATH
+    # (Atlas usa el Dockerfile de la raíz, el de fábrica). Fijarlo aquí le ganaba a la
+    # variable y el servicio del agente construía Atlas (2026-10-27).
+    assert "dockerfilePath" not in railway["build"]
