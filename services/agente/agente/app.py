@@ -139,14 +139,14 @@ def alta_guardar(cliente_id: str, datos: dict, x_tenant_key: str | None = Header
     espacio = _espacio(cliente_id, x_tenant_key or llave)
     numero = "".join(c for c in str(datos.pop("numero_negocio", "") or "") if c.isdigit())
     try:
-        registrada = alta.registrar(espacio, datos)
+        registrada = alta.registrar(espacio, datos, parcial=True)
     except alta.AltaIncompleta as error:
         raise HTTPException(422, str(error)) from error
     if numero:
         config = espacio.config()
         config["numero_negocio"] = numero
         espacio.escribir_json("config.json", config)
-    return {"alta": sorted(registrada)}
+    return {"alta": sorted(registrada), "faltan": alta.faltan(registrada)}
 
 
 @app.get("/espacios/{cliente_id}/historial.jsonl", response_class=PlainTextResponse)

@@ -96,7 +96,7 @@ def test_vinc_paginas_de_alta_vincular_y_descarga(espacio, monkeypatch):
     assert "<svg" in pagina and "solo LEE" in pagina
     assert "Nombre comercial" in http.get(f"{base}/alta", params=maestra).text
     r = http.post(f"{base}/alta", params=maestra, json={"giro": "renta", "numero_negocio": "+52 1 555"})
-    assert r.status_code == 422 and "faltan" in r.text
+    assert r.status_code == 422 and "nombre comercial" in r.text
     datos = {c: "x" for c in ("giro", "nombre_comercial", "que_vende", "como_cobra", "horario", "aprobador",
                                "aprobador_telefono")}
     assert http.post(f"{base}/alta", params=maestra, json=dict(datos, numero_negocio="+52 1 555")).status_code == 200

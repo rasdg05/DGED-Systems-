@@ -16,6 +16,7 @@ from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import HTMLResponse
 
 from . import agente, banco, historial, perfil, sombra, vinculado
+from . import alta as alta_mod
 from .espacio import Espacio, EspacioInvalido, llave_de_vinculacion, llave_valida, vinculacion_valida
 
 router = APIRouter()
@@ -151,8 +152,9 @@ def tablero(cliente_id: str, llave: str | None = None) -> str:
                 f'<small>{detalle}</small></div><a class="btn sec" href="{esc(enlace)}">{boton}</a></li>')
 
     pasos = "".join([
-        paso(bool(alta), not alta, 1, "Alta del negocio",
-             "Lo básico: qué vende, cómo cobra, quién aprueba." if not alta else "Lista.",
+        paso(bool(alta) and not alta_mod.faltan(alta), True, 1, "Alta del negocio",
+             ("Lo básico: qué vende, cómo cobra, quién aprueba." if not alta else
+              ("Lista." if not alta_mod.faltan(alta) else "Falta: " + ", ".join(alta_mod.faltan(alta)) + ".")),
              url(espacio, "alta", llave), "Abrir"),
         paso(conectado, bool(alta) and not conectado, 2, "WhatsApp vinculado (solo lectura)",
              esc(ESTADOS.get(estado.get("estado", "sin_lector"), ("", estado.get("estado", ""), ""))[1]),
@@ -202,6 +204,7 @@ CAMPOS_ALTA = (
         ("nombre_comercial", "Nombre comercial", "Como lo conocen sus clientes.", False),
         ("giro", "Giro", "Ej. renta de finca para fines de semana y eventos.", False),
         ("que_vende", "Qué ofrece", "Espacios, capacidad, qué incluye. Con sus palabras.", True),
+        ("propiedades", "Propiedades", "Una por renglón. Cada una se cotiza aparte.", True),
     )),
     ("Cómo trabaja", (
         ("como_cobra", "Cómo cobra hoy", "Por noche, fin de semana, evento, persona extra, depósito, anticipo. "
@@ -226,8 +229,9 @@ def alta_form(cliente_id: str, llave: str | None = None) -> str:
     for titulo, campos in CAMPOS_ALTA:
         filas = ""
         for c, t, ayuda, largo in campos:
-            req = '<span class="req"> *</span>' if c != "numero_negocio" else ""
-            valor = esc(actual.get(c, ""))
+            req = '<span class="req"> *</span>' if c not in ("numero_negocio", "propiedades") else ""
+            crudo = actual.get(c, "")
+            valor = esc("\n".join(crudo) if isinstance(crudo, list) else crudo)
             control = (f'<textarea name="{c}">{valor}</textarea>' if largo
                        else f'<input name="{c}" value="{valor}" autocomplete="off">')
             filas += f'<label>{t}{req} <small>{esc(ayuda)}</small></label>{control}'
@@ -236,7 +240,8 @@ def alta_form(cliente_id: str, llave: str | None = None) -> str:
               "const d=Object.fromEntries(new FormData(f));const t=document.getElementById('t');t.textContent='Guardando…';"
               "const r=await fetch(location.pathname+location.search,{method:'POST',headers:{'Content-Type':'application/json'},"
               "body:JSON.stringify(d)});const j=await r.json().catch(()=>({}));"
-              "t.textContent=r.ok?'Guardado ✓ Siga con WhatsApp.':('Falta: '+(j.detail||'revise los campos'))}</script>")
+              "t.textContent=r.ok?(j.faltan&&j.faltan.length?'Guardado ✓ Falta: '+j.faltan.join(', '):'Guardado ✓ Completa'):"
+              "('No se guardó: '+(j.detail||'revise los campos'))}</script>")
     cuerpo = (f'<p class="lede">Lo básico del negocio. También es fuente: un dato del perfil puede citar lo que '
               f'escriba aquí, así que escríbalo como lo diría a un cliente.</p><form id="alta">{bloques}</form>{script}')
     barra = ('<button class="btn" form="alta">Guardar alta</button><span class="toast" id="t"></span>'

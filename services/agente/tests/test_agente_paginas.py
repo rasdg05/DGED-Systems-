@@ -67,3 +67,17 @@ def test_pag_enlace_del_negocio_solo_abre_vincular(http, espacio):
         assert http.get(f"/espacios/{espacio.cliente_id}{ruta}", params={"llave": t}).status_code == 401
     # El tablero lo ofrece para copiar.
     assert f"/v/{espacio.cliente_id}?t={t}" in http.get(f"/espacios/{espacio.cliente_id}", params=LLAVE).text
+
+
+def test_pag_alta_se_guarda_a_medias_y_dice_que_falta(http, tmp_path, monkeypatch):
+    from agente.espacio import Espacio
+    e = Espacio("finca-nueva", tmp_path)
+    r = http.post(f"/espacios/{e.cliente_id}/alta", params=LLAVE,
+                  json={"nombre_comercial": "Finca Emiliano", "propiedades": "Finca Emiliano\nQuinta Emiliano",
+                        "como_cobra": ""})
+    assert r.status_code == 200
+    assert "cómo cobra" in r.json()["faltan"] and "quién aprueba" in r.json()["faltan"]
+    assert e.leer_json("alta.json")["propiedades"] == ["Finca Emiliano", "Quinta Emiliano"]
+    t = http.get(f"/espacios/{e.cliente_id}", params=LLAVE).text
+    assert "Falta: giro" in t
+    assert http.post(f"/espacios/{e.cliente_id}/alta", params=LLAVE, json={"giro": "x"}).status_code == 422
