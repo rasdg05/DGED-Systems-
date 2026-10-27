@@ -22,64 +22,77 @@ from .espacio import Espacio, EspacioInvalido, llave_de_vinculacion, llave_valid
 router = APIRouter()
 
 CSS = """
-:root{--bg:#101210;--panel:#181b18;--panel2:#20241f;--line:#31382f;--text:#f3efe4;--muted:#a39c8d;
---accent:#e2a85a;--good:#9cbf86;--mid:#e0c36a;--bad:#e07a68;--r:14px}
+:root{--bg:#f5f2ec;--panel:#fffdf9;--panel2:#f0ece4;--line:#e3ddd2;--text:#1f1c18;--muted:#7a7266;
+--accent:#2f4a3a;--accent-ink:#fff;--good:#3d6b4f;--mid:#9a6b1f;--bad:#a2412f;--r:10px;
+--serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+--sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#141412;--panel:#1b1b18;--panel2:#22221e;--line:#2e2d29;--text:#ece8e0;
+--muted:#9b958a;--accent:#cdbf9f;--accent-ink:#141412;--good:#9cbf9a;--mid:#d8b36a;--bad:#e08b78}}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);
-font:16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
-a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-.top{position:sticky;top:0;z-index:5;background:#141714ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.top .in{max-width:760px;margin:0 auto;padding:14px 16px 0}
-.marca{display:flex;align-items:center;gap:10px}
-.marca svg{width:26px;height:26px;fill:none;stroke:var(--accent);stroke-width:1.5}
-.kicker{font-size:11px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase}
-.marca h1{margin:0;font-size:20px;line-height:1.15}
-nav{display:flex;gap:6px;overflow-x:auto;padding:12px 0 10px;scrollbar-width:none}
+font:16px/1.55 var(--sans);-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration-color:var(--line);text-underline-offset:3px}
+.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);
+backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .in{max-width:720px;margin:0 auto;padding:18px 20px 0}
+.marca h1{margin:0;font:500 24px/1.15 var(--serif);letter-spacing:-.01em}
+nav{display:flex;gap:22px;overflow-x:auto;margin-top:12px;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
-nav a{flex:none;padding:7px 13px;border:1px solid var(--line);border-radius:999px;color:var(--text);font-size:14px}
-nav a.on{background:var(--accent);border-color:var(--accent);color:#1a1408;font-weight:600}
-main{max-width:760px;margin:0 auto;padding:18px 16px 96px}
-h2{font-size:18px;margin:26px 0 10px}h2:first-child{margin-top:4px}
+nav a{flex:none;padding:6px 0 11px;color:var(--muted);font-size:14px;text-decoration:none;border-bottom:2px solid transparent}
+nav a.on{color:var(--text);border-bottom-color:var(--text)}
+main{max-width:720px;margin:0 auto;padding:26px 20px 110px}
+h2{font:500 20px/1.25 var(--serif);margin:34px 0 12px;letter-spacing:-.005em}h2:first-child{margin-top:0}
 .lede{color:var(--muted);margin:0 0 14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
-.kpi b{display:block;font-size:26px;line-height:1.1}.kpi span{color:var(--muted);font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));border:1px solid var(--line);
+border-radius:var(--r);background:var(--panel);overflow:hidden}
+.kpi{padding:16px 18px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0}
+.kpi b{display:block;font:500 28px/1.1 var(--serif)}.kpi span{color:var(--muted);font-size:13px}
 .pasos{list-style:none;margin:0;padding:0}
-.pasos li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
-.pasos li:last-child{border-bottom:0}
-.pt{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700;
-border:1.5px solid var(--line);color:var(--muted)}
-.pt.ok{background:var(--good);border-color:var(--good);color:#0e1a0a}.pt.ya{border-color:var(--accent);color:var(--accent)}
-.pasos small{display:block;color:var(--muted)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:12px;
-border:1px solid var(--accent);background:var(--accent);color:#1a1408;font-weight:600;font-size:15px;cursor:pointer}
-.btn.sec{background:transparent;color:var(--accent)}.btn:disabled{opacity:.5}
-.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.badge{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-.badge.ok{color:var(--good);border-color:#4f6a43}.badge.mid{color:var(--mid);border-color:#6a5d2f}.badge.bad{color:var(--bad);border-color:#6d3a30}
-label{display:block;font-size:14px;font-weight:600;margin:14px 0 4px}label small{font-weight:400;color:var(--muted)}
-input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);
-color:var(--text);font:inherit}textarea{min-height:84px;resize:vertical}
-input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
-.req{color:var(--accent)}
-.barra{position:fixed;left:0;right:0;bottom:0;background:#141714ee;backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 16px}
-.barra .in{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:center}
-.toast{color:var(--muted);font-size:14px}
-.codigo{font:700 38px/1.1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-align:center;padding:18px;
-border:1px dashed var(--accent);border-radius:var(--r);color:var(--accent);background:#1d1a12}
-.qr{background:#fff;border-radius:var(--r);padding:14px;max-width:340px;margin:0 auto}.qr svg{width:100%;height:auto;display:block}
-.hilo{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.pasos li{display:flex;gap:14px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--line)}
+.pasos li:first-child{padding-top:0}.pasos li:last-child{border-bottom:0;padding-bottom:0}
+.pt{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:13px var(--sans);
+border:1px solid var(--line);color:var(--muted)}
+.pt.ok{background:var(--good);border-color:var(--good);color:#fff}.pt.ya{border-color:var(--text);color:var(--text)}
+.pasos b{font-weight:600}.pasos small{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:8px;
+border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:600 15px var(--sans);
+cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.sec{background:transparent;color:var(--text);border-color:var(--line)}.btn:disabled{opacity:.5}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.badge{display:inline-block;font-size:12px;letter-spacing:.02em;padding:3px 10px;border-radius:999px;
+background:var(--panel2);color:var(--muted)}
+.badge.ok{color:var(--good)}.badge.mid{color:var(--mid)}.badge.bad{color:var(--bad)}
+label{display:block;font-size:14px;font-weight:600;margin:18px 0 6px}label:first-child{margin-top:0}
+label small{display:block;font-weight:400;color:var(--muted);margin-top:2px}
+input,textarea{width:100%;padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);
+color:var(--text);font:inherit}textarea{min-height:96px;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--text)}
+.req{color:var(--muted);font-weight:400}
+.barra{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--bg) 94%,transparent);
+backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:12px 20px calc(12px + env(safe-area-inset-bottom))}
+.barra .in{max-width:720px;margin:0 auto;display:flex;gap:14px;align-items:center}
+.barra a{white-space:nowrap;font-size:14px;color:var(--muted)}
+.toast{color:var(--muted);font-size:14px;line-height:1.3}
+.codigo{font:500 40px/1.1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.14em;text-align:center;
+padding:26px 10px;margin-top:16px;border-radius:var(--r);background:var(--panel2);color:var(--text)}
+.qr{background:#fff;border-radius:var(--r);padding:16px;max-width:320px;margin:16px auto 0;border:1px solid var(--line)}
+.qr svg{width:100%;height:auto;display:block}
+.hilo{display:flex;justify-content:space-between;gap:12px;align-items:center;text-decoration:none}
 .hilo .t{color:var(--muted);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chat{display:flex;flex-direction:column;gap:8px}
-.bur{max-width:82%;padding:9px 12px;border-radius:14px;background:var(--panel2);overflow-wrap:anywhere;white-space:pre-wrap}
-.bur.n{align-self:flex-end;background:#2c2615;border:1px solid #4b3f20}
-.bur small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
-.cita{border-left:3px solid var(--accent);padding:2px 0 2px 10px;margin:8px 0 0;color:var(--muted);font-size:14px}
-table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
-.tabla{overflow-x:auto}
-.vacío,.vacio{color:var(--muted);text-align:center;padding:26px 10px}
+.bur{max-width:82%;padding:10px 13px;border-radius:12px;background:var(--panel);border:1px solid var(--line);
+overflow-wrap:anywhere;white-space:pre-wrap}
+.bur.n{align-self:flex-end;background:var(--panel2)}
+.bur small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.cita{border-left:2px solid var(--line);padding:2px 0 2px 12px;margin:12px 0 0;color:var(--muted);font-size:14px}
+.cita small{text-transform:uppercase;letter-spacing:.08em;font-size:10.5px}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{font-weight:600;color:var(--muted);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.tabla{overflow-x:auto;padding:6px 12px}
+.vacio{color:var(--muted);text-align:center;padding:30px 10px}
+.solo{max-width:460px}.solo h1{font:500 30px/1.15 var(--serif);margin:0 0 6px;letter-spacing:-.01em}
+.pie{color:var(--muted);font-size:12px;text-align:center;margin-top:28px;letter-spacing:.04em}
 """
-MARCA = ('<svg viewBox="0 0 24 24"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 2v20M3 7l18 10M21 7 3 17"/></svg>')
 SECCIONES = (("", "Tablero"), ("alta", "Alta"), ("vincular", "WhatsApp"), ("conversaciones", "Conversaciones"),
              ("revision", "Perfil"), ("banco", "Banco"))
 
@@ -114,12 +127,14 @@ def pagina(espacio: Espacio | None, llave: str | None, activa: str, titulo: str,
                                 for s, t in SECCIONES) + "</nav>"
     meta = f'<meta http-equiv="refresh" content="{refrescar}">' if refrescar else ""
     barra_html = f'<div class="barra"><div class="in">{barra}</div></div>' if barra else ""
+    cabeza = ('<header class="top"><div class="in"><div class="marca">'
+              f'<h1>{esc(nombre)}</h1></div>{nav}</div></header>') if navegacion else ""
+    clase = ' class="solo"' if not navegacion else ""
     return (f'<!doctype html><html lang="es"><head><meta charset="utf-8">'
-            f'<meta name="viewport" content="width=device-width,initial-scale=1">{meta}'
+            f'<meta name="viewport" content="width=device-width,initial-scale=1">'
+            f'<meta name="color-scheme" content="light dark">{meta}'
             f"<title>{esc(titulo)} · {esc(nombre)}</title><style>{CSS}</style></head><body>"
-            f'<header class="top"><div class="in"><div class="marca">{MARCA}<div>'
-            f'<div class="kicker">DGED · agente a la medida</div><h1>{esc(nombre)}</h1></div></div>{nav}</div></header>'
-            f"<main>{cuerpo}</main>{barra_html}</body></html>")
+            f"{cabeza}<main{clase}>{cuerpo}</main>{barra_html}</body></html>")
 
 
 def _enmascarar(telefono: str) -> str:
@@ -291,7 +306,7 @@ def vincular(cliente_id: str, llave: str | None = None) -> str:
     elif clave == "esperando_qr" and estado.get("qr"):
         centro = f'<div class="qr">{_qr_svg(estado["qr"])}</div>'
     detalle = f'<p class="lede">{esc(estado.get("detalle", ""))}</p>' if estado.get("detalle") else ""
-    cuerpo = (f'<div class="card"><span class="badge {tono}">{esc(clave)}</span><h2 style="margin:8px 0 4px">{esc(titulo)}</h2>'
+    cuerpo = (f'<div class="card"><span class="badge {tono}">WhatsApp</span><h2 style="margin:10px 0 4px">{esc(titulo)}</h2>'
               f'<p class="lede">{esc(ayuda)}</p>{detalle}{centro}</div>'
               f'<div class="grid"><div class="kpi"><b>{n}</b><span>Mensajes guardados</span></div>'
               f'<div class="kpi"><b>{len(hilos)}</b><span>conversaciones</span></div></div>'
@@ -461,10 +476,14 @@ def vincular_negocio(cliente_id: str, t: str | None = None) -> str:
                                                        if clave == "esperando_codigo" else "Escanee el código QR.") +
              '</div></li><li><span class="pt ya">4</span><div>Deje el teléfono abierto y con internet unos minutos '
              'mientras se copian sus conversaciones.</div></li></ol>')
-    cuerpo = (f'<div class="card"><span class="badge {tono}">{esc(titulo)}</span>'
-              f'<p class="lede" style="margin-top:8px">{esc(ayuda)}</p>{centro}</div>'
+    alta = espacio.leer_json("alta.json", {}) or {}
+    cuerpo = (f'<h1>{esc(alta.get("nombre_comercial") or "Su negocio")}</h1>'
+              '<p class="lede">Conecte su WhatsApp Business para preparar su asistente.</p>'
+              f'<div class="card"><span class="badge {tono}">{esc(titulo)}</span>'
+              f'<p class="lede" style="margin-top:10px">{esc(ayuda)}</p>{centro}</div>'
               f'<div class="card">{pasos}</div>'
               '<div class="card"><b>Su WhatsApp sigue igual.</b> <span class="lede">Este enlace solo lee sus '
               'conversaciones para preparar su asistente: no envía mensajes, no marca nada como leído y usted '
-              'puede desvincularlo cuando quiera desde Dispositivos vinculados.</span></div>')
+              'puede desvincularlo cuando quiera desde Dispositivos vinculados.</span></div>'
+              '<p class="pie">DGED</p>')
     return pagina(espacio, None, "", "Vincular WhatsApp", cuerpo, refrescar=5, navegacion=False)

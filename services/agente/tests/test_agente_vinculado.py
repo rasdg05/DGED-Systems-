@@ -90,7 +90,7 @@ def test_vinc_paginas_de_alta_vincular_y_descarga(espacio, monkeypatch):
     base = f"/espacios/{espacio.cliente_id}"
     assert http.get(f"{base}/vincular").status_code == 401
     maestra = {"llave": "secreto-de-prueba"}  # TENANT_INTERNAL_TOKEN del dueño de DGED abre todos
-    assert "sin_lector" in http.get(f"{base}/vincular", params=maestra).text
+    assert "El lector no está corriendo" in http.get(f"{base}/vincular", params=maestra).text
     vinculado.publicar(espacio, "esperando_qr", qr="2@codigo-de-prueba")
     pagina = http.get(f"{base}/vincular", params={"llave": llave_de(espacio.cliente_id)}).text
     assert "<svg" in pagina and "solo LEE" in pagina
