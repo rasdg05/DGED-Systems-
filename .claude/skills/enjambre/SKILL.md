@@ -71,7 +71,7 @@ python -m agente.local pendientes <id> --por-lote 10 # vara + lotes en datos/esp
    queda aprobada a su nombre y, si su canal y sus candados la dejan, en la cola.
    Con `"canal": "vinculado"` y `"encendido": "sin_cifra"` en el `config.json`,
    el proceso del lector la manda por el WhatsApp del negocio al paso de una
-   persona (`enviador.py`: 60–180 s entre envíos, 9:00 a 20:59, ≤ 60 al día) y
+   persona (`enviador.py`: 40–50 s entre envíos, 9:00 a 20:59, ≤ 60 al día) y
    revisa todo otra vez justo antes. Sin eso (sombra, sin canal), no sale.
 
 ## Candados que hace el código (no el criterio del agente)
