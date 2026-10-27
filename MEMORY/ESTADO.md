@@ -4,6 +4,9 @@
 
 ## Corre
 
+- **Envío real encendido, Finca Emiliano** (2026-10-27, D-043): ronda de 128 seguimientos aprobada a nombre de Mariana,
+  canal vinculado `sin_cifra`; el primero salió por WhatsApp. Siguen saliendo uno cada 40–50 s, 9:00–20:59, ≤ 100/día.
+  Pausa: Mariana escribe "pausa el envío" o `python -m agente.local canal finca-quinta vinculado sombra`.
 - **Mesa de la dueña** (2026-10-27, D-042, LXVII–LXVIII): Mariana manda órdenes al WhatsApp del negocio y recibe
   reportes a las 9 y 19; puede aprobar la ronda y encender el envío desde ahí. Lista de precios **subida como versión 1
   por aprobar** en Asistente. 353 tests en verde.

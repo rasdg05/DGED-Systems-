@@ -109,3 +109,11 @@ def test_la_cola_de_clientes_nunca_manda_a_una_administradora(con_mesa):
     mandados = []
     enviador.turno(con_mesa, lambda h, t: mandados.append(h), datetime(2026, 10, 28, 18, 0, tzinfo=timezone.utc))
     assert not mandados and "administradora" in con_mesa.leer_lineas(enviador.ENVIADOS)[-1]["motivo"]
+
+
+def test_lo_aprobado_ya_no_cuenta_como_esperando_su_si(con_mesa):
+    """Hallazgo en producción, 2026-10-27: la Cola decía "128 esperan su sí" con la ronda ya aprobada."""
+    salidas, _ = rondas.cargar(con_mesa, _ronda())
+    assert any(s.requiere_aprobacion and not s.aprobada_por for s in agente.salidas(con_mesa))
+    agente.aprobar_salida(con_mesa, salidas[0].id, "Dueña de muestra")
+    assert not any(s.requiere_aprobacion and not s.aprobada_por for s in agente.salidas(con_mesa))

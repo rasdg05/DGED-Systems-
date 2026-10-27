@@ -328,7 +328,15 @@ def atender(espacio: Espacio, entrante: Mensaje, client=None) -> Salida:
 
 
 def salidas(espacio: Espacio) -> list[Salida]:
-    return [Salida(**d) for d in espacio.leer_lineas(ARCHIVO)]
+    """Las salidas con su aprobación al día: la aprobación vive aparte
+    (`aprobaciones_salida.jsonl`) y sin juntarla aquí, una ronda aprobada seguía
+    contando como "espera su sí" en la Cola y en el reporte (2026-10-27)."""
+    ya = aprobadas(espacio)
+    lista = [Salida(**d) for d in espacio.leer_lineas(ARCHIVO)]
+    for s in lista:
+        if s.aprobada_por is None and s.id in ya:
+            s.aprobada_por = ya[s.id]
+    return lista
 
 
 def aprobar_salida(espacio: Espacio, salida_id: str, aprobador: str) -> Salida:
