@@ -133,34 +133,75 @@ def test_vinc_codigo_de_vinculacion_se_ve_y_se_limpia(espacio):
     assert "codigo" not in vinculado.leer_estado(espacio)
 
 
-def test_vinc_si_el_codigo_falla_se_ve_el_qr_y_se_reintenta_despues(espacio):
-    """Finca Emiliano, 2026-10-27: WhatsApp dio 429 al código y el negocio vio "Preparando" sin QR."""
+def test_vinc_el_qr_siempre_y_el_codigo_solo_si_se_pide(espacio):
+    """Finca Emiliano, 2026-10-27: el código pedido en cada arranque dio 429, y el respaldo dejaba
+    "Preparando" sin QR. Como en Gestor: el QR siempre; el código de 8 con el botón."""
     from agente.app import app
     from agente.espacio import llave_de_vinculacion
     from fastapi.testclient import TestClient
     ahora = [1000.0]
+    pedidos = []
 
-    def limitado(_tel):
+    def limitado(tel):
+        pedidos.append(tel)
         raise RuntimeError("PairPhoneError('info query returned status 429: rate-overlimit')")
-    e = vinculado.Emparejar(espacio, "5217770000000", limitado, reintento_s=3600, reloj=lambda: ahora[0])
-    assert e.al_recibir_qr("2@primero") is True
+    e = vinculado.Emparejar(espacio, "5217770000000", limitado, reloj=lambda: ahora[0])
+    e.al_recibir_qr("2@primero")
+    assert pedidos == [] and vinculado.leer_estado(espacio)["qr"] == "2@primero"  # arrancar no gasta códigos
     e.pedir_codigo()
     estado = vinculado.leer_estado(espacio)
     assert estado["estado"] == "esperando_qr" and estado["qr"] == "2@primero" and "429" not in estado["detalle"]
-    assert e.al_recibir_qr("2@segundo") is False and vinculado.leer_estado(espacio)["qr"] == "2@segundo"
     v = TestClient(app).get(f"/v/{espacio.cliente_id}", params={"t": llave_de_vinculacion(espacio.cliente_id)}).text
-    assert "<svg" in v and "Escanee este código" in v and "Preparando" not in v
-    ahora[0] += 3601  # pasada la espera se vuelve a pedir, y el código manda sobre los QR
+    assert "<svg" in v and "Escanee este código" in v and "Preparando" not in v and "Generar QR nuevo" in v
     e.pedir = lambda _tel: "ABCD-EFGH"
-    assert e.al_recibir_qr("2@tercero") is True
     e.pedir_codigo()
-    assert e.al_recibir_qr("2@cuarto") is False
+    e.al_recibir_qr("2@segundo")  # el código vigente no lo tapa un QR que rota
     assert vinculado.leer_estado(espacio)["codigo"] == "ABCD-EFGH"
+    ahora[0] += vinculado.VIGENCIA_CODIGO_S + 1  # caducó: otra vez el QR
+    e.al_recibir_qr("2@tercero")
+    assert vinculado.leer_estado(espacio)["qr"] == "2@tercero"
 
 
-def test_vinc_sin_telefono_siempre_qr(espacio):
+def test_vinc_sin_telefono_el_codigo_no_se_pide(espacio):
     e = vinculado.Emparejar(espacio, "", lambda _t: "NO")
-    assert e.al_recibir_qr("2@x") is False and vinculado.leer_estado(espacio)["qr"] == "2@x"
+    e.al_recibir_qr("2@x")
+    e.pedir_codigo()
+    estado = vinculado.leer_estado(espacio)
+    assert estado["qr"] == "2@x" and "Falta el número" in estado["detalle"]
+
+
+def test_vinc_botones_dejan_la_orden_al_lector(espacio):
+    from agente.app import app
+    from agente.espacio import llave_de_vinculacion
+    from fastapi.testclient import TestClient
+    http = TestClient(app)
+    t = {"t": llave_de_vinculacion(espacio.cliente_id)}
+    base = f"/v/{espacio.cliente_id}"
+    vinculado.publicar(espacio, "esperando_qr", qr="2@q")
+    assert http.post(f"{base}/qr_nuevo", follow_redirects=False).status_code == 401
+    assert http.post(f"{base}/borrar", params=t, follow_redirects=False).status_code == 404
+    r = http.post(f"{base}/qr_nuevo", params=t, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"].startswith(base)
+    assert vinculado.tomar_orden(espacio) == "qr_nuevo" and vinculado.leer_estado(espacio)["estado"] == "arrancando"
+    assert vinculado.tomar_orden(espacio) is None  # se toma una vez
+    http.post(f"{base}/codigo", params=t, follow_redirects=False)
+    assert vinculado.tomar_orden(espacio) == "codigo"
+    http.post(f"{base}/codigo", params=t, follow_redirects=False)  # doble toque: no gasta otro código
+    assert vinculado.tomar_orden(espacio) is None
+    interno = f"/espacios/{espacio.cliente_id}/vincular/qr_nuevo"
+    assert http.post(interno, params={"llave": "secreto-de-prueba"}, follow_redirects=False).status_code == 303
+    vinculado.publicar(espacio, "conectado")  # con la sesión viva no se toca
+    assert http.post(f"{base}/qr_nuevo", params=t, follow_redirects=False).status_code == 409
+
+
+def test_vinc_qr_nuevo_borra_la_sesion_a_medias(espacio):
+    ruta = espacio.ruta(vinculado.SESION)
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    for sufijo in ("", "-wal", "-shm"):
+        Path(str(ruta) + sufijo).write_text("x")
+    espacio.escribir_json(vinculado.ESTADO, {"estado": "esperando_qr"})
+    vinculado.borrar_sesion(espacio)
+    assert not list(ruta.parent.glob("session*")) and espacio.existe(vinculado.ESTADO)
 
 
 def test_vinc_el_aviso_viejo_no_se_pega_al_estado_nuevo(espacio):

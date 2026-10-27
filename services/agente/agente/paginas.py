@@ -127,6 +127,7 @@ letter-spacing:-.02em;cursor:pointer;white-space:nowrap;transition:transform .15
 .btn.sec{background:var(--fill);color:var(--accent)}.btn.ancho{width:100%}
 .btn svg.ic{width:20px;height:20px}
 .acciones{display:flex;gap:10px;margin-top:14px}.acciones .btn{flex:1}
+.acciones form{min-width:0}.acciones form .btn{white-space:normal;padding:0 12px;line-height:1.2;font-size:16px}
 .campo{padding:14px 16px;position:relative}.campo+.campo::before{content:"";position:absolute;top:0;right:0;left:16px;
 border-top:.5px solid var(--sep)}
 .campo label{display:block;font-size:15px;font-weight:600}.campo label small{display:block;font-weight:400;
@@ -1032,6 +1033,7 @@ def vincular(cliente_id: str, llave: str | None = None) -> str:
         centro = f'<div class="qr">{_qr_svg(estado["qr"])}</div>'
     detalle = f'<p class="nota" style="margin:8px 0 0">{esc(estado.get("detalle", ""))}</p>' if estado.get("detalle") else ""
     vivo = " vivo" if clave in ("arrancando", "esperando_qr", "esperando_codigo", "vinculado", "conectado") else ""
+    centro += botones_vincular(clave, lambda a: url(espacio, f"vincular/{a}", llave))
     cuerpo = (f'<div class="bloque"><span class="estado {tono}{vivo}">WhatsApp</span>'
               f'<h2 style="font-size:22px;letter-spacing:-.025em;margin:8px 0 4px">{esc(titulo)}</h2>'
               f'<p class="lede" style="margin:0">{esc(ayuda)}</p>{detalle}{centro}</div>'
@@ -1116,12 +1118,32 @@ _ETAPA = {"sin_lector": 0, "arrancando": 0, "error": 0, "esperando_qr": 1, "espe
           "vinculado": 2, "conectado": 3}
 
 
-def _vivo_negocio(clave: str, estado: dict) -> str:
+def _boton(destino: str, texto: str, sec: bool = True, icono_: str = "") -> str:
+    """Un botón que funciona sin JS: un formulario que deja la orden y vuelve a la página."""
+    return (f'<form method="post" action="{esc(destino)}" style="flex:1;margin:0">'
+            f'<button class="btn ancho{" sec" if sec else ""}">{icono(icono_) if icono_ else ""}{texto}</button></form>')
+
+
+def botones_vincular(clave: str, accion) -> str:
+    """Como el panel de Gestor: QR nuevo cuando sea, y el código de 8 solo si se pide."""
+    if clave in ("conectado", "vinculado"):
+        return ""
+    if clave == "esperando_codigo":
+        fila = _boton(accion("codigo"), "Pedir otro código") + _boton(accion("qr"), "Volver al QR")
+    elif clave == "esperando_qr":
+        fila = _boton(accion("qr_nuevo"), "Generar QR nuevo") + _boton(accion("codigo"), "Usar código de 8")
+    else:
+        fila = _boton(accion("qr_nuevo"), "Generar QR nuevo")
+    return f'<div class="acciones">{fila}</div>'
+
+
+def _vivo_negocio(clave: str, estado: dict, accion) -> str:
     """Lo que cambia mientras el negocio tiene la página abierta. Sin conteos ni detalle técnico (test)."""
     if clave in ("numero_ajeno", "desconectado"):
         _, titulo, ayuda = ESTADOS[clave]
         return (f'<div class="bloque" style="text-align:center"><span class="estado bad">{esc(titulo)}</span>'
-                f'<p class="lede" style="margin:10px 0 0">{esc(ayuda)} Escríbanos y le mandamos un código nuevo.</p></div>')
+                f'<p class="lede" style="margin:10px 0 0">{esc(ayuda)} Luego genere un QR nuevo.</p>'
+                f'{botones_vincular(clave, accion)}</div>')
     etapa = _ETAPA.get(clave, 0)
     barras = "".join(f'<i class="{"ok" if i < etapa else ("ya" if i == etapa else "")}"></i>'
                      for i in range(len(PASOS_NEGOCIO)))
@@ -1141,18 +1163,23 @@ def _vivo_negocio(clave: str, estado: dict) -> str:
                         ico=f'<span class="icono">{icono("chispa")}</span>')
                 + "</div>")
     if clave == "esperando_codigo" and estado.get("codigo"):
-        titulo, centro = "Teclee este código", _codigo_html(estado["codigo"])
+        titulo = "Teclee este código"
+        centro = (_codigo_html(estado["codigo"]) + '<p class="nota" style="text-align:center">Vale un par de minutos. '
+                  'Si WhatsApp dice que no se pudo vincular, pida otro código.</p>')
         ultimo = "Elija <b>Vincular con número de teléfono</b> y teclee el código de arriba."
     elif clave == "esperando_qr" and estado.get("qr"):
         titulo = "Escanee este código"
         centro = (f'<div class="qr">{_qr_svg(estado["qr"])}</div>'
                   '<p class="nota mismo-tel" style="text-align:center">¿Abrió este enlace en el mismo teléfono? '
-                  'El QR se escanea desde otra pantalla: ábralo en una computadora o pídanos el código de 8 letras.</p>')
+                  'El QR se escanea desde otra pantalla: ábralo en otro teléfono o en una computadora, o use el '
+                  'código de 8.</p>' + (f'<p class="nota" style="text-align:center">{esc(estado["detalle"])}</p>'
+                                        if estado.get("detalle") else ""))
         ultimo = "Apunte la cámara al código de arriba."
     else:
         return (progreso + '<div class="bloque" style="text-align:center;padding:30px 18px">'
                 '<span class="estado mid vivo">Preparando</span><p class="lede" style="margin:10px 0 0">En unos '
-                'segundos aparece su código. Esta página se actualiza sola.</p></div>')
+                'segundos aparece su código. Esta página se actualiza sola.</p>'
+                f'{botones_vincular(clave, accion)}</div>')
     pasos = "".join(_fila(f"<span style='font-weight:400'>{texto}</span>", ico=f'<span class="icono n">{i}</span>')
                     for i, texto in enumerate((
                         "Abra <b>WhatsApp Business</b> en el teléfono del negocio.",
@@ -1160,7 +1187,7 @@ def _vivo_negocio(clave: str, estado: dict) -> str:
                         "Toque <b>Vincular un dispositivo</b>. " + ultimo,
                         "Deje el teléfono con internet unos minutos mientras se copian sus conversaciones."), 1))
     return (progreso + f'<div class="bloque"><h2 style="font-size:22px;letter-spacing:-.025em;text-align:center">{titulo}'
-            f"</h2>{centro}</div><h2 class=\"sec\">Cómo</h2><div class=\"grupo ico\">{pasos}</div>")
+            f"</h2>{centro}{botones_vincular(clave, accion)}</div><h2 class=\"sec\">Cómo</h2><div class=\"grupo ico\">{pasos}</div>")
 
 
 @router.get("/v/{cliente_id}", response_class=HTMLResponse)
@@ -1188,7 +1215,7 @@ def vincular_negocio(cliente_id: str, t: str | None = None) -> str:
     hoja = (f'<main class="hoja aparece"><p class="sobre">Su asistente de WhatsApp</p>'
             f'<h1 class="titulo-grande">{esc(nombre)}</h1>'
             '<p class="lede">Conecte su WhatsApp Business. Toma un par de minutos.</p>'
-            f'<section data-vivo aria-live="polite">{_vivo_negocio(clave, estado)}</section>'
+            f'<section data-vivo aria-live="polite">{_vivo_negocio(clave, estado, lambda a: f"/v/{quote(cliente_id)}/{a}?t={quote(t or '')}")}</section>'
             f'<h2 class="sec">Su WhatsApp sigue igual</h2><div class="grupo ico">{garantias}</div>'
             '<p class="firma">Hecho por <b>DGED</b></p></main>')
     return _documento(espacio, f"Conectar WhatsApp · {nombre}", f'<div class="marco">{cabeza}{hoja}</div>',
@@ -1273,3 +1300,45 @@ def negocios(llave: str | None = None) -> str:
               'asistente. Se le entregan dos enlaces: su panel y el de conectar su WhatsApp.</p>'
               + lista + alta + script)
     return pagina(None, llave, "", "Negocios", cuerpo, navegacion=False)
+
+
+# --------------------------------------------------------------------------- #
+#  Órdenes al lector: QR nuevo y código de 8 (como los botones de Gestor)      #
+# --------------------------------------------------------------------------- #
+ACCIONES_VINCULAR = ("qr_nuevo", "codigo", "qr")
+PEDIDOS = "vinculado/pedidos.json"
+ESPERA_CODIGO_S = 60  # WhatsApp castiga pedir códigos seguidos (429): uno por minuto, a lo más
+
+
+def dejar_orden(espacio: Espacio, accion: str, reloj=None) -> None:
+    import time
+    if accion not in ACCIONES_VINCULAR:
+        raise HTTPException(404, "no existe")
+    estado = vinculado.leer_estado(espacio).get("estado", "sin_lector")
+    if estado in ("conectado", "vinculado"):
+        raise HTTPException(409, "ya está conectado: no se toca la sesión")
+    ahora = (reloj or time.time)()
+    if accion == "codigo":
+        pedidos = espacio.leer_json(PEDIDOS, {}) or {}
+        if ahora - float(pedidos.get("codigo", 0)) < ESPERA_CODIGO_S:
+            return  # un doble toque no gasta otro código
+        espacio.escribir_json(PEDIDOS, {**pedidos, "codigo": ahora})
+    vinculado.ordenar(espacio, accion)
+    if accion == "qr_nuevo":
+        vinculado.publicar(espacio, "arrancando")  # la página dice "Preparando" mientras el lector reinicia
+
+
+@router.post("/v/{cliente_id}/{accion}")
+def orden_del_negocio(cliente_id: str, accion: str, t: str | None = None):
+    from fastapi.responses import RedirectResponse
+    espacio = _espacio_negocio(cliente_id, t)
+    dejar_orden(espacio, accion)
+    return RedirectResponse(f"/v/{quote(cliente_id)}?t={quote(t or '')}", status_code=303)
+
+
+@router.post("/espacios/{cliente_id}/vincular/{accion}")
+def orden_del_panel(cliente_id: str, accion: str, llave: str | None = None):
+    from fastapi.responses import RedirectResponse
+    espacio = _espacio(cliente_id, llave)
+    dejar_orden(espacio, accion)
+    return RedirectResponse(url(espacio, "vincular", llave), status_code=303)

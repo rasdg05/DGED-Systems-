@@ -28,6 +28,7 @@ import sys
 import threading
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 from . import historial
 from .espacio import Espacio
@@ -169,49 +170,74 @@ def publicar(espacio: Espacio, estado: str, **extra) -> None:
     espacio.escribir_json(ESTADO, anterior)
 
 
-class Emparejar:
-    """Qué se le enseña al negocio para vincular: el código de 8 si se puede, si no el QR.
+ORDEN = "vinculado/orden.json"
+VIGENCIA_CODIGO_S = 150  # un código de 8 vale un par de minutos; pasado eso, otra vez el QR
 
-    WhatsApp limita los códigos por número (429 rate-overlimit; medido el 2026-10-27 con
-    Finca Emiliano tras varios reinicios del servicio). Antes, al fallar el código se
-    anunciaba "esperando_qr" SIN el QR y los QR siguientes se ignoraban: el negocio veía
-    "Preparando" para siempre. Ahora el último QR se publica en cuanto el código falla,
-    y el código se vuelve a pedir solo pasado `reintento_s`.
+
+def ordenar(espacio: Espacio, accion: str) -> None:
+    """La web le deja una orden al lector (otro proceso, mismo volumen): `qr_nuevo` o `codigo`."""
+    espacio.escribir_json(ORDEN, {"accion": accion, "en": time.time()})
+
+
+def tomar_orden(espacio: Espacio) -> str | None:
+    ruta = espacio.ruta(ORDEN)
+    if not ruta.exists():
+        return None
+    try:
+        orden = espacio.leer_json(ORDEN, {}) or {}
+    finally:
+        ruta.unlink(missing_ok=True)
+    return orden.get("accion")
+
+
+def borrar_sesion(espacio: Espacio) -> None:
+    """Sesión a medias fuera: al reiniciar, WhatsApp da un QR nuevo (como el botón de Gestor)."""
+    carpeta = espacio.ruta(SESION).parent
+    for f in carpeta.glob(Path(SESION).name + "*"):
+        f.unlink(missing_ok=True)
+
+
+class Emparejar:
+    """Qué se le enseña al negocio para vincular. Como en Gestor: **el QR siempre**, y el
+    código de 8 solo cuando alguien lo pide con el botón.
+
+    Antes el código se pedía solo en cada arranque, y cada redespliegue gastaba uno: el
+    2026-10-27 WhatsApp contestó 429 rate-overlimit a Finca Emiliano y, encima, el respaldo
+    anunciaba el QR sin publicarlo ("Preparando" sin fin).
     """
 
-    def __init__(self, espacio: Espacio, telefono: str, pedir, reintento_s: int = 3600, reloj=time.time):
-        self.espacio, self.telefono, self.pedir = espacio, telefono, pedir
-        self.reintento_s, self.reloj = reintento_s, reloj
+    def __init__(self, espacio: Espacio, telefono: str, pedir, reloj=time.time):
+        self.espacio, self.telefono, self.pedir, self.reloj = espacio, telefono, pedir, reloj
         self.ultimo_qr = ""
-        self.estado = "sin_pedir"  # sin_pedir | pidiendo | mostrado | fallo
-        self.fallo_en = 0.0
+        self.codigo_en = 0.0  # cuándo se enseñó el último código; 0 = se enseña el QR
 
-    def al_recibir_qr(self, qr: str) -> bool:
-        """Devuelve True si hay que pedir el código (el llamador lo pide en otro hilo)."""
+    def _codigo_vigente(self) -> bool:
+        return bool(self.codigo_en) and self.reloj() - self.codigo_en < VIGENCIA_CODIGO_S
+
+    def al_recibir_qr(self, qr: str) -> None:
         self.ultimo_qr = qr
-        if not self.telefono:
+        if not self._codigo_vigente():
+            self.codigo_en = 0.0
             publicar(self.espacio, "esperando_qr", qr=qr)
-            return False
-        if self.estado in ("pidiendo", "mostrado"):
-            return False
-        if self.estado == "fallo" and self.reloj() - self.fallo_en < self.reintento_s:
-            publicar(self.espacio, "esperando_qr", qr=qr)
-            return False
-        self.estado = "pidiendo"
-        return True
+
+    def volver_al_qr(self, detalle: str = "") -> None:
+        self.codigo_en = 0.0
+        if self.ultimo_qr:
+            publicar(self.espacio, "esperando_qr", qr=self.ultimo_qr, **({"detalle": detalle} if detalle else {}))
 
     def pedir_codigo(self) -> None:
+        if not self.telefono:
+            self.volver_al_qr("Falta el número del negocio para pedir el código: use el QR.")
+            return
         try:
             codigo = self.pedir(self.telefono)
-        except Exception as error:  # el QR sigue sirviendo, y se publica YA
+        except Exception as error:
             logger.warning("No se pudo pedir el código de vinculación: %r", error)
-            self.estado, self.fallo_en = "fallo", self.reloj()
-            espera = "WhatsApp pidió esperar antes de dar otro código." if "429" in repr(error) else \
-                "No se pudo pedir el código."
-            publicar(self.espacio, "esperando_qr", qr=self.ultimo_qr,
-                     detalle=f"{espera} Mientras, escanee el QR desde otra pantalla.")
+            espera = ("WhatsApp pidió esperar antes de dar otro código." if "429" in repr(error)
+                      else "No se pudo pedir el código.")
+            self.volver_al_qr(f"{espera} Mientras, escanee el QR desde otra pantalla.")
             return
-        self.estado = "mostrado"
+        self.codigo_en = self.reloj()
         publicar(self.espacio, "esperando_codigo", codigo=codigo)
 
 
@@ -260,14 +286,34 @@ def main() -> int:  # pragma: no cover - necesita WhatsApp de verdad
 
     # Sin cámara a la mano: "Vincular con número de teléfono". Se pide UNA vez,
     # con el cliente ya corriendo (cuando WhatsApp manda el primer QR).
-    telefono = "".join(c for c in os.environ.get("AGENTE_VINCULAR_TELEFONO", "") if c.isdigit())
+    # El número para el código de 8 (solo si alguien lo pide): el de la variable o el del alta.
+    telefono = "".join(c for c in (os.environ.get("AGENTE_VINCULAR_TELEFONO", "")
+                                   or str(espacio.config().get("numero_negocio", ""))) if c.isdigit())
     emparejar = Emparejar(espacio, telefono, lambda tel: client.PairPhone(tel, True))
+    tomar_orden(espacio)  # una orden vieja de antes del arranque ya se cumplió con el arranque
 
     @client.qr
     def on_qr(_c, data_qr):
-        codigo = data_qr.decode() if isinstance(data_qr, (bytes, bytearray)) else str(data_qr)
-        if emparejar.al_recibir_qr(codigo):
-            threading.Thread(target=emparejar.pedir_codigo, daemon=True).start()
+        emparejar.al_recibir_qr(data_qr.decode() if isinstance(data_qr, (bytes, bytearray)) else str(data_qr))
+
+    def atender_ordenes():  # las órdenes de la web: QR nuevo o código de 8
+        while True:
+            time.sleep(2)
+            try:
+                accion = tomar_orden(espacio)
+                if accion == "qr_nuevo":
+                    logger.warning("QR nuevo pedido: se borra la sesión a medias y el lector reinicia")
+                    borrar_sesion(espacio)
+                    publicar(espacio, "arrancando")
+                    os._exit(0)  # arrancar.sh lo vuelve a levantar en 5 s; la web sigue
+                elif accion == "codigo":
+                    emparejar.pedir_codigo()
+                elif accion == "qr":
+                    emparejar.volver_al_qr()
+            except Exception:
+                logger.exception("Error atendiendo una orden de la web")
+
+    threading.Thread(target=atender_ordenes, daemon=True).start()
 
     @client.event(PairStatusEv)
     def on_pair(_c, event):
