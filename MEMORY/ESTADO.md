@@ -4,6 +4,12 @@
 
 ## Corre
 
+- **Primer enjambre real, Finca Emiliano** (2026-10-27, D-041): 237 pláticas en 24 lotes y 24 agentes; 145
+  borradores, el orquestador sacó 16 (eventos, capacidad, descuento, molestia, cotización por preparar) y corrigió 3;
+  **128 cargados en producción esperando aprobación** (ronda `2026-10-27-seguimiento`), sin cifras. 91 "no sale" +
+  16 para la dueña en `datos/.../enjambre/2026-10-27T2106/para-la-duena.json` (fuera de git). Producción: 0 versiones
+  de perfil (la lista de precios no está subida). **Nada enviado**: falta el sí del dueño para aprobar la ronda,
+  `canal vinculado sin_cifra` y un redespliegue.
 - **App de operación, como Gestor** (2026-10-27, D-039): semáforo de pendientes (`semaforo.py`), pantallas
   Pendientes, Cola de envío y Calendario (`operacion.py`); Inicio con semáforo, envío y calendario; ya no dice
   "Aprendiendo". 334 tests en verde; probado en local con la muestra (capturas de iPhone). Gestor clonado en la
