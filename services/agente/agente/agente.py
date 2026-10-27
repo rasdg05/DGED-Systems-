@@ -20,7 +20,20 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 
-from . import conversacion, cotizador, gasto, guardia, historial, jugadas, lectura, modelo, perfil, respuestas, voz
+from . import (
+    calendario,
+    conversacion,
+    cotizador,
+    gasto,
+    guardia,
+    historial,
+    jugadas,
+    lectura,
+    modelo,
+    perfil,
+    respuestas,
+    voz,
+)
 from .espacio import Espacio
 from .historial import Mensaje
 
@@ -39,6 +52,7 @@ _NO_ES_HOSPEDAJE = re.compile(r"\bapart\w*|\banticipo\b|\bdeposit\w*|\bevento\b|
                               r"|\bpaquete\w*|\btodo incluido\b|\bbanquete\b|\balimentos\b|\bcomida\b"
                               r"|\btransporte\b|\bbautizo\b|\bcumple\w*|\bmesas?\b|\bsillas?\b|\bhoras?\b|\bhrs\b")
 _ALBERCA = re.compile(r"\balberca\b|\bcalefacc\w*|\bclimatiz\w*|\bcaldera\b")
+_NOMBRE = {"finca": "la finca", "quinta": "la quinta", "ambas": "las dos casas"}
 _UNIDAD_EXTRA = {"dia": "el día", "persona": "por persona", "noche": "la noche"}
 
 
@@ -121,12 +135,15 @@ def _lo_lleva_una_persona(espacio: Espacio, entrante: Mensaje) -> bool:
     return lo_lleva_una_persona(hilo, entrante, jugadas.plantillas(hilos), horas)
 
 
-def antes_del_modelo(base: dict, entrante: Mensaje, hilo: list[Mensaje], activo: dict | None) -> Salida | None:
+def antes_del_modelo(base: dict, entrante: Mensaje, hilo: list[Mensaje], activo: dict | None,
+                     ocupacion: calendario.Ocupacion | None = None) -> Salida | None:
     """Todo lo que el turno decide sin modelo, en orden. `None`: iría al modelo.
 
     Es la parte que la vara (`vara.py`) corre sobre cada momento real: el mismo
     código del turno, sin llamar a nada. `hilo` es lo que el agente vería (lo
-    anterior al mensaje, que lo incluye); no lee el reloj de pared."""
+    anterior al mensaje, que lo incluye); no lee el reloj de pared. `ocupacion`:
+    el calendario, si el espacio tiene uno (la vara no lo pasa: no hay calendario
+    del pasado)."""
     if activo is None:
         return _a_persona(base, "sin perfil aprobado")
     if not conversacion.tiene_turno(entrante.texto):
@@ -157,17 +174,22 @@ def antes_del_modelo(base: dict, entrante: Mensaje, hilo: list[Mensaje], activo:
     guardada = respuestas.buscar(activo, dicho)
     if guardada:
         return Salida(**base, via="guardada", texto=guardada["respuesta"])
-    return por_grupo(base, hilo, dicho, activo)
+    return por_grupo(base, hilo, dicho, activo, ocupacion)
 
 
-def por_grupo(base: dict, hilo: list[Mensaje], dicho: str, activo: dict) -> Salida | None:
+def por_grupo(base: dict, hilo: list[Mensaje], dicho: str, activo: dict,
+              ocupacion: calendario.Ocupacion | None = None) -> Salida | None:
     """La cotización por grupo, sin modelo, con la lista de precios del perfil.
 
     Entra si el cliente pide precio o da su grupo o sus fechas. Sin cuántos son,
     los pregunta (como la casa). Con el grupo, el cotizador elige la propiedad por
     el tamaño y, con fechas, da el total; sin fechas, el precio de la lista. La
     cifra siempre espera el sí de una persona (invariante XXXIII); incompleta, va
-    a la persona con la cotización como borrador."""
+    a la persona con la cotización como borrador.
+
+    Con calendario y fechas, una propiedad ocupada no se cotiza (invariante LXII);
+    si todas lo están, va a una persona con el aviso como borrador. Lo que el
+    calendario no sabe viaja en la cotización para quien la aprueba."""
     from .lista_precios import propiedad_en_platica
 
     if not any(r.get("tipo") == "grupo" for r in activo.get("reglas", []) or []):
@@ -203,7 +225,22 @@ def por_grupo(base: dict, hilo: list[Mensaje], dicho: str, activo: dict) -> Sali
     if not cot.completa:
         return Salida(**base, via="persona", texto=LO_CONFIRMO, borrador=cot.texto(),
                       motivo="cotización incompleta: " + "; ".join(cot.faltan), cotizacion=cot.a_dict())
-    return Salida(**base, via="cotizador", texto=cot.texto(), cotizacion=cot.a_dict(), requiere_aprobacion=True)
+    disponibilidad = None
+    if ocupacion is not None and ocupacion.configurada and cot.llegada and cot.salida:
+        disponibilidad = {o.propiedad: ocupacion.disponibilidad(o.propiedad, cot.llegada, cot.salida)
+                          for o in cot.opciones}
+        libres = [o for o in cot.opciones if disponibilidad[o.propiedad].estado != calendario.OCUPADA]
+        if not libres:
+            nombres = " ni ".join(_NOMBRE.get(p, p) for p in disponibilidad)
+            return Salida(**base, via="persona", texto=LO_CONFIRMO,
+                          borrador=f"Para esas fechas ya no tenemos disponible {nombres}.",
+                          motivo="fechas ocupadas en el calendario",
+                          cotizacion={**cot.a_dict(), "disponibilidad": [d.a_dict() for d in disponibilidad.values()]})
+        cot.opciones = libres
+    datos = cot.a_dict()
+    if disponibilidad is not None:
+        datos["disponibilidad"] = [disponibilidad[o.propiedad].a_dict() for o in cot.opciones]
+    return Salida(**base, via="cotizador", texto=cot.texto(), cotizacion=datos, requiere_aprobacion=True)
 
 
 def _da_lo_que_faltaba(hilo: list[Mensaje], dicho: str) -> bool:
@@ -246,7 +283,8 @@ def decidir(espacio: Espacio, entrante: Mensaje, client=None, en_vivo: bool = Fa
     if activo is not None and conversacion.tiene_turno(entrante.texto) and en_vivo \
             and _lo_lleva_una_persona(espacio, entrante):
         return _callar(base, "lo lleva una persona: el agente no habla encima")
-    sin_modelo = antes_del_modelo(base, entrante, hilo, activo)
+    ocupacion = calendario.Ocupacion.de(espacio)
+    sin_modelo = antes_del_modelo(base, entrante, hilo, activo, ocupacion if ocupacion.configurada else None)
     if sin_modelo is not None:
         return sin_modelo
 

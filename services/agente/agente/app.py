@@ -30,7 +30,19 @@ async def _arranque(_app):
     from . import backtest
 
     threading.Thread(target=backtest.correr_todos, name="backtest", daemon=True).start()
+    threading.Thread(target=_calendarios, name="calendario", daemon=True).start()
     yield
+
+
+def _calendarios() -> None:
+    """Baja los iCal de cada espacio cada media hora (`calendario.refrescar_todos`)."""
+    import time
+
+    from . import calendario
+
+    while True:
+        calendario.refrescar_todos()
+        time.sleep(calendario.REFRESCO_MINUTOS * 60)
 
 
 app = FastAPI(title="DGED — agente a la medida", lifespan=_arranque)
@@ -246,6 +258,36 @@ def correr_simbiosis(cliente_id: str, x_tenant_key: str | None = Header(default=
         raise HTTPException(502, f"la pasada del perfil falló: {type(error).__name__}"
                                  f"{f' {estado}' if estado else ''}: {str(error)[:500]}") from error
     return {"version": n, "descartados": len(descartados), "revision": f"/espacios/{cliente_id}/revision"}
+
+
+@app.get("/espacios/{cliente_id}/calendario.json")
+def ver_calendario(cliente_id: str, desde: str | None = None, dias: int = 30,
+                   x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """Noches libres, ocupadas y sin saber por propiedad, y el estado de cada iCal.
+    Las URLs no salen: abren el calendario a quien las tenga."""
+    from datetime import date, datetime
+
+    from . import calendario
+
+    espacio = _espacio(cliente_id, x_tenant_key or llave)
+    oc = calendario.Ocupacion.de(espacio)
+    inicio = date.fromisoformat(desde) if desde else datetime.now(calendario.ZONA).date()
+    return {"fuentes": oc.por_propiedad, "noches": oc.noches(inicio, max(1, min(dias, 400)))}
+
+
+@app.post("/espacios/{cliente_id}/calendario/fuentes")
+def agregar_fuente_calendario(cliente_id: str, propiedad: str = Body(..., embed=True),
+                              plataforma: str = Body(..., embed=True), url: str = Body(..., embed=True),
+                              x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """`{"propiedad": "finca", "plataforma": "airbnb", "url": "https://..."}` y la baja de una vez."""
+    from . import calendario
+
+    espacio = _espacio(cliente_id, x_tenant_key or llave)
+    try:
+        calendario.agregar_fuente(espacio, propiedad, plataforma, url)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    return {"estado": calendario.bajar(espacio)}
 
 
 # --------------------------------------------------------------------------- #

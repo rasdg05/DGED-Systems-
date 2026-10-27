@@ -1,8 +1,16 @@
-# Estado — 2026-10-27 (lista de precios y cotizador por grupo)
+# Estado — 2026-10-27 (calendario por iCal y hoja para Mariana)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
 ## Corre
+
+- **Calendario de ocupación por iCal** (2026-10-27, D-034, rama `claude/agente-a-la-medida`):
+  `agente/calendario.py` lee Airbnb, Booking y Google Calendar; `python -m agente.calendario fuente|bajar|ver`,
+  `GET /espacios/<id>/calendario.json` y `POST /espacios/<id>/calendario/fuentes` (llave del cliente); el
+  servidor baja cada 30 min. Libre solo con todas las fuentes frescas (LXI); la propiedad ocupada no se
+  cotiza (LXII). 14 tests; 307 del agente en verde. **No medido**: faltan los enlaces de Finca Emiliano.
+- **Hoja para Mariana** (`docs/20-hoja-para-mariana.md`): el texto para mandarle por WhatsApp con las 17
+  cosas a confirmar, las 6 a decidir y los enlaces de calendario (25 preguntas).
 
 - **Lista de precios y cotizador por grupo** (2026-10-27, `docs/19-lista-de-precios.md`, D-031 a D-033,
   rama `claude/agente-a-la-medida`). Cero llamadas a la API; nada subido a producción.
@@ -219,6 +227,8 @@
 6. Primeras cuentas (D-012): Fibra Mty, FIBRA Prologis, Vesta.
 
 ## Lo que es del dueño
+- **Agente (sesión del calendario)**: mandar a Mariana `docs/20-hoja-para-mariana.md`; con sus enlaces
+  iCal, darlos de alta y medir (`python -m agente.calendario bajar finca-quinta`).
 - **Agente (sesión del cotizador)**: que Mariana confirme `docs/19-lista-de-precios.md` (lo a decidir y el
   rango de fin de año) y, con su sí, subir la propuesta (`python -m agente.local proponer finca-quinta
   datos/espacios/finca-quinta/lista_precios/propuesta.json --de-verdad`) para aprobarla en Asistente →

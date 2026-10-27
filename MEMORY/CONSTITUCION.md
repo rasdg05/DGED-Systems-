@@ -65,6 +65,8 @@
 | LVIII | El canal no envía una cifra sin el sí de una persona aunque la salida no esté marcada `requiere_aprobacion` | `agente/canal.py` | `test_agente_lista_precios.py::test_canal_una_cifra_sin_aprobacion_no_sale_aunque_no_este_marcada` |
 | LIX | Un aviso de protocolo (`otro`) no esconde lo que el cliente escribió; solo, va a una persona | `agente.antes_del_modelo` | `test_agente_lista_precios.py::test_turno_el_aviso_de_protocolo_no_esconde_lo_que_el_cliente_escribio` |
 | LX | En la vara, la lista de precios de cada plática se arma solo con desarrollo y sin esa plática | `lista_precios.para_la_vara`, `vara.medir` | `test_agente_lista_precios.py::test_vara_la_lista_de_cada_platica_se_arma_sin_ella` |
+| LXI | Una noche es libre solo si todas las fuentes iCal de esa propiedad respondieron con un calendario de verdad hace menos de `VIGENCIA_HORAS`; sin fuente, con error, con un 200 que no es `VCALENDAR` o vieja, "no se sabe", nunca libre; lo ocupado de una fuente caída sigue ocupado | `agente/calendario.py` | `test_agente_calendario.py::test_libre_solo_si_todas_las_fuentes_de_la_propiedad_respondieron_y_estan_frescas` y `test_una_fuente_que_falla_despues_no_borra_lo_ocupado_ni_se_vuelve_libre` |
+| LXII | Una propiedad ocupada en esas fechas no sale en la cotización; si todas lo están, va a una persona sin cifra | `agente.por_grupo` | `test_agente_calendario.py::test_una_propiedad_ocupada_no_sale_en_la_cotizacion` y `test_si_todas_estan_ocupadas_va_a_una_persona_sin_cifra` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 
