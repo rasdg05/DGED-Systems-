@@ -1095,8 +1095,30 @@ def banco_pagina(cliente_id: str, llave: str | None = None) -> str:
               f'<h2 class="sec">Sombra</h2><div class="tiles"><div class="tile"><b>{s["n"]}</b><span>borradores medidos</span></div>'
               f'<div class="tile"><b>{_pct(s.get("cobertura"))}</b><span>cobertura</span></div>'
               f'<div class="tile"><b>{_pct(s.get("habria_enviado_sin_editar"))}</b><span>se habría enviado tal cual</span></div>'
-              f'<div class="tile"><b>{"sí" if s.get("concluye") else "no"}</b><span>concluye (n ≥ 30)</span></div></div>')
+              f'<div class="tile"><b>{"sí" if s.get("concluye") else "no"}</b><span>concluye (n ≥ 30)</span></div></div>'
+              + _backtest_html(espacio))
     return pagina(espacio, llave, "banco", "Taller", cuerpo)
+
+
+def _backtest_html(espacio: Espacio) -> str:
+    """El último backtest por despliegue (`backtest.py`), si ya corrió."""
+    from . import backtest
+
+    b = backtest.leer(espacio).get("ultimo") or {}
+    if not b.get("n"):
+        return ""
+    m, c = b.get("metricas") or {}, b.get("contra_el_anterior") or {}
+    regresion = c.get("regresion")
+    return (f'<h2 class="sec">Backtest</h2><div class="bloque"><span class="estado {"bad" if regresion else "ok"}">'
+            f'{"regresión" if regresion else "sin regresión"}</span><p class="lede" style="margin:8px 0 0">'
+            f'El agente del commit {esc(b.get("commit") or "?")} contra los momentos del {esc(b.get("desde", ""))} '
+            f'al {esc(b.get("hasta", ""))}. {esc(b.get("nota") or "")}</p></div>'
+            f'<div class="tiles"><div class="tile"><b>{b["n"]}</b><span>momentos</span></div>'
+            f'<div class="tile"><b>{m.get("puntaje")}</b><span>puntaje</span></div>'
+            f'<div class="tile"><b>{m.get("cobertura")}%</b><span>cobertura</span></div>'
+            f'<div class="tile"><b>{m.get("errores_caros")}</b><span>errores caros</span></div></div>'
+            + (f'<p class="lede">Contra el anterior (n = {c["n"]}): mejoraron {c["mejoraron"]}, '
+               f'empeoraron {c["empeoraron"]}.</p>' if c else ""))
 
 
 def _pct(x) -> str:

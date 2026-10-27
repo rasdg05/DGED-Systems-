@@ -51,16 +51,28 @@ def _normal(texto: str | None) -> str:
 
 
 def numeros(texto: str | None) -> set[str]:
-    """Las cifras de un texto, sin separadores de miles: "$3,500.00" -> {"3500"}."""
+    """Las cifras de un texto, sin separadores de miles: "$3,500.00" -> {"3500"}.
+
+    En México se escribe de las dos formas: *"12.000"* (punto de miles) y
+    *"$600,00"* (coma decimal). Un separador seguido de dos cifras (o una) al
+    final es decimal; seguido de grupos de tres, es de miles (enjambre,
+    2026-10-27: *"12.000"* se leía 12 y *"600,00"*, 60000)."""
     salida = set()
     for crudo in re.findall(r"\d[\d,.]*", texto or ""):
-        limpio = crudo.rstrip(".,")
-        entero, _, dec = limpio.replace(",", "").partition(".")
+        grupos = re.split(r"[,.]", crudo.rstrip(".,"))
+        dec = ""
+        if len(grupos) > 1 and len(grupos[-1]) in (1, 2):
+            dec = grupos.pop()
+        if len(grupos) > 1 and not all(len(g) == 3 for g in grupos[1:]):
+            # "1.5.2", "10.15": no es un monto bien escrito; se queda cada pedazo
+            salida.update(g.lstrip("0") or "0" for g in grupos + ([dec] if dec else []))
+            continue
+        entero = "".join(grupos).lstrip("0") or "0"
         if dec and set(dec) == {"0"}:
             dec = ""
-        salida.add(entero.lstrip("0") or "0")
+        salida.add(entero)
         if dec:
-            salida.add(f"{entero.lstrip('0') or '0'}.{dec}")
+            salida.add(f"{entero}.{dec}")
     return salida
 
 

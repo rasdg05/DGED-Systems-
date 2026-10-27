@@ -140,3 +140,52 @@ def test_conv_banco_sin_perfil(tmp_path):
     from agente import banco
     from agente.espacio import Espacio
     assert banco.correr(Espacio("vacio", tmp_path))["n"] == 0
+
+
+@pytest.mark.parametrize("texto", [
+    "Sería para el próximo año en el mes de Julio, Bodas de Oro para 100 persona",
+    "Es un grupo de  aprox 45 persona", "Por persona o por noche perdón", "Entre 50 a 60 persona",
+    "Respecto de la comida ya sería tu mejor costo por / Persona ?", "Es para una persona"])
+def test_conv_persona_de_conteo_no_pide_una_persona(texto):
+    """Finca Emiliano, 2026-10-27: 11 de 11 disparos de `pide_persona` en su
+    historial eran la cuenta de huéspedes; el turno los mandaba a una persona."""
+    assert not conversacion.pide_persona(texto)
+
+
+@pytest.mark.parametrize("texto", ["Quiero hablar con una persona", "Me atiende alguna persona real?",
+                                   "Pásame con el encargado", "Quiero hablar con un humano"])
+def test_conv_pedir_una_persona_sigue_siendo_pedirla(texto):
+    assert conversacion.pide_persona(texto)
+
+
+def test_conv_el_redactor_sabe_lo_que_revisa_el_candado_de_voz(espacio):
+    """Cada rasgo que `voz.hallazgos` castiga se le dice al modelo en el `system`
+    (enjambre, 2026-10-27: 9 de 60 borradores se perdían por abrir con ¿)."""
+    from agente import modelo, perfil, voz
+
+    activo = dict(perfil.activo(espacio), voz=[{"frase": "Buenas tardes, para que fecha seria"}], trato="usted")
+    texto = "".join(b["text"] for b in modelo.system_de(espacio, activo))
+    assert "No uses ¿ ni ¡" in texto and "Sin emojis" in texto and "Trato de usted" in texto
+    assert voz.hallazgos("¿Para qué fecha?", activo)                     # y el candado lo sigue revisando
+    con_signos = dict(activo, voz=[{"frase": "¡Hola! ¿Qué fecha? 😊"}])
+    assert "No uses ¿ ni ¡" not in voz.reglas_para_redactar(con_signos)
+
+
+def test_conv_estoy_pendiente_de_mi_presupuesto_no_se_calla():
+    """Finca Emiliano, 2026-10-27: el turno lo leía como "quedo pendiente" y callaba."""
+    assert not conversacion.nada_que_contestar("Estoy pendiente de mi presupuesto por favor", con_si=False)
+    assert conversacion.nada_que_contestar("Quedo pendiente de su respuesta", con_si=False)
+
+
+@pytest.mark.parametrize("texto", ["Deja le pregunto a mi marido", "Ok deja le comento a mi esposo entonces",
+                                   "Deja les comento entonces"])
+def test_conv_el_cliente_lo_consulta_con_su_gente(texto):
+    assert conversacion.nada_que_contestar(texto, con_si=False)
+
+
+def test_conv_banco_con_los_casos_reales_pasa_k(espacio):
+    from agente import banco
+
+    r = banco.correr(espacio, banco.CASOS_REALES)
+    assert r["errores_caros"] == 0, [f["caros"] for f in r["filas"] if f["caros"]]
+    assert r["pasa_k"] == 1.0, [(f["id"], [c["fallas"] for c in f["corridas"].values()]) for f in r["fallan"]]

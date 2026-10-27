@@ -11,19 +11,20 @@ piden nada. Esta es la única vara del agente; el panel y el enjambre la usan.
 - `no_pide`: acuse, cierre o contestador. El último mensaje es del cliente,
   pero no es trabajo: el panel no lo cuenta como sin responder.
 
-Una plantilla del negocio (el saludo automático que se repite decenas de
-veces) no es una persona contestando: `hubo_persona` lo dice por hilo.
+Lo automático del negocio (la bienvenida y las plantillas que salen a los
+segundos) no es una persona contestando: `hubo_persona` lo dice por hilo, con
+la misma regla que la vara (`jugadas.automaticas`). Un *"Ok"* repetido 26 veces
+sí lo tecleó una persona (antes contaba como plantilla, 2026-10-27).
 """
 from __future__ import annotations
 
 from collections import Counter
 from dataclasses import asdict, dataclass
 
-from . import conversacion
+from . import conversacion, jugadas
 from .historial import Mensaje
 
-#: Un texto del negocio repetido tantas veces es plantilla, no una persona.
-USOS_DE_PLANTILLA = 20
+USOS_DE_PLANTILLA = jugadas.USOS_DE_PLANTILLA
 ESTADOS = ("espera", "solo_medios", "reclamo", "no_pide")
 
 
@@ -41,9 +42,7 @@ class Pendiente:
         return asdict(self)
 
 
-def plantillas(hilos: dict[str, list[Mensaje]]) -> set[str]:
-    usos = Counter(m.texto.strip() for ms in hilos.values() for m in ms if m.del_negocio and m.texto)
-    return {t for t, n in usos.items() if n >= USOS_DE_PLANTILLA}
+plantillas = jugadas.plantillas
 
 
 def _de_un_hilo(hilo: str, mensajes: list[Mensaje], fijas: set[str]) -> Pendiente | None:
@@ -63,7 +62,8 @@ def _de_un_hilo(hilo: str, mensajes: list[Mensaje], fijas: set[str]) -> Pendient
         estado = "no_pide"
     else:
         estado = "espera"
-    hubo_persona = any(m.del_negocio and m.texto and m.texto.strip() not in fijas for m in mensajes)
+    auto = jugadas.automaticas(mensajes, fijas)
+    hubo_persona = any(m.del_negocio and m.texto and m.id not in auto for m in mensajes)
     return Pendiente(hilo=hilo, estado=estado, ultimo_id=mensajes[-1].id, ultimo_ts=mensajes[-1].ts,
                      espera_desde=sin_respuesta[0].ts, dicho=dicho, hubo_persona=hubo_persona)
 

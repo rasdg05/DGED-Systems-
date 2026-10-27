@@ -394,3 +394,17 @@ def test_canal_envia_por_la_cloud_api(espacio, monkeypatch):
     assert url.endswith("/100000000000001/messages") and cuerpo["messaging_product"] == "whatsapp"
     otro = montar(espacio.raiz, "otro-negocio")
     assert "otro cliente" in canal.motivo_para_no_enviar(otro, s)
+
+
+def test_numeros_lee_las_dos_formas_mexicanas_de_escribir_montos():
+    """El enjambre lo encontró (2026-10-27): *"12.000"* se leía 12 y *"$600,00"*
+    60000, y un renglón real del perfil se tiraba por "cifra que no está en la cita"."""
+    from agente.perfil import numeros
+
+    assert numeros("12.000") == {"12000"}
+    assert numeros("Mesas con 10 sillas $600,00 c/u") == {"10", "600"}
+    assert numeros("$3,500.00") == {"3500"} and numeros("35,000 el fin") == {"35000"}
+    assert "2000.50" in numeros("2,000.50")
+    # el candado de la cifra lee igual: la del cotizador escrita con punto de miles sigue permitida
+    from agente import guardia
+    assert guardia.cifras_no_permitidas("Le queda en 12.000", numeros("$12,000")) == []

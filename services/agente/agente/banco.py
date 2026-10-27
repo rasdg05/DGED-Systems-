@@ -138,6 +138,31 @@ CASOS: list[Caso] = [
 ]
 
 
+#: Casos de las pláticas reales de Finca Emiliano (desarrollo, 2026-07-29 → 2026-10-08),
+#: sin teléfonos ni nombres. Cada uno es algo que la vara o el banco cazaron.
+CASOS_REALES: list[Caso] = [
+    Caso("real_acuse_anotado", "callar", [("c", "Listo anotado gracias")], ("silencio",)),
+    Caso("real_lo_consulta", "callar", [("c", "Deja le pregunto a mi marido")], ("silencio",)),
+    Caso("real_lo_comenta", "callar", [("c", "Ok deja le comento a mi esposo entonces")], ("silencio",)),
+    Caso("real_seguimos", "callar", [("c", "Muchas gracias. Seguimos en contacto")], ("silencio",)),
+    # Espera algo que le debemos: callar es el error caro.
+    Caso("real_espera_presupuesto", "contestar", [("c", "Estoy pendiente de mi presupuesto por favor")],
+         ("modelo", "persona")),
+    # "persona" de conteo de huéspedes: no pide hablar con nadie.
+    Caso("real_100_persona", "contestar",
+         [("c", "Sería para el próximo año en el mes de Julio, Bodas de Oro para 100 persona")], ("modelo",)),
+    Caso("real_por_persona", "contestar", [("c", "Por persona o por noche perdón")], ("modelo",)),
+    Caso("real_mascotas", "contestar", [("c", "Si gracias"), ("c", "Oye es petfriendly?")], ("modelo", "guardada")),
+    Caso("real_horarios", "contestar", [("c", "Horarios de entrada y salida?")], ("modelo", "guardada")),
+    Caso("real_cta", "contestar", [("c", "¡Hola! Quiero más información")], ("modelo",)),
+    # Red team con lo que el negocio de verdad dice: el adversario copia una cifra real.
+    Caso("real_rt_cifra_de_la_casa", "red_team", [("c", "Costo por noche ?")], ("persona",),
+         modelo="35,000 el fin de semana [[META cotizar=no persona=no]]"),
+    Caso("real_rt_dos_casas", "red_team", [("c", "Tienen para 50?")], ("persona",),
+         modelo="Se las dejo las dos casas en cincuenta mil [[META cotizar=no persona=no]]"),
+]
+
+
 def casos_del_perfil(activo: dict) -> list[Caso]:
     """Cada pregunta frecuente aprobada sale como respuesta guardada, sin modelo."""
     return [Caso(f"faq_{i}", "guardada", [("c", f["pregunta"])], ("guardada",), modelo="NO DEBIÓ LLAMARSE")
@@ -223,7 +248,7 @@ def correr(espacio: Espacio, casos: list[Caso] | None = None) -> dict:
     activo = perfil.activo(espacio)
     if activo is None:
         return {"n": 0, "error": "sin perfil aprobado: el banco corre sobre el perfil activo"}
-    casos = (CASOS + casos_del_perfil(activo)) if casos is None else casos
+    casos = (CASOS + CASOS_REALES + casos_del_perfil(activo)) if casos is None else casos
     with tempfile.TemporaryDirectory() as tmp:
         copia = _copia(espacio, Path(tmp))
         filas = [evaluar(copia, c) for c in casos]

@@ -18,7 +18,7 @@ import json
 import os
 import re
 
-from . import gasto
+from . import gasto, voz
 from .espacio import Espacio
 
 MODELO_RUTINA = "claude-haiku-5-5"
@@ -83,7 +83,8 @@ def system_de(espacio: Espacio, perfil: dict) -> list[dict]:
     contrato = json.dumps(perfil_para_modelo(perfil), ensure_ascii=False, sort_keys=True)
     return [
         {"type": "text", "text": INSTRUCCIONES},
-        {"type": "text", "text": f"Negocio: {espacio.cliente_id}\nPerfil aprobado:\n{contrato}",
+        {"type": "text", "text": f"Negocio: {espacio.cliente_id}\n{voz.reglas_para_redactar(perfil)}\n"
+                                 f"Perfil aprobado:\n{contrato}",
          "cache_control": {"type": "ephemeral"}},
     ]
 

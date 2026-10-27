@@ -11,8 +11,10 @@
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import os
+import threading
 
 from fastapi import Body, FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
@@ -20,7 +22,18 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from . import agente, canal, historial, paginas, perfil
 from .espacio import Espacio, EspacioInvalido, llave_valida, raiz_por_defecto
 
-app = FastAPI(title="DGED — agente a la medida")
+
+@contextlib.asynccontextmanager
+async def _arranque(_app):
+    """Cada despliegue corre el backtest de cada espacio, en un hilo aparte: el
+    servicio contesta mientras tanto, y si falla no se cae (`backtest.py`)."""
+    from . import backtest
+
+    threading.Thread(target=backtest.correr_todos, name="backtest", daemon=True).start()
+    yield
+
+
+app = FastAPI(title="DGED — agente a la medida", lifespan=_arranque)
 app.include_router(paginas.router)
 
 
@@ -291,3 +304,18 @@ def subir_propuesta(cliente_id: str, cuerpo: dict,
     propuesta = dict(cuerpo["perfil"], giro=alta.get("giro"), nombre_comercial=alta.get("nombre_comercial"))
     n, descartados = perfil.proponer(espacio, propuesta, autor="enjambre local (Claude Code)", nombre=nombre)
     return {"version": n, "descartados": descartados, "revision": f"/espacios/{cliente_id}/revision"}
+
+
+@app.get("/espacios/{cliente_id}/backtest.json")
+def ver_backtest(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """El último backtest (el agente de hoy contra los últimos 14 días) y su historial."""
+    from . import backtest
+
+    return backtest.leer(paginas.espacio_taller(cliente_id, x_tenant_key or llave))
+
+
+@app.post("/espacios/{cliente_id}/backtest")
+def correr_backtest(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    from . import backtest
+
+    return backtest.correr(paginas.espacio_taller(cliente_id, x_tenant_key or llave), "a mano")

@@ -19,7 +19,7 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 
-from . import conversacion, cotizador, gasto, guardia, historial, modelo, perfil, respuestas, voz
+from . import conversacion, cotizador, gasto, guardia, historial, jugadas, modelo, perfil, respuestas, voz
 from .espacio import Espacio
 from .historial import Mensaje
 
@@ -89,31 +89,39 @@ def _callar(base: dict, motivo: str) -> Salida:
     return Salida(**base, via="silencio", texto="", motivo=motivo)
 
 
+def lo_lleva_una_persona(hilo: list[Mensaje], entrante: Mensaje, fijas: set[str],
+                         horas: float = HORAS_DE_LA_PERSONA) -> bool:
+    """Una PERSONA del negocio escribió en las últimas `horas` horas de este hilo.
+
+    Lo automático no cuenta (`jugadas.automaticas`): la bienvenida de WhatsApp
+    Business llega como mensaje del negocio y, contada como persona, callaba al
+    agente 24 h justo cuando el cliente acababa de llegar (339 de 1,003 momentos
+    de Finca Emiliano, medido 2026-10-27)."""
+    auto = jugadas.automaticas(hilo, fijas)
+    return any(m.del_negocio and m.id not in auto and m.id != entrante.id and 0 <= entrante.ts - m.ts <= horas * 3600
+               for m in hilo)
+
+
 def _lo_lleva_una_persona(espacio: Espacio, entrante: Mensaje) -> bool:
-    """Una persona del negocio escribió en las últimas `HORAS_DE_LA_PERSONA` horas de este hilo."""
     horas = float(espacio.config().get("horas_de_la_persona", HORAS_DE_LA_PERSONA))
-    return any(m.del_negocio and 0 <= entrante.ts - m.ts <= horas * 3600
-               for m in historial.hilos(espacio).get(entrante.hilo, []) if m.id != entrante.id)
+    hilos = historial.hilos(espacio)
+    hilo = [m for m in hilos.get(entrante.hilo, []) if m.ts <= entrante.ts]
+    return lo_lleva_una_persona(hilo, entrante, jugadas.plantillas(hilos), horas)
 
 
-def decidir(espacio: Espacio, entrante: Mensaje, client=None, en_vivo: bool = False) -> Salida:
-    """`en_vivo=True` solo en el turno real: ahí el agente no habla encima de una
-    persona. La sombra redacta igual para poder medir (Gestor: `fiel`)."""
-    base = {"cliente_id": espacio.cliente_id, "hilo": entrante.hilo, "responde_a": entrante.id}
-    activo = perfil.activo(espacio)
+def antes_del_modelo(base: dict, entrante: Mensaje, hilo: list[Mensaje], activo: dict | None) -> Salida | None:
+    """Todo lo que el turno decide sin modelo, en orden. `None`: iría al modelo.
+
+    Es la parte que la vara (`vara.py`) corre sobre cada momento real: el mismo
+    código del turno, sin llamar a nada. `hilo` es lo que el agente vería (lo
+    anterior al mensaje, que lo incluye); no lee el reloj de pared."""
     if activo is None:
         return _a_persona(base, "sin perfil aprobado")
     if not conversacion.tiene_turno(entrante.texto):
         return _a_persona(base, "mensaje sin texto (foto, audio o documento)")
-
     # Lo que Gestor aprendió con clientes reales, antes de gastar un token
     # (`conversacion.py`): la ráfaga se lee junta y hay cosas que no se contestan.
-    hilo = [m for m in historial.hilos(espacio).get(entrante.hilo, []) if m.ts <= entrante.ts]
-    if not hilo or hilo[-1].id != entrante.id:
-        hilo.append(entrante)
     dicho = conversacion.rafaga(hilo) or entrante.texto
-    if en_vivo and _lo_lleva_una_persona(espacio, entrante):
-        return _callar(base, "lo lleva una persona: el agente no habla encima")
     if conversacion.es_reclamo(dicho):
         return _a_persona(base, "reclamo o molestia: lo atiende una persona")
     if conversacion.pregunta_si_es_bot(dicho):
@@ -128,10 +136,40 @@ def decidir(espacio: Espacio, entrante: Mensaje, client=None, en_vivo: bool = Fa
         return _callar(base, "contestó otra máquina")
     if conversacion.nada_que_contestar(dicho, con_si=False):
         return _callar(base, "acuse: no pide nada")
-
     guardada = respuestas.buscar(activo, dicho)
     if guardada:
         return Salida(**base, via="guardada", texto=guardada["respuesta"])
+    return None
+
+
+def candados(base: dict, texto: str, meta: dict, activo: dict) -> Salida | None:
+    """Lo que detiene un borrador (del modelo o del enjambre) antes de salir: va a
+    la persona con el borrador. `None`: pasa. La vara usa esta misma función."""
+    if (cifras := guardia.cifras_no_permitidas(texto)):
+        return _a_persona(base, f"cifra que no puso el cotizador: {cifras}", texto)
+    if guardia.dice_ser_persona(texto):
+        return _a_persona(base, "el borrador dice ser una persona", texto)
+    if (rasgos := voz.hallazgos(texto, activo)):
+        return _a_persona(base, "voz ajena: " + "; ".join(rasgos), texto)
+    if meta.get("persona") == "si" or not texto:
+        return _a_persona(base, meta.get("duda") or "el modelo pidió a la persona", texto)
+    return None
+
+
+def decidir(espacio: Espacio, entrante: Mensaje, client=None, en_vivo: bool = False) -> Salida:
+    """`en_vivo=True` solo en el turno real: ahí el agente no habla encima de una
+    persona. La sombra redacta igual para poder medir (Gestor: `fiel`)."""
+    base = {"cliente_id": espacio.cliente_id, "hilo": entrante.hilo, "responde_a": entrante.id}
+    activo = perfil.activo(espacio)
+    hilo = [m for m in historial.hilos(espacio).get(entrante.hilo, []) if m.ts <= entrante.ts]
+    if not hilo or hilo[-1].id != entrante.id:
+        hilo.append(entrante)
+    if activo is not None and conversacion.tiene_turno(entrante.texto) and en_vivo \
+            and _lo_lleva_una_persona(espacio, entrante):
+        return _callar(base, "lo lleva una persona: el agente no habla encima")
+    sin_modelo = antes_del_modelo(base, entrante, hilo, activo)
+    if sin_modelo is not None:
+        return sin_modelo
 
     charla = _conversacion(espacio, entrante)
     try:
@@ -141,14 +179,8 @@ def decidir(espacio: Espacio, entrante: Mensaje, client=None, en_vivo: bool = Fa
     except (modelo.Dormido, gasto.TopeAlcanzado, modelo.LlamadaFallida) as error:
         return _a_persona(base, str(error) or type(error).__name__)
 
-    if (cifras := guardia.cifras_no_permitidas(texto)):
-        return _a_persona(base, f"cifra que no puso el cotizador: {cifras}", texto)
-    if guardia.dice_ser_persona(texto):
-        return _a_persona(base, "el borrador dice ser una persona", texto)
-    if (rasgos := voz.hallazgos(texto, activo)):
-        return _a_persona(base, "voz ajena: " + "; ".join(rasgos), texto)
-    if meta.get("persona") == "si" or not texto:
-        return _a_persona(base, meta.get("duda") or "el modelo pidió a la persona", texto)
+    if (detenida := candados(base, texto, meta, activo)) is not None:
+        return detenida
 
     llegada, salida_ = _fecha(meta.get("llegada")), _fecha(meta.get("salida"))
     personas, propiedad = _entero(meta.get("personas")), (meta.get("propiedad") or "").strip()

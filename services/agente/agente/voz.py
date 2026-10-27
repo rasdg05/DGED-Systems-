@@ -54,6 +54,21 @@ def rasgos_del_negocio(perfil: dict | None) -> dict:
     }
 
 
+def reglas_para_redactar(perfil: dict | None) -> str:
+    """Lo que `hallazgos` revisa, dicho ANTES de redactar. Medido con el enjambre
+    sobre Finca Emiliano (2026-10-27): 9 de 60 borradores abrían con ¿ y el
+    candado los mandó a una persona; la dueña abre así 1 de 598 mensajes."""
+    r = rasgos_del_negocio(perfil)
+    reglas = [f"Máximo {r['max_palabras']} palabras.", "Sin frases de chatbot ni formato (asteriscos, viñetas, títulos)."]
+    if not r["apertura"]:
+        reglas.append("No uses ¿ ni ¡: el negocio no los escribe (solo ? al final).")
+    if not r["emoji"]:
+        reglas.append("Sin emojis: el negocio no los usa.")
+    if r["trato"] == "usted":
+        reglas.append("Trato de usted, nunca de tú.")
+    return "Cómo escribe este negocio: " + " ".join(reglas)
+
+
 def hallazgos(texto: str, perfil: dict | None = None) -> list[str]:
     crudo = texto or ""
     if not crudo.strip():

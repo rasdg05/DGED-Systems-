@@ -77,9 +77,14 @@ RECLAMO = re.compile(
 # "Vergüenza" y "no mames" (asombro) no son insultos.
 INSULTO = re.compile(r"(put[oa]|pendej|pinche|verg(?!uenz|onz)|mierda|chinga|imbecil|estupid|idiot|"
                      r"(?<!no )mames|culer|mamon|baboso)")
-# Palabras enteras: "uso personal" no pide una persona.
-PIDE_PERSONA = re.compile(r"\b(?:asesor(?:a|es|as)?|humano|ejecutiv[oa]|operador(?:a)?|encargad[oa]|"
-                          r"persona\b(?!\s+(?:moral|fisica))|alguien real)")
+# Palabras enteras: "uso personal" no pide una persona. Y "persona" sola tampoco:
+# en una renta es la cuenta de huéspedes (*"para 100 persona"*, *"por persona"*);
+# en Finca Emiliano, 11 de 11 disparos eran eso (2026-10-27). Pedir una persona
+# es "hablar con una persona", "una persona real", "que me atienda alguna persona".
+PIDE_PERSONA = re.compile(
+    r"\b(?:asesor(?:a|es|as)?|humano|ejecutiv[oa]|operador(?:a)?|encargad[oa]|alguien real)\b"
+    r"|(?<!para )(?<!por )(?<!cada )\b(?:una|alguna|otra) persona\b(?!\s+(?:moral|fisica|mas|adicional|extra))"
+    r"|\bpersona real\b|\bhablar con (?:una |alguna )?persona\b")
 PREGUNTA_SI_ES_BOT = re.compile(
     r"\b(?:eres|es|son|sera|estoy hablando con|hablo con|me contesta|me responde)\s+"
     r"(?:un |una |el |la )?(?:bot|robot|maquina|ia|inteligencia artificial|programa|contestadora|"
@@ -147,8 +152,16 @@ LA_PELOTA_ES_SUYA = re.compile(
     r"aun no (?:tengo|tenemos|hay) noticias|dejeme pensarlo|dejame pensarlo|"
     r"(?:deme|dame|deje|deja) (?:un )?(?:tiempo|chance)|lo contacto|"
     r"(?:deje|deja|dejeme|dejame|luego|despues|al rato|ahorita) (?:lo |la )?"
-    r"(?:platicamos|platico|pensamos|pienso|checamos|vemos))\b")
-SIGUE_PIDIENDO = re.compile(r"\?|\b(?:quiero|necesito|cuanto|cotiza\w*|ahora|precio|disponib\w*)\b")
+    r"(?:platicamos|platico|pensamos|pienso|checamos|vemos)"
+    # Finca Emiliano (2026-10-27): el cliente lo consulta con su gente.
+    r"|regreso (?:contigo|con usted|con ustedes)"
+    r"|(?:deja|dejame|dejeme|deje) (?:le |les )?(?:pregunto|consulto|comento|ensen\w*|muestro|mostrarlo|mostrarla)"
+    r"|hablo con mi (?:familia|esposo|esposa|marido|novio|novia|jefe|jefa|mama|papa|hermana|hermano)"
+    r"|(?:le|les) (?:comento|pregunto|paso los datos) a mi (?:familia|esposo|esposa|marido|novio|novia|jefe|jefa)"
+    r"|espero tener(?:le|te)? (?:la|una) (?:confirmacion|respuesta))\b")
+# "Estoy pendiente de mi presupuesto" NO es "quedo pendiente": espera algo que le
+# debemos (Finca Emiliano, 2026-10-27: el turno callaba).
+SIGUE_PIDIENDO = re.compile(r"\?|\b(?:quiero|necesito|cuanto|cotiza\w*|ahora|precio|disponib\w*|presupuesto|estimado)\b")
 PROMESA = re.compile(
     r"\b(?:ma[nñ]ana|al rato|luego|ahorita|hoy|en un momento)\b[^.]{0,40}"
     r"\b(?:le mando|le env[ií]o|te mando|te env[ií]o|se lo mando|le paso|paso|los mando)\b"
@@ -189,7 +202,7 @@ CLAUSULA_SIN_PEDIDO = re.compile(
     r"voy a esperar(?: \w+){0,8}|"
     r"ok\w*|oka+y|okey|oki|va|vale|sale|bueno|perfecto|excelente|ah|ya|claro|listo|"
     r"entendido|enterado|de acuerdo|esta bien|muy bien|bien|gracias|si|pues|correcto|hola"
-    r")(?:\s+(?:muchas gracias|mil gracias|gracias|saludos|porfa|por favor))*$")
+    r")(?:\s+(?:muchas gracias|mil gracias|gracias|grax|muchas grax|saludos|porfa|por favor))*$")
 _EMPIEZA_CON_SI = re.compile(r"^(?:ah |a |ok |pues )?si\b")
 _SOLO_SALUDO = re.compile(r"^(?:hola|ola|que tal|buen(?:os|as)?(?: (?:dia|dias|tarde|tardes|noche|noches))?)"
                           r"(?: (?:buen(?:os|as)? (?:dia|dias|tarde|tardes|noche|noches)|que tal))?$")
