@@ -106,3 +106,10 @@
   de la línea base (DSR 0.0); 41 de 60 terminan en una persona (cotizar, disponibilidad,
   candados). Sin la lista de precios ni el calendario, redactar mejor no mueve la vara.
 - Revivir cuando exista la lista de precios del dueño y el cotizador elija propiedad por grupo.
+
+### Cotizar cuando el cliente da los datos que la casa pidió — 2026-10-27
+- grupo-3 en la bitácora: si la bienvenida o "¿Qué fecha?" pidió fechas y personas y el cliente
+  las dio, el cotizador daba precio. Puntaje 0.289 contra 0.300 de la línea base en desarrollo
+  (n = 498): la casa contesta eso con fotos y presentación (41 momentos de `fotos` recibieron
+  una cifra). Se queda solo "pidió precio" (o da el grupo tras pedirlo y no recibirlo).
+- Revivir si el dueño decide mandar precio junto con las fotos, y medir en el holdout siguiente.

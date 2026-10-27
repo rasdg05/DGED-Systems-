@@ -204,7 +204,7 @@ def test_vara_la_bitacora_del_repo_no_lleva_telefonos_ni_textos():
     claves_permitidas = {"fecha", "cliente_id", "variante", "descripcion", "commit", "bot", "universo", "clasificador",
                          "costos_version", "vara_version", "sello", "particion", "perfil", "por_bloque", "placebo",
                          "cpcv", "dev", "holdout_abierto", "holdout", "contra", "contra_holdout", "redactados",
-                         "contra_redactados"}
+                         "contra_redactados", "tope_cero", "lista_sin_la_platica"}
     for linea in vara.BITACORA.read_text(encoding="utf-8").splitlines():
         fila = json.loads(linea)
         assert set(fila) <= claves_permitidas

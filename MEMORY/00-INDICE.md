@@ -23,6 +23,7 @@ anterior.
 | `../DECISIONS.md` | Decisiones de arquitectura y producto, append-only |
 | `../docs/` | Arquitectura, MVP, fuentes, ontología, precios, riesgos, stack, plan 12 semanas |
 | `../docs/15-agente-a-la-medida.md` | Producto 4 (D-016): especificación y orden de trabajo para la siguiente sesión |
+| `../docs/19-lista-de-precios.md` | La lista de precios de Finca Emiliano leída de sus cotizaciones y el cotizador por grupo (D-031 a D-033) |
 | `../services/agente/` | Producto 4 en código (D-017): un espacio por cliente, en sombra de fábrica |
 | `../docs/16-arranque-ux-ui.md` | Brief de UX/UI para arrancar en frío ("el Airbnb de Apple") |
 | `../docs/17-plug-and-play.md` | Dar de alta un negocio nuevo en el agente sin código (D-023) |

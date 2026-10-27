@@ -15,11 +15,12 @@ encendido y la aprobación. Todas quedan en `salidas.jsonl` para la sombra.
 """
 from __future__ import annotations
 
+import re
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 
-from . import conversacion, cotizador, gasto, guardia, historial, jugadas, modelo, perfil, respuestas, voz
+from . import conversacion, cotizador, gasto, guardia, historial, jugadas, lectura, modelo, perfil, respuestas, voz
 from .espacio import Espacio
 from .historial import Mensaje
 
@@ -28,6 +29,17 @@ CONTEXTO_MENSAJES = 20
 #: Si una persona del negocio escribió en estas horas, el agente calla (Gestor, `fuera_de_lugar`).
 HORAS_DE_LA_PERSONA = 24
 LO_CONFIRMO = "Permítame confirmarlo y le escribo en un momento."
+#: Lo que la casa escribe cuando le piden precio sin decir cuántos son (Finca
+#: Emiliano: *"Cuántas personas?"* 21 veces, *"Para cuántas personas?"* 7).
+PIDE_PERSONAS = "Para cuántas personas?"
+_FIN_DE_ANO = re.compile(r"\bfin de ano\b|\bano nuevo\b|\bnavidad\b|\bnochebuena\b")
+#: Preguntas de precio que no son de hospedaje: el apartado, los eventos y lo que
+#: se arma aparte. Las lleva una persona (o el extra de la lista, abajo).
+_NO_ES_HOSPEDAJE = re.compile(r"\bapart\w*|\banticipo\b|\bdeposit\w*|\bevento\b|\bboda\b|\bxv\b|\bfiesta\b"
+                              r"|\bpaquete\w*|\btodo incluido\b|\bbanquete\b|\balimentos\b|\bcomida\b"
+                              r"|\btransporte\b|\bbautizo\b|\bcumple\w*|\bmesas?\b|\bsillas?\b|\bhoras?\b|\bhrs\b")
+_ALBERCA = re.compile(r"\balberca\b|\bcalefacc\w*|\bclimatiz\w*|\bcaldera\b")
+_UNIDAD_EXTRA = {"dia": "el día", "persona": "por persona", "noche": "la noche"}
 
 
 @dataclass
@@ -118,7 +130,13 @@ def antes_del_modelo(base: dict, entrante: Mensaje, hilo: list[Mensaje], activo:
     if activo is None:
         return _a_persona(base, "sin perfil aprobado")
     if not conversacion.tiene_turno(entrante.texto):
-        return _a_persona(base, "mensaje sin texto (foto, audio o documento)")
+        # `otro` no es un medio: es un aviso de protocolo de WhatsApp (reacción,
+        # edición, llaves). Pegado a un texto del cliente, se contesta ese texto (710
+        # de Finca Emiliano, 475 justo tras un texto suyo). Solo, va a una persona:
+        # callarlo costó 7 errores caros en la vara (la bienvenida automática corta
+        # la ráfaga y lo que el cliente preguntó antes queda sin leer).
+        if entrante.tipo != "otro" or not conversacion.rafaga(hilo):
+            return _a_persona(base, "mensaje sin texto (foto, audio o documento)")
     # Lo que Gestor aprendió con clientes reales, antes de gastar un token
     # (`conversacion.py`): la ráfaga se lee junta y hay cosas que no se contestan.
     dicho = conversacion.rafaga(hilo) or entrante.texto
@@ -139,7 +157,68 @@ def antes_del_modelo(base: dict, entrante: Mensaje, hilo: list[Mensaje], activo:
     guardada = respuestas.buscar(activo, dicho)
     if guardada:
         return Salida(**base, via="guardada", texto=guardada["respuesta"])
-    return None
+    return por_grupo(base, hilo, dicho, activo)
+
+
+def por_grupo(base: dict, hilo: list[Mensaje], dicho: str, activo: dict) -> Salida | None:
+    """La cotización por grupo, sin modelo, con la lista de precios del perfil.
+
+    Entra si el cliente pide precio o da su grupo o sus fechas. Sin cuántos son,
+    los pregunta (como la casa). Con el grupo, el cotizador elige la propiedad por
+    el tamaño y, con fechas, da el total; sin fechas, el precio de la lista. La
+    cifra siempre espera el sí de una persona (invariante XXXIII); incompleta, va
+    a la persona con la cotización como borrador."""
+    from .lista_precios import propiedad_en_platica
+
+    if not any(r.get("tipo") == "grupo" for r in activo.get("reglas", []) or []):
+        return None
+    t = conversacion.normalizar(dicho)
+    propiedad = propiedad_en_platica(hilo)
+    if _ALBERCA.search(t) and (lectura.pide_precio(dicho) or "?" in dicho):
+        r = cotizador.extra(activo, "alberca", propiedad)
+        if r is None:
+            return None
+        cuanto = f"{cotizador.pesos(r['monto_centavos'])} {_UNIDAD_EXTRA.get(r.get('unidad') or '', '')}".strip()
+        return Salida(**base, via="cotizador", texto=f"La alberca climatizada tiene un costo de {cuanto}.",
+                      cotizacion={"modo": "extra", "concepto": "alberca", "propiedad": r["propiedad"],
+                                  "monto_centavos": r["monto_centavos"], "unidad": r.get("unidad")},
+                      requiere_aprobacion=True)
+    if _NO_ES_HOSPEDAJE.search(t):
+        return None
+    # Dar grupo o fechas porque el negocio los pidió NO dispara: la casa contesta
+    # eso con fotos y presentación, no con precio (grupo-3 en la bitácora: 0.289).
+    if not (lectura.pide_precio(dicho) or _da_lo_que_faltaba(hilo, dicho)):
+        return None
+    personas = lectura.personas(hilo)
+    if personas is None:
+        return Salida(**base, via="cotizador", texto=PIDE_PERSONAS, motivo="cotizar por grupo: faltan las personas") \
+            if lectura.pide_precio(dicho) else None
+    fechas = lectura.fechas(hilo)
+    temporada = None
+    if fechas is None and any(_FIN_DE_ANO.search(conversacion.normalizar(m.texto or ""))
+                              for m in hilo if not m.del_negocio):
+        temporada = next((t["nombre"] for t in activo.get("temporadas", []) or [] if t.get("fin_de_ano")), None)
+    cot = cotizador.cotizar_grupo(activo, personas, *(fechas or (None, None)), temporada=temporada,
+                                  propiedad=propiedad, noches=lectura.noches(hilo))
+    if not cot.completa:
+        return Salida(**base, via="persona", texto=LO_CONFIRMO, borrador=cot.texto(),
+                      motivo="cotización incompleta: " + "; ".join(cot.faltan), cotizacion=cot.a_dict())
+    return Salida(**base, via="cotizador", texto=cot.texto(), cotizacion=cot.a_dict(), requiere_aprobacion=True)
+
+
+def _da_lo_que_faltaba(hilo: list[Mensaje], dicho: str) -> bool:
+    """El cliente da su grupo o sus fechas después de haber pedido precio sin
+    recibirlo (*"¿Costo?"* → *"Cuántas personas?"* → *"20"*)."""
+    hoy = lectura.hoy_de(hilo[-1]) if hilo else None
+    if not (lectura.personas_en(dicho) is not None or lectura.personas(hilo) != lectura.personas(hilo[:-1])
+            or (hoy and lectura.fechas_en(dicho, hoy) is not None)):
+        return False
+    for m in reversed(hilo[:-1]):
+        if m.del_negocio and m.texto and jugadas.es_monto(m.texto):
+            return False
+        if not m.del_negocio and lectura.pide_precio(m.texto):
+            return True
+    return False
 
 
 def candados(base: dict, texto: str, meta: dict, activo: dict) -> Salida | None:
@@ -184,6 +263,15 @@ def decidir(espacio: Espacio, entrante: Mensaje, client=None, en_vivo: bool = Fa
 
     llegada, salida_ = _fecha(meta.get("llegada")), _fecha(meta.get("salida"))
     personas, propiedad = _entero(meta.get("personas")), (meta.get("propiedad") or "").strip()
+    if meta.get("cotizar") == "si" and personas and not propiedad \
+            and any(r.get("tipo") == "grupo" for r in activo.get("reglas", []) or []):
+        cot = cotizador.cotizar_grupo(activo, personas, llegada, salida_) if llegada and salida_ \
+            else cotizador.cotizar_grupo(activo, personas)
+        if not cot.completa:
+            return Salida(**base, via="persona", texto=LO_CONFIRMO, borrador=texto,
+                          motivo="cotización incompleta: " + "; ".join(cot.faltan), cotizacion=cot.a_dict())
+        return Salida(**base, via="cotizador", texto=f"{texto}\n\n{cot.texto()}", borrador=texto,
+                      cotizacion=cot.a_dict(), requiere_aprobacion=True)
     if meta.get("cotizar") == "si" and llegada and salida_ and personas and propiedad:
         cot = cotizador.cotizar(activo, propiedad, llegada, salida_, personas, meta.get("evento") == "si")
         if not cot.completa:

@@ -143,3 +143,9 @@ calendario (31 momentos de disponibilidad en dev). `faltaba_al_cotizar`: propied
 **Siguiente sesión**: con la lista de precios del dueño, un cotizador que elija propiedad por grupo
 (y la regla con su origen en el documento), medido como intento nuevo; holdout nuevo cuando entren
 momentos de producción posteriores al 2026-10-27 (el viejo pasa a desarrollo).
+
+## Siguiente sesión hecha (2026-10-27) — lista de precios y cotizador por grupo
+
+Ver `docs/19-lista-de-precios.md` (D-031 a D-033): la lista se leyó de las cotizaciones del negocio,
+el cotizador elige propiedad por grupo, y grupo-5 mejora la base en el holdout (0.334 vs 0.300) sin
+pasar la compuerta (DSR 0.0 con 11 intentos). El holdout del 2026-10-15 ya está abierto.

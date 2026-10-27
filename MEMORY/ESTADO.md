@@ -1,8 +1,28 @@
-# Estado — 2026-10-27 (sesión de alineamiento y entrene)
+# Estado — 2026-10-27 (lista de precios y cotizador por grupo)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
 ## Corre
+
+- **Lista de precios y cotizador por grupo** (2026-10-27, `docs/19-lista-de-precios.md`, D-031 a D-033,
+  rama `claude/agente-a-la-medida`). Cero llamadas a la API; nada subido a producción.
+  - **La lista**, leída de 217 cotizaciones en 177 pláticas (`python -m agente.lista_precios finca-quinta`):
+    finca fin de semana 12k (11–13, 4 hab) · 20k (14–19) · 22k (20, 6 hab) · 25k (23–25) · 30k (30) ·
+    35k (35–37) · 38k (39–40); quinta 10k la noche hasta 20 (normal y fin de año), 8k fin de año para
+    9–10; las dos casas 45k el fin de semana; alberca finca 2k/día, quinta 900/día; visitas 100 por
+    persona; fin de año mínimo 3 noches. **A decidir**: quinta 5–16 personas (5k a 9k), quinta fin de
+    semana, finca una noche, finca fin de año. Temporada fin de año observada 23-dic → 1-ene, a confirmar.
+    21 reglas + 1 temporada pasan `perfil.validar` (0 descartadas); propuesta en
+    `datos/espacios/finca-quinta/lista_precios/propuesta.json` (fuera de git), **no subida**.
+  - **Cotizador por grupo** (`cotizador.cotizar_grupo`, `agente.por_grupo`): elige la propiedad por el
+    grupo (o la de la plática si tiene precio), fin de semana o por noche, temporada sin caer a la
+    normal, mínimo de noches; sin grupo pregunta "Para cuántas personas?"; toda cifra espera aprobación.
+  - **Vara**: grupo-5 dev 0.339 · **holdout 0.334 vs 0.300** de la base, cero caros, monto igual a la
+    casa 12/18 en holdout (no concluye). **DSR 0.0** (11 intentos): no pasa la compuerta, nada se enciende.
+    El holdout del 2026-10-15 ya se abrió para grupo-5; el siguiente, con momentos posteriores al 2026-10-27.
+  - **Arreglado con test** (D-032): `[otro]` (aviso de protocolo) ya no esconde el texto del cliente;
+    el canal no saca cifra sin aprobación aunque falte la marca; fechas "de. Dic"; "un menor".
+  - Pruebas sin red: 293 del agente; `herramientas/verificar.sh` en verde.
 
 - **Alineamiento y entrene del agente con el rigor de Gestor** (2026-10-27, `docs/18`, D-028 a D-030,
   rama `claude/agente-a-la-medida`). Cero llamadas a la API; nada subido a producción.
@@ -199,8 +219,12 @@
 6. Primeras cuentas (D-012): Fibra Mty, FIBRA Prologis, Vesta.
 
 ## Lo que es del dueño
-- **Agente (de esta sesión)**: la lista de precios de Finca Emiliano como documento (propiedad ×
-  personas/habitaciones × temporada) y su calendario de ocupación; si quiere, subir el perfil del enjambre
+- **Agente (sesión del cotizador)**: que Mariana confirme `docs/19-lista-de-precios.md` (lo a decidir y el
+  rango de fin de año) y, con su sí, subir la propuesta (`python -m agente.local proponer finca-quinta
+  datos/espacios/finca-quinta/lista_precios/propuesta.json --de-verdad`) para aprobarla en Asistente →
+  Precios; el calendario de ocupación (siguiente sesión); rotar `TENANT_INTERNAL_TOKEN` (volvió a pasar
+  por el chat el 2026-10-27, en el encargo de esta sesión).
+- **Agente (sesión anterior)**: su calendario de ocupación; si quiere, subir el perfil del enjambre
   como propuesta (`python -m agente.local proponer finca-quinta <perfil.json> --de-verdad`); rotar
   `TENANT_INTERNAL_TOKEN` (volvió a pasar por un chat el 2026-10-27).
 

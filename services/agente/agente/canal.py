@@ -27,6 +27,7 @@ import urllib.request
 
 from .agente import Salida, aprobadas
 from .espacio import Espacio
+from .guardia import trae_dinero
 
 ENCENDIDOS = ("sombra", "sin_cifra")
 GRAPH = "https://graph.facebook.com"
@@ -56,6 +57,10 @@ def motivo_para_no_enviar(espacio: Espacio, salida: Salida) -> str:
         return "sin conector oficial (WHATSAPP_TOKEN y phone_number_id): el agente no envía"
     if salida.requiere_aprobacion and salida.id not in aprobadas(espacio):
         return "cotización sin aprobación de una persona"
+    if trae_dinero(salida.texto) and salida.via != "guardada" and salida.id not in aprobadas(espacio):
+        # Defensa de fondo: una cifra que no viene de una guardada aprobada sale solo
+        # con el sí de una persona, aunque alguien olvide marcar `requiere_aprobacion`.
+        return "cifra sin aprobación de una persona"
     if salida.via == "ronda":
         from . import rondas  # rondas importa de agente; aquí se llega ya cargado
         if rondas.se_movio(espacio, salida):

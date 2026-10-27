@@ -4,6 +4,7 @@
     python -m agente.vara medir finca-quinta --variante base                 # desarrollo
     python -m agente.vara medir finca-quinta --variante p1 --perfil p.json --contra base
     python -m agente.vara medir finca-quinta --variante p1 --perfil p.json --contra base --abrir-holdout
+    python -m agente.vara medir finca-quinta --variante grupo --lista-de-precios --tope-cero --contra base
 
 Es `herramientas/vara.py` de Gestor Morelos (que es la de fq-bot) llevada al
 agente a la medida; se copiaron los métodos, no el giro. Lo que hace y por qué:
@@ -13,6 +14,12 @@ agente a la medida; se copiaron los métodos, no el giro. Lo que hace y por qué
 · **El agente sobre cada momento**: `agente.antes_del_modelo`, el mismo código
   del turno, con el hilo cortado justo antes de la respuesta (sin reloj de
   pared). Donde iría al modelo, la jugada es `ia`: **la vara no llama a nada**.
+  Con `--tope-cero`, lo que iría al modelo va a una persona: es lo que hace un
+  espacio con tope 0 (`gasto.exigir_saldo`), como la copia local.
+· **La lista de precios** (`--lista-de-precios`): se arma con `lista_precios`
+  solo del material de desarrollo y, para cada plática, **sin esa plática**
+  (su propia cotización no vota el precio con el que se le califica). Cuando el
+  agente y la casa dan cifra, se mide además si el monto coincide.
 · **Holdout sellado out-of-time**: el 25% más nuevo de los momentos. Nadie lo
   lee al escribir reglas ni perfil; se abre con `--abrir-holdout`, **una vez por
   candidato**, y la apertura queda en la bitácora. Un perfil que cita mensajes
@@ -97,7 +104,8 @@ HORAS_CONTESTA = 24
 DIAS_AVANZA = 7
 #: El código que decide: si cambia, cambia el agente medido. La vara no está:
 #: editar la regla de medir no hace a un candidato nuevo (ni le reabre el holdout).
-MODULOS_DEL_AGENTE = ("agente.py", "conversacion.py", "respuestas.py", "guardia.py", "jugadas.py", "voz.py")
+MODULOS_DEL_AGENTE = ("agente.py", "conversacion.py", "respuestas.py", "guardia.py", "jugadas.py", "voz.py",
+                      "cotizador.py", "lectura.py")
 
 
 class HoldoutYaAbierto(RuntimeError):
@@ -128,10 +136,10 @@ def huella_del_universo(hilos: dict[str, list[historial.Mensaje]]) -> str:
     return h.hexdigest()[:16]
 
 
-def huella_del_agente(activo: dict | None) -> str:
+def huella_del_agente(activo: dict | None, tope_cero: bool = False) -> str:
     codigo = b"".join((AQUI / f).read_bytes() for f in MODULOS_DEL_AGENTE)
     datos = json.dumps(activo, ensure_ascii=False, sort_keys=True).encode()
-    return _sha(codigo, datos)[:16]
+    return _sha(codigo, datos, b"tope0" if tope_cero else b"")[:16]
 
 
 def huella_del_perfil(activo: dict | None) -> str:
@@ -193,17 +201,37 @@ def sin_la_platica(activo: dict | None, hilo: str, por_id: dict[str, historial.M
             for k, v in activo.items()}
 
 
-def simular(m: jugadas.Momento, activo: dict | None, por_id: dict | None = None) -> dict:
+def montos_de_la_cotizacion(cotizacion: dict | None) -> list[int]:
+    """Los pesos que el cotizador puso: el precio de lista (por noche o por fin de
+    semana) y, con fechas, el total. La casa escribe a veces uno y a veces otro."""
+    if not cotizacion:
+        return []
+    if cotizacion.get("modo") == "grupo":
+        return sorted({x // 100 for o in cotizacion.get("opciones", [])
+                       if o.get("unitario") is not None and not o.get("faltan")
+                       for x in (o["unitario"], o["total"]) if x is not None})
+    return [cotizacion["total"] // 100] if cotizacion.get("total") is not None else []
+
+
+def simular(m: jugadas.Momento, activo: dict | None, por_id: dict | None = None, tope_cero: bool = False) -> dict:
     """Lo que el agente de hoy habría hecho en ese momento, sin llamar a nada.
     Con `por_id`, el perfil se purga de la plática del momento."""
+    from .lista_precios import montos
+
     if por_id is not None:
         activo = sin_la_platica(activo, m.hilo, por_id)
     hilo = [x for x in m.prefijo if (x.ts, x.id) <= (m.entrante.ts, m.entrante.id)]
     base = {"cliente_id": "vara", "hilo": "", "responde_a": m.entrante.id}
     salida = agente.antes_del_modelo(base, m.entrante, hilo, activo)
-    return {"bot": jugada_del_agente(salida), "via": salida.via if salida else "ia",
+    if salida is None and tope_cero:
+        return {"bot": "persona", "via": "persona", "motivo": "tope 0: iría al modelo, va a una persona", "texto": ""}
+    fila = {"bot": jugada_del_agente(salida), "via": salida.via if salida else "ia",
             "motivo": salida.motivo if salida else "iría al modelo",
             "texto": (salida.texto if salida and salida.via in ("guardada", "regla") else "")}
+    if salida is not None and salida.via == "cotizador":
+        fila["montos_bot"] = montos_de_la_cotizacion(salida.cotizacion)
+        fila["montos_casa"] = sorted({x for t in m.tanda for x in montos(t.texto or "")})
+    return fila
 
 
 def rasgos(m: jugadas.Momento, fijas: set[str]) -> dict:
@@ -362,7 +390,19 @@ def metricas(moms: list[dict]) -> dict:
                  "A_pol": _pct(sum(m["pol"] for m in fiel) / len(fiel)) if fiel else None,
                  "cobertura": _pct(sum(m["actua"] for m in fiel) / len(fiel)) if fiel else None},
         "cobertura_donde_toca": _pct(sum(m["actua"] for m in toca) / len(toca)) if toca else None,
+        "cifra": _cifra(moms),
     }
+
+
+def _cifra(moms: list[dict]) -> dict:
+    """Donde el agente y la casa dieron cifra: ¿el monto del cotizador es uno de
+    los que escribió la casa? Es la exactitud del precio, aparte de la jugada."""
+    ambos = [m for m in moms if m["bot"] == "cifra" and m["casa"] == "cifra" and m.get("montos_bot")]
+    iguales = sum(bool(set(m["montos_bot"]) & set(m.get("montos_casa") or [])) for m in ambos)
+    return {"n": len(ambos), "monto_igual": iguales, "pct": _pct(iguales / len(ambos)) if ambos else None,
+            "concluye": len(ambos) >= MINIMO,
+            "agente_da_cifra": sum(m["bot"] == "cifra" for m in moms),
+            "casa_no_daba_cifra": sum(m["bot"] == "cifra" and m["casa"] != "cifra" for m in moms)}
 
 
 def por_jugada(moms: list[dict]) -> list[dict]:
@@ -558,14 +598,17 @@ def universo(espacio: Espacio) -> tuple[dict, list[dict]]:
 
 def medir(espacio: Espacio, variante: str, *, activo: dict | None = None, contra: str | None = None,
           abrir_holdout: bool = False, registrar: bool = True, descripcion: str = "",
-          redacciones: dict[str, dict] | None = None) -> dict:
+          redacciones: dict[str, dict] | None = None, tope_cero: bool = False,
+          activo_por_hilo=None) -> dict:
+    """`activo_por_hilo(hilo)`: el perfil con el que se mide cada plática (la lista
+    de precios sin esa plática). Su huella es la de `activo`, el que se propondría."""
     hilos, moms = universo(espacio)
     huella_u = huella_del_universo(hilos)
     previos = leer_intentos(espacio.cliente_id, huella_u)
     dev, holdout, particion = partir(moms)
     limite_ts = corte_de(moms) - EMBARGO_DIAS * 86400
     mira = perfil_mira_el_holdout(activo, historial.por_id(espacio), limite_ts, {m["hilo"] for m in holdout})
-    bot = huella_del_agente(activo)
+    bot = huella_del_agente(activo, tope_cero)
     if abrir_holdout:
         if mira:
             raise PerfilMiraElHoldout(f"el perfil cita {len(mira)} mensajes del embargo o del holdout")
@@ -573,7 +616,7 @@ def medir(espacio: Espacio, variante: str, *, activo: dict | None = None, contra
             raise HoldoutYaAbierto(f"el holdout ya se abrió para este agente ({bot})")
     por_id = historial.por_id(espacio)
     for m in moms:
-        m.update(simular(m["_m"], activo, por_id))
+        m.update(simular(m["_m"], activo_por_hilo(m["hilo"]) if activo_por_hilo else activo, por_id, tope_cero))
         if redacciones and m["bot"] == "ia" and m["id"] in redacciones:
             m.update(redactado(m, redacciones[m["id"]], sin_la_platica(activo, m["hilo"], por_id)), redactado_=True)
     if redacciones and set(redacciones) - {m["id"] for m in dev}:
@@ -589,6 +632,7 @@ def medir(espacio: Espacio, variante: str, *, activo: dict | None = None, contra
         "cliente_id": espacio.cliente_id, "variante": variante, "descripcion": descripcion,
         "commit": _commit(), "bot": bot, "universo": huella_u, "clasificador": jugadas.CLASIFICADOR_VERSION,
         "costos_version": COSTOS_VERSION, "vara_version": VARA_VERSION, "sello": sello,
+        "tope_cero": tope_cero, "lista_sin_la_platica": activo_por_hilo is not None,
         "particion": {**particion, "n_total": len(moms), "n_dev": len(dev), "n_holdout": len(holdout)},
         "perfil": {"renglones": sum(len((activo or {}).get(s, []) or []) for s in perfil.SECCIONES),
                    "citas_en_embargo_u_holdout": len(mira), "huella": huella_del_perfil(activo),
@@ -633,12 +677,17 @@ def anotar(informe: dict) -> dict:
     fila = {k: informe[k] for k in ("fecha", "cliente_id", "variante", "descripcion", "commit", "bot", "universo",
                                     "clasificador", "costos_version", "vara_version", "sello", "particion",
                                     "perfil", "por_bloque", "placebo", "cpcv")}
+    for k in ("tope_cero", "lista_sin_la_platica"):
+        if informe.get(k):
+            fila[k] = True
     fila["dev"] = {k: informe["dev"][k] for k in ("n", "hilos", "A_lit", "A_pol", "cobertura", "a_la_ia", "puntaje",
                                                   "errores_caros", "IC95_A_pol", "cobertura_donde_toca")}
+    if informe["dev"].get("cifra", {}).get("n"):
+        fila["dev"]["cifra"] = informe["dev"]["cifra"]
     fila["holdout_abierto"] = "holdout" in informe
     if "holdout" in informe:
         fila["holdout"] = {k: informe["holdout"][k] for k in ("n", "A_lit", "A_pol", "cobertura", "puntaje",
-                                                              "errores_caros", "dentro_del_IC_dev")}
+                                                              "errores_caros", "dentro_del_IC_dev", "cifra")}
     if "redactados" in informe:
         fila["redactados"] = {k: informe["redactados"][k] for k in ("n", "A_lit", "A_pol", "cobertura", "puntaje",
                                                                     "errores_caros", "detenidos_por_candado")}
@@ -690,6 +739,7 @@ def resumen(inf: dict) -> str:
         f"cobertura={d['cobertura']}% ia={d['a_la_ia']}% puntaje={d['puntaje']} IC95={d['IC95_puntaje']} "
         f"caros={d['errores_caros']} {d['por_error']}",
         f"fiel (el agente hablaría en vivo): {d['fiel']} · cobertura donde le toca: {d['cobertura_donde_toca']}%",
+        f"cifra (agente y casa dan número): {d.get('cifra')}",
         f"cpcv: {inf['cpcv']}",
         f"placebo: {inf['placebo']} · oráculo: {inf['placebo_oraculo']}",
         f"pbo: {inf['pbo']}",
@@ -737,18 +787,27 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("--abrir-holdout", action="store_true")
     m.add_argument("--sin-registrar", action="store_true")
     m.add_argument("--redacciones", help="{id de momento: {textos, persona, cotizar, duda}} del enjambre (desarrollo)")
+    m.add_argument("--lista-de-precios", action="store_true",
+                   help="agrega al perfil la lista de precios por grupo, armada solo con desarrollo y sin cada plática")
+    m.add_argument("--tope-cero", action="store_true", help="lo que iría al modelo va a una persona (tope 0)")
     a = ap.parse_args(argv)
     espacio = _espacio(a.cliente_id)
     activo = None
+    por_hilo = None
     if a.perfil:
         crudo = json.loads(Path(a.perfil).read_text(encoding="utf-8"))
         activo, descartados = perfil.validar(espacio, crudo.get("perfil", crudo))
         if descartados:
             print(f"· {len(descartados)} renglones del perfil no prueban su origen y no entran", file=sys.stderr)
+    if a.lista_de_precios:
+        from . import lista_precios
+
+        activo, por_hilo = lista_precios.para_la_vara(espacio, activo, material_de_desarrollo(espacio))
     try:
         inf = medir(espacio, a.variante, activo=activo, contra=a.contra, abrir_holdout=a.abrir_holdout,
                     registrar=not a.sin_registrar, descripcion=a.descripcion,
-                    redacciones=json.loads(Path(a.redacciones).read_text(encoding="utf-8")) if a.redacciones else None)
+                    redacciones=json.loads(Path(a.redacciones).read_text(encoding="utf-8")) if a.redacciones else None,
+                    tope_cero=a.tope_cero, activo_por_hilo=por_hilo)
     except (HoldoutYaAbierto, PerfilMiraElHoldout) as error:
         print(f"no se abre el holdout: {error}", file=sys.stderr)
         return 2

@@ -734,6 +734,16 @@ def _regla(r: dict) -> tuple[str, str]:
         return "Estancia mínima", f"{r.get('noches', '')} noches"
     if tipo == "anticipo":
         return "Anticipo", f"{r.get('pct', '')} %" if r.get("pct") is not None else monto
+    if tipo == "grupo":
+        desde = (r.get("evidencia") or {}).get("desde_personas")
+        que = (f"De {desde} a {r.get('personas')} personas" if desde else f"Hasta {r.get('personas')} personas")
+        que += f" · {r['habitaciones']} habitaciones" if r.get("habitaciones") else ""
+        que += {"noche": " · la noche", "fin_de_semana": " · el fin de semana"}.get(r.get("unidad") or "", "")
+        que += f" · temporada {str(r['temporada']).replace('_', ' ')}" if r.get("temporada") else ""
+        return que, ("Usted lo decide" if r.get("a_decidir") else monto)
+    if tipo == "extra":
+        unidad = {"dia": "el día", "persona": "por persona", "noche": "la noche"}.get(r.get("unidad") or "", "")
+        return f"{str(r.get('concepto', '')).capitalize()} {unidad}".strip(), monto
     nombres = {"evento": "Evento", "deposito": "Depósito"}
     resto = ", ".join(f"{k.replace('_', ' ')} {v}" for k, v in r.items()
                       if k not in ("origen", "tipo", "propiedad", "monto_centavos"))

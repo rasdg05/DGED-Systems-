@@ -14,8 +14,13 @@ lo que no lo tenga o no lo pueda probar:
 - `{"tipo": "documento", "nombre": <archivo>, "cita": <texto>}`: la cita está en
   la transcripción de un documento suyo (`documentos/<nombre>`).
 
-Si el renglón trae una cifra (monto, porcentaje, noches, personas), la cifra
-tiene que aparecer en la cita: una cita real con un monto inventado no pasa.
+Si el renglón trae una cifra (monto, porcentaje, noches, personas, habitaciones),
+la cifra tiene que aparecer en la cita: una cita real con un monto inventado no
+pasa. Una sola excepción, para la lista de precios por grupo (`lista_precios`):
+en una regla `grupo`, el tamaño del grupo puede probarlo `origen.grupo`, la cita
+del **cliente** en la misma plática y antes del mensaje del negocio, leída con
+`lectura.personas_en` (la casa contesta *"25,000 con 6 habitaciones"* a quien
+dijo *"somos 20"*: el 20 lo dijo el cliente, el 25,000 el negocio).
 
 Versiones (invariante 6): una versión se escribe una vez y no se reescribe.
 `proponer` crea la siguiente sin tocar la activa; solo `aprobar`, con el nombre
@@ -34,7 +39,7 @@ CONTRATO = "agente-perfil-0.1"
 SECCIONES = ("datos", "temporadas", "voz", "reglas", "faq", "escala")
 # Secciones cuyo origen puede ser un mensaje del cliente final.
 ORIGEN_CLIENTE_PERMITIDO = {"escala"}
-CAMPOS_NUMERICOS = ("monto_centavos", "pct", "noches", "personas")
+CAMPOS_NUMERICOS = ("monto_centavos", "pct", "noches", "personas", "habitaciones")
 
 
 class VersionInmutable(RuntimeError):
@@ -132,9 +137,39 @@ def motivo_de_rechazo(espacio: Espacio, seccion: str, renglon: dict, mensajes: d
     if _normal(cita) not in _normal(texto):
         return "la cita no está literal en su origen"
     faltan = _cifras_del_renglon(renglon) - numeros(cita)
+    if faltan and renglon.get("tipo") == "grupo" and "grupo" in origen:
+        motivo = _motivo_grupo(origen, renglon, mensajes)
+        if motivo:
+            return motivo
+        faltan.discard(str(renglon.get("personas")))
     if faltan:
         return f"cifra que no está en la cita: {sorted(faltan)}"
     return ""
+
+
+def _motivo_grupo(origen: dict, renglon: dict, mensajes: dict) -> str:
+    """'' si `origen.grupo` prueba el tamaño de grupo de una regla `grupo`."""
+    from .lectura import personas, personas_en
+
+    grupo = origen.get("grupo") or {}
+    m, negocio = mensajes.get(grupo.get("id")), mensajes.get(origen.get("id"))
+    if m is None or negocio is None:
+        return "el mensaje del grupo no existe en el historial de este cliente"
+    if m.del_negocio:
+        return "el grupo lo dice el cliente, no el negocio"
+    if m.hilo != negocio.hilo or m.ts > negocio.ts:
+        return "el grupo no es de la misma plática, antes de la cotización"
+    cita = grupo.get("cita") or ""
+    if not cita.strip() or _normal(cita) not in _normal(m.texto):
+        return "la cita del grupo no está literal en su origen"
+    if personas_en(cita) == renglon.get("personas"):
+        return ""
+    # *"20"* a secas, contestando *"¿Cuántas personas?"*: se lee con la plática
+    hilo = sorted((x for x in mensajes.values() if x.hilo == m.hilo and (x.ts, x.id) <= (m.ts, m.id)),
+                  key=lambda x: (x.ts, x.id))
+    if _normal(cita) == _normal(m.texto) and personas(hilo) == renglon.get("personas"):
+        return ""
+    return f"la cita del grupo no dice {renglon.get('personas')} personas"
 
 
 def validar(espacio: Espacio, perfil: dict) -> tuple[dict, list[dict]]:

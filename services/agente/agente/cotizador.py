@@ -176,3 +176,240 @@ def cotizar(perfil: dict, propiedad: str, llegada: date, salida: date, personas:
     c.anticipo_pct, _ = _elegir(_de(reglas, "anticipo", propiedad), None, None, "pct")
     c.deposito_centavos, _ = _elegir(_de(reglas, "deposito", propiedad), None, None, "monto_centavos")
     return c
+
+
+# --------------------------------------------------------------------------- #
+#  Por grupo: la casa elige la propiedad por el tamaño del grupo               #
+# --------------------------------------------------------------------------- #
+#: Regla `grupo` (la arma `lista_precios` con las cotizaciones del negocio):
+#: `propiedad`, `unidad` (`noche` | `fin_de_semana`), `personas` (el escalón:
+#: "hasta N"), `monto_centavos`, opcionales `temporada` y `habitaciones`. Con
+#: `a_decidir` no trae monto: ese escalón lo pone el dueño, y el cotizador no
+#: salta al de arriba ni al de abajo.
+UNIDADES = {"noche": "la noche", "fin_de_semana": "el fin de semana"}
+
+
+def es_fin_de_semana(llegada: date, salida: date) -> bool:
+    """Viernes a domingo: las dos noches que la casa cobra como "el fin de semana"."""
+    return llegada.weekday() == 4 and (salida - llegada).days == 2
+
+
+@dataclass
+class Opcion:
+    propiedad: str
+    personas: int                 # el grupo
+    escalon: int | None = None    # "hasta N personas"
+    habitaciones: int | None = None
+    temporada: str | None = None
+    unidad: str | None = None
+    unitario: int | None = None   # centavos por noche o por fin de semana
+    veces: int = 1                # noches (o 1 fin de semana)
+    faltan: list[str] = field(default_factory=list)
+
+    @property
+    def completa(self) -> bool:
+        return not self.faltan and self.unitario is not None
+
+    @property
+    def total(self) -> int | None:
+        return self.unitario * self.veces if self.completa else None
+
+    def a_dict(self) -> dict:
+        return {"propiedad": self.propiedad, "personas": self.personas, "escalon": self.escalon,
+                "habitaciones": self.habitaciones, "temporada": self.temporada, "unidad": self.unidad,
+                "unitario": self.unitario, "veces": self.veces, "total": self.total, "faltan": self.faltan}
+
+
+@dataclass
+class CotizacionGrupo:
+    personas: int
+    llegada: date | None = None
+    salida: date | None = None
+    opciones: list[Opcion] = field(default_factory=list)
+    faltan: list[str] = field(default_factory=list)
+    anticipo_pct: int | None = None
+
+    @property
+    def completas(self) -> list[Opcion]:
+        return [o for o in self.opciones if o.completa]
+
+    @property
+    def completa(self) -> bool:
+        """Hay al menos una opción con precio y nada general falta."""
+        return bool(self.completas) and not self.faltan
+
+    @property
+    def noches(self) -> int | None:
+        return (self.salida - self.llegada).days if self.llegada and self.salida else None
+
+    def texto(self) -> str:
+        """Escrito por código, una línea por opción, la más económica primero (como
+        la casa: *"O si quiere algo más económico…"*). Lo que falta no lleva cifra."""
+        if not self.completa:
+            return "Falta confirmar " + "; ".join(self.faltan or [f for o in self.opciones for f in o.faltan]) + "."
+        lineas = []
+        for o in self.completas:
+            nombre = o.propiedad.capitalize() if o.propiedad != "ambas" else "Las dos casas"
+            hab = f" con {o.habitaciones} habitaciones" if o.habitaciones else ""
+            if self.llegada and self.salida:
+                fechas = _rango(self.llegada, self.salida)
+                noches = f"{self.noches} {'noche' if self.noches == 1 else 'noches'}"
+                lineas.append(f"{nombre}, {fechas} ({noches}, {self.personas} personas{hab}): {pesos(o.total)}.")
+            else:
+                lineas.append(f"{nombre} para {self.personas} personas{hab}: {pesos(o.unitario)} "
+                              f"{UNIDADES.get(o.unidad, '')}.".replace(" .", "."))
+        if self.anticipo_pct:
+            lineas.append(f"Se aparta con el {self.anticipo_pct}% y el resto al llegar.")
+        return "\n".join(lineas)
+
+    def a_dict(self) -> dict:
+        return {"modo": "grupo", "personas": self.personas,
+                "llegada": self.llegada.isoformat() if self.llegada else None,
+                "salida": self.salida.isoformat() if self.salida else None,
+                "opciones": [o.a_dict() for o in self.opciones], "faltan": self.faltan,
+                "anticipo_pct": self.anticipo_pct, "completa": self.completa, "texto": self.texto()}
+
+
+def _escalon(reglas: list[dict], personas: int) -> tuple[dict | None, str]:
+    """El escalón más chico que cabe al grupo. (regla, '') o (None, por qué)."""
+    caben = [r for r in reglas if int(r.get("personas") or 0) >= personas]
+    if not caben:
+        return None, "no cabe"
+    menor = min(int(r["personas"]) for r in caben)
+    top = [r for r in caben if int(r["personas"]) == menor]
+    if any(r.get("a_decidir") for r in top):
+        return None, "a decidir"
+    if len({r.get("monto_centavos") for r in top}) > 1:
+        return None, "dos reglas chocan"
+    return top[0], ""
+
+
+def _de_la_tabla(reglas: list[dict], propiedad: str, unidad: str, temporada: str | None) -> list[dict]:
+    """Las reglas de la tabla de esa temporada. Si la propiedad no tiene ninguna
+    tabla para esa temporada, la normal; si tiene alguna (aunque de otra unidad),
+    no: la temporada tiene sus precios y no se mezclan con los de la normal."""
+    suyas = [r for r in reglas if r.get("tipo") == "grupo" and r.get("propiedad") == propiedad]
+    if temporada and any(r.get("temporada") == temporada for r in suyas):
+        return [r for r in suyas if r.get("unidad") == unidad and r.get("temporada") == temporada]
+    return [r for r in suyas if r.get("unidad") == unidad and not r.get("temporada")]
+
+
+def _unidades(reglas: list[dict], propiedad: str, temporada: str | None, noches: int | None) -> list[str]:
+    """En qué unidad se cotiza sin fechas: la que pidió el cliente (una noche, o el
+    fin de semana) o, si no dijo, la que esa propiedad usa más en su lista."""
+    if noches == 1:
+        return ["noche"]
+    if noches == 2:
+        return ["fin_de_semana", "noche"]
+    peso = {u: sum((r.get("evidencia") or {}).get("n", 1) for r in _de_la_tabla(reglas, propiedad, u, temporada))
+            for u in UNIDADES}
+    return sorted(UNIDADES, key=lambda u: -peso[u])
+
+
+def _opcion(perfil: dict, propiedad: str, personas: int, llegada: date | None, salida: date | None,
+            nombrada: str | None = None, noches: int | None = None) -> Opcion | None:
+    """La opción de una propiedad, o None si el grupo no cabe en ella."""
+    reglas = perfil.get("reglas", []) or []
+    temporadas = perfil.get("temporadas", []) or []
+    temporada = temporada_de(llegada, temporadas) if llegada else nombrada
+    o = Opcion(propiedad=propiedad, personas=personas, temporada=temporada)
+    if llegada and salida:
+        noches = (salida - llegada).days
+        nombres = {temporada_de(llegada + timedelta(days=i), temporadas) for i in range(noches)}
+        if len(nombres) > 1:
+            o.faltan.append("una estancia que cruza dos temporadas")
+            return o
+        unidades = ["fin_de_semana", "noche"] if es_fin_de_semana(llegada, salida) else ["noche"]
+        o.veces = noches
+    else:
+        unidades = _unidades(reglas, propiedad, temporada, noches)
+    hubo_tabla = False
+    for unidad in unidades:
+        tabla = _de_la_tabla(reglas, propiedad, unidad, temporada)
+        if not tabla:
+            continue
+        hubo_tabla = True
+        r, por_que = _escalon(tabla, personas)
+        if r is None:
+            if por_que == "no cabe":
+                continue
+            o.unidad = unidad
+            o.faltan.append(f"el precio de {propiedad} para {personas} personas {UNIDADES[unidad]} ({por_que})")
+            return o
+        o.unidad, o.unitario, o.escalon = unidad, int(r["monto_centavos"]), int(r["personas"])
+        o.habitaciones = r.get("habitaciones")
+        if unidad == "fin_de_semana":
+            o.veces = 1
+        elif not llegada and noches:
+            o.veces = noches
+        break
+    if o.unitario is None and not o.faltan:
+        if not hubo_tabla:
+            return None
+        if llegada and salida and not any(_de_la_tabla(reglas, propiedad, "noche", temporada)):
+            o.faltan.append(f"la tarifa por noche de {propiedad}")
+            return o
+        return None  # hay tablas, pero el grupo no cabe en ninguna
+    if llegada and salida and o.completa:
+        minimo, _ = _elegir([r for r in reglas if r.get("tipo") == "minimo_noches"
+                             and r.get("propiedad") in (None, propiedad)], temporada, None, "noches")
+        if minimo is not None and (salida - llegada).days < int(minimo):
+            o.faltan.append(f"mínimo de {minimo} noches en {propiedad}")
+    return o
+
+
+def cotizar_grupo(perfil: dict, personas: int, llegada: date | None = None,
+                  salida: date | None = None, temporada: str | None = None,
+                  propiedad: str | None = None, noches: int | None = None) -> CotizacionGrupo:
+    """Las opciones para un grupo, por propiedad, con la lista del negocio.
+
+    Con fechas, el total de la estancia (viernes a domingo al precio de fin de
+    semana; si no, por noche). Sin fechas, el precio de la lista para ese grupo
+    (por fin de semana o por noche), sin total; `temporada` es la que el cliente
+    nombró sin fechas (*"para fin de año"*) y `noches` las que pidió (1 o 2).
+    `propiedad` es de la que se está hablando: si el grupo cabe en ella, solo esa
+    (la casa cotiza lo que ya presentó). Lo que falta no se adivina."""
+    c = CotizacionGrupo(personas=personas, llegada=llegada, salida=salida)
+    if personas <= 0:
+        c.faltan.append("cuántas personas son")
+        return c
+    if llegada and salida and salida <= llegada:
+        c.faltan.append("fechas válidas (la salida va después de la llegada)")
+        return c
+    reglas = perfil.get("reglas", []) or []
+    propiedades = sorted({r["propiedad"] for r in reglas if r.get("tipo") == "grupo" and r.get("propiedad")})
+    if not propiedades:
+        c.faltan.append("la lista de precios por grupo")
+        return c
+    cabe_en_una = any(r.get("tipo") == "grupo" and r.get("propiedad") != "ambas"
+                      and int(r.get("personas") or 0) >= personas for r in reglas)
+    for propiedad_ in propiedades:
+        if propiedad_ == "ambas" and cabe_en_una:
+            continue  # "las dos casas" solo si el grupo no cabe en una
+        o = _opcion(perfil, propiedad_, personas, llegada, salida, temporada, noches)
+        if o is not None:
+            c.opciones.append(o)
+    if propiedad and any(o.propiedad == propiedad and o.completa for o in c.opciones):
+        c.opciones = [o for o in c.opciones if o.propiedad == propiedad]
+    c.opciones.sort(key=lambda o: (not o.completa, o.total if o.total is not None else o.unitario or 0))
+    if c.completas:
+        c.opciones = c.completas  # lo que falta de otra propiedad no detiene a la que sí tiene precio
+    if not c.opciones:
+        c.faltan.append(f"dónde caben {personas} personas")
+    elif not c.completas:
+        c.faltan.extend(f for o in c.opciones for f in o.faltan)
+    anticipos = {r.get("pct") for r in reglas if r.get("tipo") == "anticipo" and r.get("pct")
+                 and r.get("propiedad") in {o.propiedad for o in c.completas}}
+    if len(anticipos) == 1:
+        c.anticipo_pct = int(anticipos.pop())
+    return c
+
+
+def extra(perfil: dict, concepto: str, propiedad: str | None) -> dict | None:
+    """El precio de un extra de la lista (*"La alberca 2,000 el día"*) para la
+    propiedad de la que se habla; sin propiedad, solo si es uno solo."""
+    reglas = [r for r in perfil.get("reglas", []) or [] if r.get("tipo") == "extra" and r.get("concepto") == concepto
+              and r.get("monto_centavos") is not None]
+    if propiedad:
+        reglas = [r for r in reglas if r.get("propiedad") == propiedad]
+    return reglas[0] if len({r["monto_centavos"] for r in reglas}) == 1 else None
