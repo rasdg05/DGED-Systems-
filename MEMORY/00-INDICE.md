@@ -26,6 +26,8 @@ anterior.
 | `../services/agente/` | Producto 4 en código (D-017): un espacio por cliente, en sombra de fábrica |
 | `../docs/16-arranque-ux-ui.md` | Brief de UX/UI para arrancar en frío ("el Airbnb de Apple") |
 | `../docs/17-plug-and-play.md` | Dar de alta un negocio nuevo en el agente sin código (D-023) |
+| `../docs/18-alineamiento-y-entrene.md` | Sesión pesada: vara, backtest y entrene del agente con el rigor de Gestor (la siguiente) |
+| `../.claude/skills/enjambre/` | Enjambre local de Claude Code para los pendientes, sin API (D-027) |
 | `../docs/presentacion/` | Presentación del negocio en PDF |
 
 ## Tres reglas de oro

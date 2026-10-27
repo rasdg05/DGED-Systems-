@@ -1,4 +1,4 @@
-# Estado — 2026-10-27
+# Estado — 2026-10-27 (noche)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
