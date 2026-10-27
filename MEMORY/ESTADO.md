@@ -18,6 +18,10 @@
   **No medido**: contra Meta (falta la app de DGED como Tech Provider) ni contra la API
   de Anthropic (sin clave). La demo del 2026-10-22 sigue siendo presentación + captura
   de datos; el código enseña el flujo con la muestra, no con datos del familiar.
+- **Agente desplegado en Railway** (2026-10-27, environment "WhatsApp", rama `claude/agente-a-la-medida`):
+  `/api/health` dice `dged-agente`. Primer negocio: **Finca Emiliano** (espacio `finca-quinta`). Con el
+  conocimiento de conversación de Gestor exportado y el banco en pass^k 1.0 sin errores caros (D-019).
+  Siguiente: vincular su WhatsApp, juntar historial, proponer perfil, aprobarlo y 30 conversaciones en sombra.
 - **Lector por QR vinculado, solo lectura** (D-018): `services/agente/agente/vinculado.py`, página
   `/espacios/<id>/vincular`. Desplegable en Railway como servicio aparte del mismo repo
   (`services/agente/railway.json`). Medido: WhatsApp entrega el QR al contenedor. **Falta**:

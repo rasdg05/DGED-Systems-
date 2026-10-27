@@ -45,6 +45,9 @@
 | XXXVIII | Sin conector oficial (o en sombra) el agente no envía nada; sin `ANTHROPIC_API_KEY` no redacta | `canal.py`, `modelo.py` | `test_agente_invariantes.py` (`test_inv7_*`) |
 | XXXIX | Los datos de los clientes finales viven solo en el espacio del negocio, nunca en git, y se borran al terminar el contrato | `espacio.py::borrar`, `.gitignore` | `test_agente_invariantes.py` (`test_inv8_*`) |
 | XL | El lector vinculado (QR, D-018) solo lee: no envía, no marca leído, no anuncia presencia | `services/agente/agente/vinculado.py` | `services/agente/tests/test_agente_vinculado.py::test_vinc_el_lector_no_llama_nada_que_escriba_a_whatsapp` |
+| XLI | El texto del modelo no lleva cantidades, tampoco con letra ("seis mil"); un borrador que dice ser persona no sale | `services/agente/agente/guardia.py`, `agente.py` | `test_agente_conversacion.py::test_conv_la_cifra_con_letra_tambien_es_cifra`, `test_conv_banco_pasa_k_sin_errores_caros` |
+| XLII | Ningún encendido sin banco en pass^k con cero errores caros; el banco revisa la cifra por su cuenta (si el candado se rompe, lo ve) | `services/agente/agente/banco.py` | `test_agente_conversacion.py::test_conv_banco_detecta_un_candado_roto` |
+| XLIII | Cada servicio de Railway elige su Dockerfile: el `railway.json` de la raíz no fija `dockerfilePath` | `railway.json` | `tests/test_invariantes.py::test_contenedor_escucha_en_el_puerto_que_asigna_la_nube` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 
