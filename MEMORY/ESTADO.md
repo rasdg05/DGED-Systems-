@@ -1,4 +1,4 @@
-# Estado — 2026-10-21
+# Estado — 2026-10-27
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
@@ -22,6 +22,13 @@
   `/api/health` dice `dged-agente`. Primer negocio: **Finca Emiliano** (espacio `finca-quinta`). Con el
   conocimiento de conversación de Gestor exportado y el banco en pass^k 1.0 sin errores caros (D-019).
   Siguiente: vincular su WhatsApp, juntar historial, proponer perfil, aprobarlo y 30 conversaciones en sombra.
+- **Exportado de Gestor Morelos** (D-019, `services/agente/agente/conversacion.py`, `banco.py`):
+  ráfaga, acuse, cierre, promesa, reclamo, pedir persona, "¿eres un bot?", no hablar encima de una
+  persona, el "ok" que aplaza; banco pass^k con red team. No se trajo la MEMORIA de Gestor: vive en
+  `rasdg05/gestor-personal`, que no se agregó. Lo que el banco cazó se corrigió también en Gestor
+  (`4f03c48` en su main, desplegado): cifra de la IA revisada por código, también con letra; "grax".
+- **UX/UI**: el dueño pidió "el Airbnb de Apple". Brief para la sesión de arranque en frío:
+  `docs/16-arranque-ux-ui.md` (Basecoat propuesto, no aprobado).
 - **Lector por QR vinculado, solo lectura** (D-018): `services/agente/agente/vinculado.py`, página
   `/espacios/<id>/vincular`. Desplegable en Railway como servicio aparte del mismo repo
   (`services/agente/railway.json`). Medido: WhatsApp entrega el QR al contenedor. **Falta**:
@@ -93,7 +100,7 @@
   mapa base de CARTO con "API KEY REQUIRED", la ficha muestra JSON crudo y el
   Oráculo pega URLs largas. Faltan también las instantáneas inmutables y el memo
   PDF (semana 2). Un intento con agentes se detuvo sin dejar nada: está por hacer.
-- Pruebas sin red: 205 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite + agente 78.95% (piso 70).
+- Pruebas sin red: 270 de Python y 6 de `score.test.mjs`, en verde; cobertura de atlas + dataroom + satelite + agente 78.95% (piso 70).
 
 ## Bloqueos (con causa)
 
@@ -111,7 +118,10 @@
 
 ## Sigue
 
-0. **Producto 4**: con los datos de la demo (con permiso), cargar el alta y 20–50
+0. **UX/UI en sesión nueva** (`docs/16-arranque-ux-ui.md`), en paralelo con: Finca Emiliano vincula
+   su WhatsApp con el enlace del tablero → historial → proponer perfil → aprobar → banco → 30 en sombra.
+
+0b. **Producto 4**: con los datos de la demo (con permiso), cargar el alta y 20–50
    conversaciones reales a un espacio, correr la simbiosis con clave y medir la primera
    llamada real (salida estructurada + `fallbacks` en Opus; lote en Haiku). Del dueño:
    Meta Business de DGED, verificación y App Review para medir la coexistencia

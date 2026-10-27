@@ -24,6 +24,7 @@ anterior.
 | `../docs/` | Arquitectura, MVP, fuentes, ontología, precios, riesgos, stack, plan 12 semanas |
 | `../docs/15-agente-a-la-medida.md` | Producto 4 (D-016): especificación y orden de trabajo para la siguiente sesión |
 | `../services/agente/` | Producto 4 en código (D-017): un espacio por cliente, en sombra de fábrica |
+| `../docs/16-arranque-ux-ui.md` | Brief de UX/UI para arrancar en frío ("el Airbnb de Apple") |
 | `../docs/presentacion/` | Presentación del negocio en PDF |
 
 ## Tres reglas de oro
