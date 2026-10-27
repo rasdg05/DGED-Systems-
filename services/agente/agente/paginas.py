@@ -16,7 +16,7 @@ from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import HTMLResponse
 
 from . import agente, banco, historial, perfil, sombra, vinculado
-from .espacio import Espacio, EspacioInvalido, llave_valida
+from .espacio import Espacio, EspacioInvalido, llave_de_vinculacion, llave_valida, vinculacion_valida
 
 router = APIRouter()
 
@@ -104,11 +104,11 @@ def url(espacio: Espacio, seccion: str, llave: str | None, **extra) -> str:
 
 
 def pagina(espacio: Espacio | None, llave: str | None, activa: str, titulo: str, cuerpo: str,
-           refrescar: int | None = None, barra: str = "") -> str:
+           refrescar: int | None = None, barra: str = "", navegacion: bool = True) -> str:
     alta = (espacio.leer_json("alta.json", {}) or {}) if espacio else {}
     nombre = alta.get("nombre_comercial") or (espacio.cliente_id if espacio else "DGED")
     nav = ""
-    if espacio:
+    if espacio and navegacion:
         nav = "<nav>" + "".join(f'<a class="{"on" if s == activa else ""}" href="{esc(url(espacio, s, llave))}">{t}</a>'
                                 for s, t in SECCIONES) + "</nav>"
     meta = f'<meta http-equiv="refresh" content="{refrescar}">' if refrescar else ""
@@ -177,7 +177,14 @@ def tablero(cliente_id: str, llave: str | None = None) -> str:
                 'sobre el historial. Cada dato sale citado de un mensaje; nada se enciende hasta que el dueño lo aprueba.</p>'
                 f'<button class="btn" onclick="correr(this,\'{esc(url(espacio, "simbiosis", llave))}\')">Proponer perfil</button>'
                 '<p class="toast" id="t"></p></div>' + _JS_POST)
-    cuerpo = (f'<h2>Cómo va</h2>{kpis}<h2>Pasos</h2><div class="card"><ol class="pasos">{pasos}</ol></div>{simb}')
+    enlace = f"/v/{espacio.cliente_id}?t={llave_de_vinculacion(espacio.cliente_id)}"
+    compartir = ('<div class="card"><b>Enlace para el negocio</b><p class="lede">Mándeselo por WhatsApp. Solo abre la '
+                 'pantalla de vincular: no ve conversaciones, perfil ni nada más.</p>'
+                 f'<input readonly id="enl" value="" data-ruta="{esc(enlace)}">'
+                 '<div class="acciones"><button class="btn" onclick="copiar()">Copiar enlace</button></div></div>'
+                 "<script>const e=document.getElementById('enl');e.value=location.origin+e.dataset.ruta;"
+                 "function copiar(){navigator.clipboard.writeText(e.value).then(()=>{e.select()})}</script>")
+    cuerpo = (f'<h2>Cómo va</h2>{kpis}<h2>Pasos</h2><div class="card"><ol class="pasos">{pasos}</ol></div>{simb}{compartir}')
     return pagina(espacio, llave, "", "Tablero", cuerpo)
 
 
@@ -415,3 +422,44 @@ def banco_pagina(cliente_id: str, llave: str | None = None) -> str:
 
 def _pct(x) -> str:
     return "—" if x is None else f"{x:.0%}"
+
+
+# --------------------------------------------------------------------------- #
+#  El enlace del negocio: solo vincular (remoto)                               #
+# --------------------------------------------------------------------------- #
+@router.get("/v/{cliente_id}", response_class=HTMLResponse)
+def vincular_negocio(cliente_id: str, t: str | None = None) -> str:
+    """Lo único que ve el negocio: el código o el QR, y si ya quedó."""
+    try:
+        espacio = Espacio(cliente_id)
+    except EspacioInvalido as error:
+        raise HTTPException(404, "no existe") from error
+    if not vinculacion_valida(cliente_id, t):
+        raise HTTPException(401, "enlace inválido")
+    estado = vinculado.leer_estado(espacio)
+    clave = estado.get("estado", "sin_lector")
+    tono, titulo, ayuda = ESTADOS.get(clave, ("mid", clave, ""))
+    centro = ""
+    if clave == "esperando_codigo" and estado.get("codigo"):
+        centro = f'<div class="codigo">{esc(estado["codigo"])}</div>'
+    elif clave == "esperando_qr" and estado.get("qr"):
+        centro = f'<div class="qr">{_qr_svg(estado["qr"])}</div>'
+    elif clave in ("conectado", "vinculado"):
+        centro = '<div class="codigo" style="color:var(--good);border-color:var(--good)">¡Listo! ✓</div>'
+    if clave in ("sin_lector", "arrancando", "error"):
+        tono, titulo, ayuda = "mid", "Preparando…", "En unos segundos aparece su código. Esta página se actualiza sola."
+    pasos = ('<ol class="pasos">'
+             '<li><span class="pt ya">1</span><div>Abra <b>WhatsApp Business</b> en el teléfono del negocio.</div></li>'
+             '<li><span class="pt ya">2</span><div>Toque <b>⋮ / Configuración → Dispositivos vinculados → '
+             'Vincular un dispositivo</b>.</div></li>'
+             '<li><span class="pt ya">3</span><div>' + ("Elija <b>Vincular con número de teléfono</b> y teclee el código."
+                                                       if clave == "esperando_codigo" else "Escanee el código QR.") +
+             '</div></li><li><span class="pt ya">4</span><div>Deje el teléfono abierto y con internet unos minutos '
+             'mientras se copian sus conversaciones.</div></li></ol>')
+    cuerpo = (f'<div class="card"><span class="badge {tono}">{esc(titulo)}</span>'
+              f'<p class="lede" style="margin-top:8px">{esc(ayuda)}</p>{centro}</div>'
+              f'<div class="card">{pasos}</div>'
+              '<div class="card"><b>Su WhatsApp sigue igual.</b> <span class="lede">Este enlace solo lee sus '
+              'conversaciones para preparar su asistente: no envía mensajes, no marca nada como leído y usted '
+              'puede desvincularlo cuando quiera desde Dispositivos vinculados.</span></div>')
+    return pagina(espacio, None, "", "Vincular WhatsApp", cuerpo, refrescar=5, navegacion=False)

@@ -50,3 +50,20 @@ def test_pag_aprobar_con_llave_en_la_url(http, espacio):
     r = http.post(f"/espacios/{espacio.cliente_id}/versiones/{n}/aprobar", params=LLAVE,
                   json={"aprobador": "Dueña de muestra"})
     assert r.json() == {"activa": n}
+
+
+def test_pag_enlace_del_negocio_solo_abre_vincular(http, espacio):
+    from agente import vinculado
+    from agente.espacio import llave_de_vinculacion
+    t = llave_de_vinculacion(espacio.cliente_id)
+    assert http.get(f"/v/{espacio.cliente_id}").status_code == 401
+    assert http.get(f"/v/{espacio.cliente_id}", params={"t": "otra"}).status_code == 401
+    vinculado.publicar(espacio, "esperando_codigo", codigo="AB12-CD34")
+    p = http.get(f"/v/{espacio.cliente_id}", params={"t": t}).text
+    assert "AB12-CD34" in p and "número de teléfono" in p and "<nav>" not in p
+    assert "mensajes" not in p.lower() or "envía mensajes" in p  # no enseña cuántos ni cuáles
+    # Con la llave del enlace no se abre nada más.
+    for ruta in ("", "/conversaciones", "/revision", "/historial.jsonl"):
+        assert http.get(f"/espacios/{espacio.cliente_id}{ruta}", params={"llave": t}).status_code == 401
+    # El tablero lo ofrece para copiar.
+    assert f"/v/{espacio.cliente_id}?t={t}" in http.get(f"/espacios/{espacio.cliente_id}", params=LLAVE).text

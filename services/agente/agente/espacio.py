@@ -50,6 +50,17 @@ def llave_valida(cliente_id: str, llave: str | None) -> bool:
     return hmac.compare_digest(llave_de(cliente_id, secreto), llave) or hmac.compare_digest(secreto, llave)
 
 
+def llave_de_vinculacion(cliente_id: str) -> str:
+    """La llave del enlace que se le manda al negocio: abre SOLO la pantalla de
+    vincular su WhatsApp (`/v/<id>`), no sus datos. Sale del mismo secreto."""
+    return llave_de(f"{cliente_id}:vincular")[:24]
+
+
+def vinculacion_valida(cliente_id: str, llave: str | None) -> bool:
+    esperada = llave_de_vinculacion(cliente_id)
+    return bool(esperada and llave) and hmac.compare_digest(esperada, llave or "")
+
+
 class Espacio:
     def __init__(self, cliente_id: str, raiz: Path | None = None):
         if not ID_VALIDO.match(cliente_id or ""):
