@@ -230,9 +230,17 @@ def test_inv8_todo_vive_en_el_espacio_y_se_borra(tmp_path, monkeypatch):
 
 
 def test_inv8_la_raiz_de_espacios_no_va_a_git(monkeypatch):
+    """Lo pregunta a git, no al texto del .gitignore: `datos/espacios/` solo tapaba la
+    raíz del repo y el servidor arrancado desde services/agente escribe en
+    services/agente/datos/espacios (lo destapó la copia local, 2026-10-27)."""
+    import subprocess
     from pathlib import Path
 
     from agente.espacio import raiz_por_defecto
+    from agente.local import RAIZ_LOCAL
     monkeypatch.delenv("AGENTE_DATOS", raising=False)
     repo = Path(__file__).resolve().parents[3]
-    assert str(raiz_por_defecto()).rstrip("/") + "/" in (repo / ".gitignore").read_text(encoding="utf-8").splitlines()
+    for raiz in (repo / raiz_por_defecto(), repo / "services" / "agente" / raiz_por_defecto(), RAIZ_LOCAL):
+        archivo = raiz / "un-negocio" / "historial.jsonl"
+        r = subprocess.run(["git", "-C", str(repo), "check-ignore", "-q", "--no-index", str(archivo)])
+        assert r.returncode == 0, f"{archivo} iría a git"

@@ -53,6 +53,21 @@
   **Del dueño**: poner esa variable en Railway o cambiar a una llave de workspace; luego
   `POST /espacios/finca-quinta/simbiosis` con la llave maestra. "Entrenar" aquí es perfil citado +
   sombra + vara, no reentrenar pesos: una tarifa en los pesos es una cifra inventada mañana.
+- **Desarrollo en local y enjambre listos, sin lanzar** (D-027, 2026-10-27): `python -m agente.local`
+  baja la copia (tope 0, en sombra: cero API), saca la vara de pendientes y los lotes; el enjambre de
+  Claude Code (`.claude/skills/enjambre/SKILL.md`) redacta la ronda; `subir` prueba contra producción y
+  solo con `--de-verdad` (y el sí del dueño) quedan salidas **esperando aprobación**. Medido sobre el
+  historial real: 276 sin responder = **143 esperan**, 78 solo medios, 55 no piden, 0 reclamos; 111 de
+  las 143 nunca tuvieron respuesta de una persona. El panel ya cuenta con esa vara (221, sin los 55).
+  Panel local con los datos reales: 0.1 s por página. Vía API, para comparar (tokens estimados): perfil
+  USD 0.90–1.38, clasificación USD 0.15, 143 borradores USD 0.16. **Antes de la primera ronda con
+  cifra**: perfil aprobado (en local con el enjambre o con la pasada de Opus). **Para que algo salga**:
+  conector oficial; el lector vinculado no envía (D-018).
+- **La vinculación sobrevive a los redespliegues** (medido 2026-10-27, dos redespliegues): la sesión vive
+  en el volumen (`/data/espacios/<id>/vinculado/session.sqlite3`), igual que Gestor
+  (`/data/whatsapp/session.sqlite3`); tras los dos, el historial seguía en 11,463 mensajes y el panel en
+  "Conectado". Lo que sí desvincula: el botón "Generar QR nuevo" (borra la sesión a propósito) y pedir
+  códigos de 8 en serie (429, D-024).
 - **Lector por QR vinculado, solo lectura** (D-018): `services/agente/agente/vinculado.py`, página
   `/espacios/<id>/vincular`. Desplegable en Railway como servicio aparte del mismo repo
   (`services/agente/railway.json`). Medido: WhatsApp entrega el QR al contenedor. **Falta**:

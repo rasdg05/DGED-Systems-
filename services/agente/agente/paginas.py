@@ -551,8 +551,11 @@ def _modo(espacio: Espacio) -> tuple[str, str, str]:
 
 
 def _sin_responder(hilos: dict) -> list[str]:
-    """Conversaciones cuyo último mensaje es del cliente."""
-    return [h for h, ms in hilos.items() if ms and not ms[-1].del_negocio]
+    """Conversaciones que esperan al negocio: la misma vara que el enjambre
+    (`pendientes.py`). Un "ok gracias" al final no es trabajo pendiente."""
+    from . import pendientes
+
+    return [p.hilo for p in pendientes.leer(hilos) if p.estado != "no_pide"]
 
 
 def _por_aprobar(espacio: Espacio) -> list:

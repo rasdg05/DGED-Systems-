@@ -8,4 +8,4 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 # Espacios del agente (services/agente): datos de clientes finales. Nunca a git.
-datos/espacios/
+**/datos/espacios/

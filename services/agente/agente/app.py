@@ -233,3 +233,61 @@ def correr_simbiosis(cliente_id: str, x_tenant_key: str | None = Header(default=
         raise HTTPException(502, f"la pasada del perfil falló: {type(error).__name__}"
                                  f"{f' {estado}' if estado else ''}: {str(error)[:500]}") from error
     return {"version": n, "descartados": len(descartados), "revision": f"/espacios/{cliente_id}/revision"}
+
+
+# --------------------------------------------------------------------------- #
+#  Taller local (D-027): se trabaja en local, producción solo recibe y revisa  #
+# --------------------------------------------------------------------------- #
+@app.get("/espacios/{cliente_id}/espejo.json")
+def espejo(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """Lo que hace falta para trabajar en local sin la API: alta, perfiles y salidas.
+    El historial va aparte (`historial.jsonl`). Solo con la llave maestra."""
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    return {"cliente_id": cliente_id, "alta": espacio.leer_json("alta.json", {}) or {},
+            "activa": perfil.version_activa(espacio),
+            "versiones": {n: perfil.leer_version(espacio, n) for n in perfil.versiones(espacio)},
+            "salidas": [s.a_dict() for s in agente.salidas(espacio)],
+            "aprobaciones_salida": espacio.leer_lineas("aprobaciones_salida.jsonl")}
+
+
+@app.get("/espacios/{cliente_id}/pendientes.json")
+def ver_pendientes(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    from . import pendientes
+
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    lista = pendientes.leer(historial.hilos(espacio))
+    return {"resumen": pendientes.resumen(lista), "pendientes": [p.a_dict() for p in lista]}
+
+
+@app.post("/espacios/{cliente_id}/rondas")
+def subir_ronda(cliente_id: str, ronda: dict, probar: bool = True,
+                x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """Una ronda del enjambre local. `probar=true` (el de fábrica) solo valida contra
+    el historial de producción; con `probar=false` las aceptadas quedan esperando el
+    sí de una persona. Nada se envía desde aquí."""
+    from . import rondas
+
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    try:
+        if probar:
+            aceptadas, descartadas = rondas.validar(espacio, ronda)
+            return {"probada": True, "aceptadas": len(aceptadas), "descartadas": descartadas}
+        salidas, descartadas = rondas.cargar(espacio, ronda)
+    except rondas.RondaInvalida as error:
+        raise HTTPException(422, str(error)) from error
+    return {"probada": False, "esperan_aprobacion": [s.id for s in salidas], "descartadas": descartadas}
+
+
+@app.post("/espacios/{cliente_id}/propuestas")
+def subir_propuesta(cliente_id: str, cuerpo: dict,
+                    x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """Un perfil armado en local (enjambre, sin API). Pasa por la misma validación
+    que la pasada de Opus: renglón sin cita literal, fuera. Queda como propuesta."""
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    nombre = str(cuerpo.get("nombre", "")).strip()
+    if not nombre or not isinstance(cuerpo.get("perfil"), dict):
+        raise HTTPException(422, "lleva `nombre` y `perfil`")
+    alta = espacio.leer_json("alta.json", {}) or {}
+    propuesta = dict(cuerpo["perfil"], giro=alta.get("giro"), nombre_comercial=alta.get("nombre_comercial"))
+    n, descartados = perfil.proponer(espacio, propuesta, autor="enjambre local (Claude Code)", nombre=nombre)
+    return {"version": n, "descartados": descartados, "revision": f"/espacios/{cliente_id}/revision"}

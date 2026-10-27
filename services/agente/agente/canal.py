@@ -56,6 +56,10 @@ def motivo_para_no_enviar(espacio: Espacio, salida: Salida) -> str:
         return "sin conector oficial (WHATSAPP_TOKEN y phone_number_id): el agente no envía"
     if salida.requiere_aprobacion and salida.id not in aprobadas(espacio):
         return "cotización sin aprobación de una persona"
+    if salida.via == "ronda":
+        from . import rondas  # rondas importa de agente; aquí se llega ya cargado
+        if rondas.se_movio(espacio, salida):
+            return rondas.SE_MOVIO
     encendido = espacio.config().get("encendido", "sombra")
     if encendido not in ENCENDIDOS or encendido == "sombra":
         return "espacio en sombra: el agente redacta y no envía"

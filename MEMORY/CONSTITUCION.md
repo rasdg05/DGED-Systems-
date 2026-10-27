@@ -48,6 +48,10 @@
 | XLI | El texto del modelo no lleva cantidades, tampoco con letra ("seis mil"); un borrador que dice ser persona no sale | `services/agente/agente/guardia.py`, `agente.py` | `test_agente_conversacion.py::test_conv_la_cifra_con_letra_tambien_es_cifra`, `test_conv_banco_pasa_k_sin_errores_caros` |
 | XLII | Ningún encendido sin banco en pass^k con cero errores caros; el banco revisa la cifra por su cuenta (si el candado se rompe, lo ve) | `services/agente/agente/banco.py` | `test_agente_conversacion.py::test_conv_banco_detecta_un_candado_roto` |
 | XLIII | Cada servicio de Railway elige su Dockerfile: el `railway.json` de la raíz no fija `dockerfilePath` | `railway.json` | `tests/test_invariantes.py::test_contenedor_escucha_en_el_puerto_que_asigna_la_nube` |
+| XLIV | Una ronda del enjambre no se carga ni se envía si la plática se movió desde que se leyó (`ultimo_id`) | `services/agente/agente/rondas.py`, `canal.py` | `services/agente/tests/test_agente_enjambre.py::test_inv_ronda_si_la_platica_se_movio_no_sale` |
+| XLV | El texto del enjambre no lleva cifras; la cifra la pone el cotizador con el perfil aprobado, y todo lo de una ronda espera el sí de una persona | `rondas.py` | `test_agente_enjambre.py` (`test_inv_ronda_ninguna_cifra_*`, `test_inv_ronda_la_cifra_la_pone_el_cotizador_*`, `test_inv_ronda_sin_perfil_*`) |
+| XLVI | El enjambre no contesta reclamos, medios ni acuses: una sola vara de pendientes para el panel y el enjambre | `agente/pendientes.py`, `paginas.py::_sin_responder` | `test_agente_enjambre.py::test_pendientes_una_sola_vara_*`, `test_inv_ronda_no_contesta_reclamos_*` |
+| XLVII | La copia local no gasta API (tope 0, en sombra) y ningún espacio, en ninguna carpeta del repo, va a git — lo pregunta a git, no al texto del `.gitignore` | `agente/local.py`, `.gitignore` | `test_agente_invariantes.py::test_inv8_la_raiz_de_espacios_no_va_a_git`, `test_agente_enjambre.py::test_local_*` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

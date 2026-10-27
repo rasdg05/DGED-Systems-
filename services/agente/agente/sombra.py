@@ -48,7 +48,7 @@ def error_de_cifra(s: agente.Salida) -> bool:
         return False
     if s.via == "guardada":
         return guardia.trae_dinero(s.texto)
-    permitidas = numeros((s.cotizacion or {}).get("texto", "")) if s.via == "cotizador" else set()
+    permitidas = numeros((s.cotizacion or {}).get("texto", "")) if s.via in ("cotizador", "ronda") else set()
     return bool(guardia.cifras_no_permitidas(s.texto, permitidas))
 
 
