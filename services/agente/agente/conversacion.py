@@ -124,7 +124,8 @@ ACUSE = re.compile(
     r"(?:le |te )?agradezco (?:su|tu) (?:tiempo|atencion|ayuda)|"
     r"que tenga (?:buen dia|buena tarde|buena noche)|igual)[\s,.!]*)+$")
 CIERRE = re.compile(
-    r"\bya\s+(?:lo\s+|la\s+|le\s+|me\s+)?(?:reserve|rente|aparte|encontre|consegui|resolvi|decidi)\b"
+    r"\bya\s+(?:lo\s+|la\s+|le\s+|me\s+|nos\s+)?(?:reserve|rente|aparte|encontre|consegui|resolvi|decidi"
+    r"|reservamos|rentamos|apartamos|encontramos|conseguimos|resolvimos|decidimos)\b"
     r"\s*(?:otr[oa]|en otro|en otra)?"
     r"|^(?:muchas\s+)?gracias,?\s+ya\s+no[\s,.!]*$"
     r"|\bno\s+(?:hace\s+falta|es\s+necesario)\b|\blo\s+tendre\s+en\s+cuenta\b"

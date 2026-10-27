@@ -178,11 +178,12 @@ def _descargar(url: str, timeout: float = 30) -> str:
         return r.read().decode("utf-8", errors="replace")
 
 
-def bajar(espacio: Espacio, descargar=_descargar, ahora: datetime | None = None) -> list[dict]:
+def bajar(espacio: Espacio, descargar=None, ahora: datetime | None = None) -> list[dict]:
     """Descarga cada fuente y guarda lo que trajo con su estado. Una fuente que
     falla deja su estado en error: la copia anterior **no** se usa como si fuera
     nueva (su `leido` no cambia y envejece sola)."""
     ahora = ahora or datetime.now(timezone.utc)
+    descargar = descargar or _descargar
     estados = espacio.leer_json(f"{CARPETA}/estado.json", {}) or {}
     for fuente in fuentes(espacio):
         nombre = _nombre(fuente)

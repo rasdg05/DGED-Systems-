@@ -14,7 +14,8 @@ def http(espacio):
     return TestClient(app)
 
 
-@pytest.mark.parametrize("ruta", ["", "/alta", "/vincular", "/conversaciones", "/revision", "/banco"])
+@pytest.mark.parametrize("ruta", ["", "/alta", "/vincular", "/conversaciones", "/revision", "/banco",
+                                  "/pendientes", "/cola", "/calendario"])
 def test_pag_toda_pantalla_pide_llave(http, espacio, ruta):
     base = f"/espacios/{espacio.cliente_id}{ruta}"
     assert http.get(base).status_code == 401
@@ -25,13 +26,15 @@ def test_pag_toda_pantalla_pide_llave(http, espacio, ruta):
 def test_pag_inicio_es_para_administrar(http, espacio):
     t = http.get(f"/espacios/{espacio.cliente_id}", params=LLAVE).text
     n = len(historial.cargar(espacio))
-    assert f"<b>{n}</b>" in t and "Pendiente" in t and "Su asistente" in t and "Aprendiendo" in t
+    assert f"<b>{n}</b>" in t and "Pendiente" in t and "Su asistente" in t and "envío en pausa" in t
+    assert "Aprendiendo" not in t and "Semáforo" in t and "Cola de envío" not in t and "Conecte su calendario" in t
 
 
 DE_DESARROLLO = ("pass^k", "Banco", "banco", "simbiosis", "jsonl", "sombra", "Taller", "modelo grande", "Autor:")
 
 
-@pytest.mark.parametrize("ruta", ["", "/conversaciones", "/revision", "/negocio", "/alta"])
+@pytest.mark.parametrize("ruta", ["", "/conversaciones", "/revision", "/negocio", "/alta", "/pendientes", "/cola",
+                                  "/calendario"])
 def test_pag_lo_de_desarrollo_no_se_ve_en_lo_del_negocio(http, espacio, ruta):
     """El negocio administra; banco, sombra e historial crudo son nuestros y no tienen pestaña (D-021)."""
     import re
@@ -206,7 +209,7 @@ def test_pag_negocio_nuevo_de_punta_a_punta(http, tmp_path, monkeypatch):
     assert http.post("/negocios", json={**nuevo, "id": "Mal Id"}, params=LLAVE).status_code == 422
     assert http.post("/negocios", json={**nuevo, "id": "otro-x", "color": "rojo"}, params=LLAVE).status_code == 422
     panel = http.get(enl["panel"]).text
-    assert "Taller Ruiz" in panel and "Complete los datos del negocio" in panel and "Aprendiendo" in panel
+    assert "Taller Ruiz" in panel and "Complete los datos del negocio" in panel and "envío en pausa" in panel
     assert "--marca:#c0392b" in panel
     assert "Taller Ruiz" in http.get(enl["conectar"]).text
     assert http.get("/negocios", params={"llave": llave_de("taller-ruiz")}).status_code == 404
@@ -227,3 +230,40 @@ def test_pag_reglas_de_safari_en_iphone(http, espacio):
     assert 'name="aprobador_telefono" id="c-aprobador_telefono" value="5210000000000" type="tel" inputmode="tel"' in alta
     v = http.get(f"/v/{espacio.cliente_id}", params={"t": __import__("agente.espacio").espacio.llave_de_vinculacion(espacio.cliente_id)}).text
     assert 'format-detection" content="telephone=no' in v and "safe-area-inset-bottom" in v
+
+
+def test_pag_semaforo_la_mas_urgente_primero_y_enmascarado(http, espacio):
+    historial.guardar(espacio, [
+        historial.Mensaje("s1", "5215551110001", False, 1_000, "text", "Hola, precio para 10?"),
+        historial.Mensaje("s2", "5215551110002", False, 1_000, "text", "Me cobraron doble, exijo mi reembolso"),
+    ])
+    import re
+    t = http.get(f"/espacios/{espacio.cliente_id}/pendientes", params=LLAVE).text
+    visible = re.sub(r'href="[^"]*"', "", t)
+    assert "Reclamo" in t and "•••• 0002" in t and "5215551110002" not in visible
+    assert t.index('id="rojo"') < t.index("•••• 0002")
+
+
+def test_pag_calendario_se_conecta_desde_la_pantalla_y_no_ensena_la_url(http, espacio, monkeypatch):
+    from agente import calendario
+    ics = "BEGIN:VCALENDAR\nBEGIN:VEVENT\nDTSTART;VALUE=DATE:20991224\nDTEND;VALUE=DATE:20991226\nSUMMARY:x\nEND:VEVENT\nEND:VCALENDAR"
+    monkeypatch.setattr(calendario, "_descargar", lambda url, timeout=30: ics)
+    base = f"/espacios/{espacio.cliente_id}"
+    t = http.get(f"{base}/calendario", params=LLAVE).text
+    assert "Sin calendario" in t and "Dirección secreta en formato iCal" in t and '<option value="finca">' in t
+    r = http.post(f"{base}/calendario/fuentes", params=LLAVE, json={"propiedad": "finca", "plataforma": "google",
+                                                                    "url": "https://calendar.google.com/x/privadoXYZ/basic.ics"})
+    assert r.status_code == 200 and r.json()["estado"][0]["ok"]
+    t = http.get(f"{base}/calendario", params=LLAVE).text
+    assert "Conectados" in t and "Google Calendar" in t and "privadoXYZ" not in t
+    assert "Conecte su calendario" not in http.get(base, params=LLAVE).text
+
+
+def test_pag_cola_cuenta_y_traduce_lo_que_no_salio(http, espacio):
+    from agente import enviador
+    espacio.agregar_linea(enviador.ENVIADOS, {"salida": "x", "hilo": "5215550000001", "enviado": False,
+                                              "motivo": "espacio en sombra: el agente redacta y no envía",
+                                              "cuando": __import__("datetime").datetime.now(
+                                                  __import__("datetime").timezone.utc).isoformat()})
+    t = http.get(f"/espacios/{espacio.cliente_id}/cola", params=LLAVE).text
+    assert "Envío en pausa" in t and "no salieron hoy" in t and "redacta" not in t

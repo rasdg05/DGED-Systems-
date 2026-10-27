@@ -245,6 +245,17 @@ nav.tabs a svg.ic{width:21px;height:21px;color:var(--accent)}nav.tabs a.on{backg
 .barra-nav,.contenido{margin-left:260px}.barra-nav .icono-app{visibility:hidden}
 .contenido{margin-right:0;max-width:760px;padding-left:40px;padding-right:40px;padding-bottom:140px}
 .accion{left:260px;bottom:0}body.con-accion .contenido{padding-bottom:160px}}
+.sem{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none;margin-top:4px}
+.sem-rojo{background:var(--bad)}.sem-ambar{background:#ff9f0a}.sem-verde{background:var(--good)}.sem-gris{background:#8e8e93}
+.sem-tiles .tile{display:block;color:inherit;text-decoration:none}.sem-tiles .tile .sem{margin:0 0 6px}
+h2.sec .sem{margin:0 6px 0 0;vertical-align:middle}.linea.cita{font-style:italic}
+.tiles.cuatro{grid-template-columns:repeat(4,minmax(0,1fr))}
+.dias{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.dias i{font-style:normal;text-align:center;border-radius:9px;padding:8px 0;font-size:14px;font-variant-numeric:tabular-nums}
+.d-libre{background:rgba(52,199,89,.16);color:var(--good)}.d-ocupada{background:var(--bad);color:#fff}
+.d-nose{background:var(--fill);color:var(--muted)}
+.leyenda{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px}
+select{width:100%;font:inherit;font-size:17px;padding:12px;border-radius:12px;border:0;background:var(--fill);color:var(--text);margin:6px 0 14px}
 @media (prefers-reduced-motion:reduce){.pasos-bar i.ya::after{animation:none;transform:none;opacity:.6}
 .estado.vivo::before{animation:none}}
 """
@@ -285,7 +296,7 @@ def icono(nombre: str, clase: str = "ic") -> str:
 # (banco, sombra, historial crudo) no tiene pestaña: es nuestro, no del negocio.
 SECCIONES = (("", "Inicio", "casa"), ("conversaciones", "Chats", "chat"), ("revision", "Asistente", "chispa"),
              ("negocio", "Negocio", "tienda"))
-_PESTANA = {"alta": "negocio", "vincular": "negocio"}
+_PESTANA = {"alta": "negocio", "vincular": "negocio", "calendario": "negocio", "cola": "", "pendientes": ""}
 
 
 def esc(texto) -> str:
@@ -540,9 +551,10 @@ def _fila(titulo: str, detalle: str = "", href: str | None = None, ico: str = ""
 #  Lo que sirve para administrar                                               #
 # --------------------------------------------------------------------------- #
 MODOS = {
-    "sombra": ("mid", "Aprendiendo", "Todavía no le contesta a nadie. Lee sus chats y prepara borradores para que "
-               "usted vea cómo respondería."),
-    "sin_cifra": ("ok", "Contesta lo sencillo", "Responde lo que no lleva precio. Las cotizaciones esperan su sí."),
+    "sombra": ("mid", "Listo · envío en pausa", "Lee sus chats, ordena los pendientes y prepara respuestas y "
+               "cotizaciones. No manda nada hasta que se encienda el envío."),
+    "sin_cifra": ("ok", "Listo · enviando", "Contesta lo sencillo y manda lo que usted aprueba, al paso de una persona. "
+                  "Nada con precio sale sin su sí."),
 }
 
 
@@ -597,6 +609,9 @@ def tablero(cliente_id: str, llave: str | None = None) -> str:
     cotizaciones = _por_aprobar(espacio)
     pendiente = _pendiente(espacio)
 
+    from . import operacion
+
+    op = operacion.resumen_inicio(espacio)
     tono, titulo, texto = _modo(espacio)
     modo = (f'<div class="bloque"><span class="estado {tono}">{titulo}</span>'
             f'<h2 style="font-size:22px;letter-spacing:-.025em;margin:8px 0 4px">Su asistente</h2>'
@@ -616,13 +631,23 @@ def tablero(cliente_id: str, llave: str | None = None) -> str:
     if pendiente is not None:
         tareas.append(_fila("Revise lo que aprendió su asistente", "Hay una versión nueva lista para su aprobación.",
                             url(espacio, "revision", llave), ico("chispa", "c c-morado")))
+    if not op["calendario"]:
+        tareas.append(_fila("Conecte su calendario", "Google Calendar, Airbnb o Booking: así no se ofrecen fechas apartadas.",
+                            url(espacio, "calendario", llave), ico("tablero", "c c-rosa")))
+    if op["en_cola"]:
+        tareas.append(_fila(f"{op['en_cola']} mensaje{'s' if op['en_cola'] > 1 else ''} en cola",
+                            "Salen al paso de una persona.", url(espacio, "cola", llave), ico("compartir", "c c-indigo")))
     if cotizaciones:
         tareas.append(_fila(f"{len(cotizaciones)} cotización{'es' if len(cotizaciones) > 1 else ''} espera{'n' if len(cotizaciones) > 1 else ''} su sí",
-                            "Nada con precio sale sin su aprobación.", url(espacio, "conversaciones", llave),
+                            "Nada con precio sale sin su aprobación.", url(espacio, "cola", llave),
                             ico("visto", "c c-naranja")))
     if abiertos:
         tareas.append(_fila(f"{len(abiertos)} chat{'s' if len(abiertos) > 1 else ''} sin responder",
-                            "El último mensaje es del cliente.", url(espacio, "conversaciones", llave), ico("chat", "c c-azul")))
+                            "El último mensaje es del cliente.", url(espacio, "pendientes", llave), ico("chat", "c c-azul")))
+    if op["resumen"]["seguimiento"]:
+        n = op["resumen"]["seguimiento"]
+        tareas.append(_fila(f"{n} para dar seguimiento", "Ya tienen precio o se les preguntó algo y no contestan.",
+                            url(espacio, "pendientes", llave), ico("aviso", "c c-naranja")))
     pendientes = ("".join(tareas) if tareas
                   else _fila("Todo al día", "No hay nada esperando por usted.", ico=ico("visto", "ok")))
 
@@ -635,10 +660,24 @@ def tablero(cliente_id: str, llave: str | None = None) -> str:
              f'</small></h2><div class="grupo chats">{_filas_chats(espacio, llave, hilos, recientes)}</div>'
              if recientes else "")
     nombre = alta.get("nombre_comercial") or espacio.cliente_id
+    urgentes = [f for f in op["filas"] if f.color in ("rojo", "ambar")][:5]
+    sem = (f'<h2 class="sec">Semáforo<small><a href="{esc(url(espacio, "pendientes", llave))}">Ver todo</a></small></h2>'
+           + operacion.semaforo_mosaico(espacio, llave, op["resumen"])
+           + (f'<div class="grupo chats">{"".join(operacion.fila_semaforo(espacio, llave, f) for f in urgentes)}</div>'
+              if urgentes else ""))
+    ctono, ctitulo, _ = operacion.estado_canal(espacio)
+    envio = (f'<h2 class="sec">Envío<small><a href="{esc(url(espacio, "cola", llave))}">Ver la cola</a></small></h2>'
+             f'<div class="grupo ico">'
+             + _fila(f'<span class="estado {ctono}">{esc(ctitulo)}</span>',
+                     f"{op['en_cola']} en cola · {op['enviados_hoy']} enviados hoy · {len(cotizaciones)} esperan su sí",
+                     url(espacio, "cola", llave), ico("compartir", "c c-indigo"))
+             + _fila("Calendario", "Conectado" if op["calendario"] else "Sin conectar: las rondas no ofrecen fechas",
+                     url(espacio, "calendario", llave), ico("tablero", "c c-rosa" if not op["calendario"] else "c c-verde"))
+             + "</div>")
     cuerpo = (f'<p class="lede" style="margin-top:-2px">{esc(nombre)}</p>{modo}'
-              f'<h2 class="sec">Pendiente</h2><div class="grupo ico">{pendientes}</div>'
+              f'<h2 class="sec">Pendiente</h2><div class="grupo ico">{pendientes}</div>{sem}{envio}'
               f'<h2 class="sec">Sus chats</h2>{cifras}{chats}')
-    return pagina(espacio, llave, "", _saludo(), cuerpo)
+    return pagina(espacio, llave, "", _saludo(), cuerpo, refrescar=60)
 
 
 # --------------------------------------------------------------------------- #
@@ -908,6 +947,10 @@ def negocio(cliente_id: str, llave: str | None = None) -> str:
                      ico("visto", "c-naranja"))
              + _fila("Lo que se cotiza", esc(", ".join(alta.get("propiedades", []) or [])) or "Sin definir",
                      url(espacio, "alta", llave), ico("casa", "c-morado"))
+             + _fila("Calendario", "Google Calendar, Airbnb o Booking", url(espacio, "calendario", llave),
+                     ico("tablero", "c-rosa"))
+             + _fila("Cola de envío", "Lo que espera su sí, lo que está en cola y lo que salió",
+                     url(espacio, "cola", llave), ico("compartir", "c-indigo"))
              + "</div>")
     cuerpo = tarjeta + whatsapp + marca + datos + _JS_FOTO
     return pagina(espacio, llave, "negocio", "Negocio", cuerpo)
@@ -1331,7 +1374,7 @@ def negocios(llave: str | None = None) -> str:
         "const r=await fetch(location.pathname+location.search,{method:'POST',headers:{'Content-Type':'application/json'},"
         "body:JSON.stringify(d)});const j=await r.json().catch(()=>({}));"
         "if(r.ok){location.reload()}else{t.textContent=j.detail||'No se pudo'}}</script>")
-    cuerpo = ('<p class="lede">Cada negocio nace aprendiendo: no le contesta a nadie hasta que su dueño apruebe a su '
+    cuerpo = ('<p class="lede">Cada negocio nace con el envío en pausa: no le contesta a nadie hasta que su dueño apruebe a su '
               'asistente. Se le entregan dos enlaces: su panel y el de conectar su WhatsApp.</p>'
               + lista + alta + script)
     return pagina(None, llave, "", "Negocios", cuerpo, navegacion=False)

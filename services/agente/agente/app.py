@@ -19,7 +19,7 @@ import threading
 from fastapi import Body, FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 
-from . import agente, canal, historial, paginas, perfil
+from . import agente, canal, historial, operacion, paginas, perfil
 from .espacio import Espacio, EspacioInvalido, llave_valida, raiz_por_defecto
 
 
@@ -47,6 +47,7 @@ def _calendarios() -> None:
 
 app = FastAPI(title="DGED — agente a la medida", lifespan=_arranque)
 app.include_router(paginas.router)
+app.include_router(operacion.router)
 
 
 def _espacio(cliente_id: str, llave: str | None) -> Espacio:

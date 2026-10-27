@@ -4,6 +4,11 @@
 
 ## Corre
 
+- **App de operación, como Gestor** (2026-10-27, D-039): semáforo de pendientes (`semaforo.py`), pantallas
+  Pendientes, Cola de envío y Calendario (`operacion.py`); Inicio con semáforo, envío y calendario; ya no dice
+  "Aprendiendo". 334 tests en verde; probado en local con la muestra (capturas de iPhone). Gestor clonado en la
+  sesión (`/home/user/gestor-morelos`, `08a2aa6`) para seguir trayendo: `seguimiento.py`, `rescate.py`,
+  `toque_manana.py`, `ritmo.py`, `oportunidades.py`.
 - **Envío por el vinculado** (2026-10-27, D-037, LXIV–LXVI): decisión del dueño, como Gestor. Cola en el
   espacio, al paso de una persona, revisión justo antes; aprobar una ronda completa la encola. 319 tests en
   verde. **Para encenderlo** en Finca Emiliano: `python -m agente.local canal finca-quinta vinculado sin_cifra` (o
