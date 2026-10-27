@@ -143,8 +143,8 @@ def aprobar_salida(cliente_id: str, salida_id: str, aprobador: str = Body(..., e
     motivo = canal.motivo_para_no_enviar(espacio, salida)
     if motivo:
         return {"aprobada": True, "enviada": False, "motivo": motivo}
-    canal.enviar(espacio, salida)
-    return {"aprobada": True, "enviada": True}
+    envio = canal.enviar(espacio, salida)
+    return {"aprobada": True, "enviada": not envio.get("encolada"), "encolada": bool(envio.get("encolada"))}
 
 
 # --------------------------------------------------------------------------- #
@@ -331,6 +331,35 @@ def subir_ronda(cliente_id: str, ronda: dict, probar: bool = True,
     except rondas.RondaInvalida as error:
         raise HTTPException(422, str(error)) from error
     return {"probada": False, "esperan_aprobacion": [s.id for s in salidas], "descartadas": descartadas}
+
+
+@app.post("/espacios/{cliente_id}/rondas/{nombre}/aprobar")
+def aprobar_ronda(cliente_id: str, nombre: str, aprobador: str = Body(..., embed=True),
+                  x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """El sí de una persona del alta a toda una ronda ya revisada (D-037, como Gestor):
+    cada salida queda aprobada a su nombre y, si su canal y sus candados la dejan,
+    en la cola de envío. Solo con la llave maestra."""
+    from . import rondas
+
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    cargada = espacio.leer_json(f"rondas/{nombre}.json", None) if rondas.NOMBRE_VALIDO.match(nombre) else None
+    if not cargada:
+        raise HTTPException(404, "no existe esa ronda")
+    resultado = {"encoladas": [], "no_salen": []}
+    for salida_id in cargada.get("salidas", []):
+        try:
+            salida = agente.aprobar_salida(espacio, salida_id, aprobador)
+        except perfil.AprobacionInvalida as error:
+            raise HTTPException(403, str(error)) from error
+        except KeyError:
+            resultado["no_salen"].append({"salida": salida_id, "motivo": "no existe"})
+            continue
+        if (motivo := canal.motivo_para_no_enviar(espacio, salida)):
+            resultado["no_salen"].append({"salida": salida_id, "motivo": motivo})
+            continue
+        canal.enviar(espacio, salida)
+        resultado["encoladas"].append(salida_id)
+    return resultado
 
 
 @app.post("/espacios/{cliente_id}/propuestas")

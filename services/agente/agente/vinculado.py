@@ -10,7 +10,9 @@ abierto. Tres candados:
 
 - **Este módulo no envía nada.** No hay llamada de envío, ni de "escribiendo",
   ni de "en línea", ni acuse de lectura; un test lo revisa en el código fuente.
-  Lo que redacte el agente sigue saliendo solo por la Cloud API (`canal.py`).
+  Desde D-037 (decisión del dueño) el proceso también corre `enviador.correr`
+  si el espacio eligió `"canal": "vinculado"`: la única llamada que escribe a
+  WhatsApp vive en `mandador.py`, y solo manda lo que `canal` y `enviador` dejan.
 - **La sesión vive en el espacio** (`vinculado/session.sqlite3`): sobrevive a
   los reinicios del contenedor si el espacio está en un volumen, y se borra
   con el espacio al terminar el contrato.
@@ -365,6 +367,13 @@ def main() -> int:  # pragma: no cover - necesita WhatsApp de verdad
     @client.event(LoggedOutEv)
     def on_logout(_c, _e):
         publicar(espacio, "desconectado")
+
+    if espacio.config().get("canal") == "vinculado":
+        from . import enviador, mandador
+        threading.Thread(target=enviador.correr, args=(espacio, mandador.de(client)),
+                         kwargs={"listo": lambda: leer_estado(espacio).get("estado") == "conectado"},
+                         name="enviador", daemon=True).start()
+        logger.info("Envío por el vinculado encendido (D-037)")
 
     client.connect()
     return 0

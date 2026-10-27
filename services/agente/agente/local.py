@@ -8,6 +8,7 @@
     python -m agente.local subir finca-quinta ronda.json              # prueba en producción
     python -m agente.local subir finca-quinta ronda.json --de-verdad  # quedan por aprobar
     python -m agente.local proponer finca-quinta perfil.json [--de-verdad]
+    python -m agente.local aprobar finca-quinta <ronda> "<persona del alta>"   # encola lo que pasa (D-037)
     python -m agente.local servidor finca-quinta       # el panel en local, con la copia
 
 **La copia local nunca llama a la API**: `bajar` deja `tope_usd_mes` en 0 y el
@@ -119,6 +120,8 @@ def main(argv: list[str] | None = None) -> int:
         s.add_argument("archivo")
         if nombre != "validar":
             s.add_argument("--de-verdad", action="store_true", help="sin esto, solo se prueba")
+    ap = sub.add_parser("aprobar", help="el sí de una persona del alta a una ronda ya cargada (D-037)")
+    ap.add_argument("cliente_id"), ap.add_argument("ronda"), ap.add_argument("aprobador")
     a = p.parse_args(argv)
 
     if a.orden == "bajar":
@@ -146,6 +149,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"· {d['seccion']}: {d['motivo']}")
         if a.de_verdad:
             print(_pedir("POST", f"/espacios/{a.cliente_id}/propuestas", propuesta).decode())
+    elif a.orden == "aprobar":
+        print(_pedir("POST", f"/espacios/{a.cliente_id}/rondas/{a.ronda}/aprobar", {"aprobador": a.aprobador}).decode())
     elif a.orden == "servidor":
         print(f'AGENTE_DATOS={RAIZ_LOCAL} ANTHROPIC_API_KEY= uvicorn agente.app:app --port 8090\n'
               f"→ http://localhost:8090/espacios/{a.cliente_id}?llave=$TENANT_INTERNAL_TOKEN")

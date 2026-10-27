@@ -1,9 +1,15 @@
-"""El canal: WhatsApp Cloud API, la vía oficial. Nada sale por otro lado.
+"""El canal: por dónde sale lo que el agente redactó. Dos vías, los mismos candados.
 
-Sin conector oficial configurado (`WHATSAPP_TOKEN` en el entorno y
-`phone_number_id` en el `config.json` del espacio) el agente no envía nada y lo
-dice (invariante 7, como el Oráculo sin clave). No hay respaldo por WhatsApp Web:
-ese canal pone en riesgo el número del cliente (P1, `docs/08-mercado.md` §1.5).
+- **Cloud API (oficial)**: `WHATSAPP_TOKEN` en el entorno y `phone_number_id` en el
+  `config.json` del espacio.
+- **Dispositivo vinculado** (D-037, decisión del dueño): `"canal": "vinculado"` en
+  el `config.json` y el lector conectado con el número del negocio. Sale por el
+  WhatsApp del negocio, como Gestor Morelos, encolado y al paso de una persona
+  (`enviador.py`). Riesgo aceptado por el dueño: WhatsApp puede suspender un
+  número que lee como envío masivo (P1, `docs/08-mercado.md` §1.5).
+
+Sin ninguna de las dos el agente no envía nada y lo dice (invariante 7, como el
+Oráculo sin clave). Qué sale lo decide `motivo_para_no_enviar`, igual por las dos.
 
 Qué puede salir depende del encendido del espacio (`config.json`, `encendido`):
 
@@ -45,8 +51,20 @@ def token() -> str:
     return os.environ.get("WHATSAPP_TOKEN", "").strip()
 
 
-def configurado(espacio: Espacio) -> bool:
+def oficial(espacio: Espacio) -> bool:
     return bool(token() and espacio.config().get("phone_number_id"))
+
+
+def vinculado_listo(espacio: Espacio) -> bool:
+    """El dueño eligió el vinculado y el lector está conectado con el número del negocio."""
+    if espacio.config().get("canal") != "vinculado":
+        return False
+    from . import vinculado
+    return vinculado.leer_estado(espacio).get("estado") == "conectado"
+
+
+def configurado(espacio: Espacio) -> bool:
+    return oficial(espacio) or vinculado_listo(espacio)
 
 
 def motivo_para_no_enviar(espacio: Espacio, salida: Salida) -> str:
@@ -54,7 +72,8 @@ def motivo_para_no_enviar(espacio: Espacio, salida: Salida) -> str:
     if salida.cliente_id != espacio.cliente_id:
         return "la salida es de otro cliente"
     if not configurado(espacio):
-        return "sin conector oficial (WHATSAPP_TOKEN y phone_number_id): el agente no envía"
+        return ("sin conector oficial (WHATSAPP_TOKEN y phone_number_id) ni vinculado conectado "
+                "con \"canal\": \"vinculado\": el agente no envía")
     if salida.requiere_aprobacion and salida.id not in aprobadas(espacio):
         return "cotización sin aprobación de una persona"
     if trae_dinero(salida.texto) and salida.via != "guardada" and salida.id not in aprobadas(espacio):
@@ -100,6 +119,12 @@ def enviar(espacio: Espacio, salida: Salida, transporte=_post) -> dict:
         raise CanalDormido(motivo_para_no_enviar(espacio, salida))
     if (motivo := motivo_para_no_enviar(espacio, salida)):
         raise EnvioNoPermitido(motivo)
+    if not oficial(espacio):
+        # Vinculado: se encola y la manda el proceso del lector, al paso de una
+        # persona; justo antes de mandar se revisa todo otra vez (`enviador.turno`).
+        from . import enviador
+        enviador.encolar(espacio, salida.id)
+        return {"encolada": True, "canal": "vinculado"}
     version = os.environ.get("WHATSAPP_GRAPH_VERSION", "").strip() or "v23.0"
     url = f"{GRAPH}/{version}/{espacio.config()['phone_number_id']}/messages"
     respuesta = transporte(url, {"messaging_product": "whatsapp", "to": salida.hilo, "type": "text",

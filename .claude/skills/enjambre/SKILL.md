@@ -66,8 +66,13 @@ python -m agente.local pendientes <id> --por-lote 10 # vara + lotes en datos/esp
    ```
 6. **Solo con el sí del dueño**: `subir ... --de-verdad`. Las aceptadas quedan
    esperando aprobación de una persona del negocio; **nada se envía desde aquí**.
-   Sin conector oficial (`WHATSAPP_TOKEN` + `phone_number_id`) tampoco se envía
-   después: el lector vinculado es de solo lectura (D-018).
+7. **El sí a la ronda completa** (D-037, como Gestor):
+   `python -m agente.local aprobar <id> <ronda> "<persona del alta>"`. Cada salida
+   queda aprobada a su nombre y, si su canal y sus candados la dejan, en la cola.
+   Con `"canal": "vinculado"` y `"encendido": "sin_cifra"` en el `config.json`,
+   el proceso del lector la manda por el WhatsApp del negocio al paso de una
+   persona (`enviador.py`: 60–180 s entre envíos, 9:00 a 20:59, ≤ 60 al día) y
+   revisa todo otra vez justo antes. Sin eso (sombra, sin canal), no sale.
 
 ## Candados que hace el código (no el criterio del agente)
 
