@@ -22,7 +22,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 
 from . import agente, banco, historial, perfil, sombra, vinculado
 from . import alta as alta_mod
-from .espacio import Espacio, EspacioInvalido, llave_de_vinculacion, llave_valida, vinculacion_valida
+from .espacio import Espacio, EspacioInvalido, llave_de_vinculacion, llave_maestra, llave_valida, vinculacion_valida
 
 router = APIRouter()
 
@@ -55,10 +55,22 @@ h2.sec{font:700 22px/1.2 var(--display);letter-spacing:-.025em;margin:34px 0 12p
 h2.sec small{font:500 15px var(--font);color:var(--muted);margin-left:6px}
 .nota{font-size:13px;color:var(--muted);margin:8px 16px 0;line-height:1.4}
 /* --- barra de navegación y pestañas (vidrio) --- */
-.barra-nav{position:sticky;top:0;z-index:20;background:var(--glass);backdrop-filter:saturate(180%) blur(20px);
--webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep);padding-top:env(safe-area-inset-top)}
-.barra-nav .in{max-width:640px;margin:0 auto;height:46px;display:flex;align-items:center;justify-content:center;
-padding:0 16px;font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Como en Gestor: arriba transparente; al bajar, vidrio, línea y el título chico (el grande ya se fue). */
+.barra-nav{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top);background:transparent;
+transition:background .25s,box-shadow .25s}
+.barra-nav.con-titulo{background:var(--glass);backdrop-filter:saturate(180%) blur(20px);
+-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 .5px 0 var(--sep)}
+.barra-nav .in{max-width:640px;margin:0 auto;height:46px;display:grid;grid-template-columns:1fr auto 1fr;
+align-items:center;padding:0 16px}
+.nav-titulo{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw;
+opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s}
+.barra-nav.con-titulo .nav-titulo{opacity:1;transform:none}
+.icono-app{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--marca-ink);
+font:600 15px var(--display);background:linear-gradient(165deg,color-mix(in oklab,var(--marca) 80%,#fff),var(--marca));
+box-shadow:inset 0 0 0 .5px rgba(0,0,0,.08)}
+.tabs-marca{display:none}
+@view-transition{navigation:auto}
+
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--glass);border-top:.5px solid var(--sep);
 backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
 padding:6px 4px env(safe-area-inset-bottom);display:flex;justify-content:center}
@@ -88,6 +100,8 @@ a.fila:active{background:var(--fill)}
 .icono svg.ic{width:19px;height:19px}
 .icono.ok{background:var(--good);color:#fff}.icono.ya{background:var(--accent);color:var(--accent-ink)}
 .icono.n{font:600 15px var(--font);color:var(--muted)}
+.icono.c{color:#fff}.c-verde{background:#34c759}.c-azul{background:#007aff}.c-naranja{background:#ff9500}
+.c-morado{background:#af52de}.c-rosa{background:#ff2d55}.c-gris{background:#8e8e93}.c-indigo{background:#5856d6}
 .bloque{background:var(--card);border-radius:var(--r);padding:18px;box-shadow:var(--sombra);margin:0 0 12px}
 .bloque>b:first-child{display:block;font-size:17px;margin-bottom:4px}
 /* --- cifras --- */
@@ -207,6 +221,17 @@ background:var(--hoja);box-shadow:0 30px 80px -30px rgba(0,0,0,.25)}.portada{hei
 .listo circle{animation:pop .5s var(--ease) both}.listo path{animation:traza .45s .25s var(--ease) both}
 @keyframes pop{from{transform:scale(.6);opacity:0}}@keyframes traza{from{stroke-dashoffset:30}}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.3s}}
+/* iPad grande y Mac: las pestañas pasan a barra lateral, como Notas o Mail. */
+@media (min-width:1024px){
+nav.tabs{top:0;right:auto;width:260px;display:block;padding:18px 12px;
+border-top:0;box-shadow:.5px 0 0 var(--sep)}
+nav.tabs .in{flex-direction:column;gap:2px;max-width:none}
+nav.tabs a{flex:none;flex-direction:row;align-items:center;letter-spacing:-.01em;gap:12px;padding:9px 12px;border-radius:10px;font-size:15px;color:var(--text)}
+nav.tabs a svg.ic{width:21px;height:21px;color:var(--accent)}nav.tabs a.on{background:var(--fill);color:var(--text)}
+.tabs-marca{display:flex;align-items:center;gap:10px;padding:4px 12px 18px;font-weight:600;font-size:16px}
+.barra-nav,.contenido{margin-left:260px}.barra-nav .icono-app{visibility:hidden}
+.contenido{margin-right:0;max-width:760px;padding-left:40px;padding-right:40px;padding-bottom:140px}
+.accion{left:260px;bottom:0}body.con-accion .contenido{padding-bottom:160px}}
 @media (prefers-reduced-motion:reduce){.pasos-bar i.ya::after{animation:none;transform:none;opacity:.6}
 .estado.vivo::before{animation:none}}
 """
@@ -261,6 +286,14 @@ def _espacio(cliente_id: str, llave: str | None) -> Espacio:
         raise HTTPException(404, "no existe") from error
     if not llave_valida(cliente_id, llave):
         raise HTTPException(401, "llave inválida o servidor sin TENANT_INTERNAL_TOKEN")
+    return espacio
+
+
+def espacio_taller(cliente_id: str, llave: str | None) -> Espacio:
+    """El taller es de DGED: con la llave de un cliente responde que no existe, no que falta permiso."""
+    espacio = _espacio(cliente_id, llave)
+    if not llave_maestra(llave):
+        raise HTTPException(404, "no existe")
     return espacio
 
 
@@ -347,13 +380,13 @@ def _vivo_js(segundos: int) -> str:
 
 
 def _documento(espacio: Espacio | None, titulo: str, cuerpo: str, refrescar: int | None = None,
-               clase: str = "") -> str:
+               clase: str = "", cabeza: str = "") -> str:
     color = color_de_marca(espacio)
     vivo = f'<noscript><meta http-equiv="refresh" content="{int(refrescar)}"></noscript>' if refrescar else ""
     return (f'<!doctype html><html lang="es" style="--marca:{color};--marca-ink:{_tinta(color)}"><head>'
             '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
             f'<meta name="color-scheme" content="light dark"><meta name="theme-color" content="{color}">'
-            f'<meta name="robots" content="noindex"><title>{esc(titulo)}</title><style>{CSS}</style>{vivo}</head>'
+            f'<meta name="robots" content="noindex"><title>{esc(titulo)}</title><style>{CSS}</style>{vivo}{cabeza}</head>'
             f'<body class="{clase}">{cuerpo}{_JS_BASE}{_vivo_js(refrescar) if refrescar else ""}</body></html>')
 
 
@@ -366,19 +399,66 @@ def pagina(espacio: Espacio | None, llave: str | None, activa: str, titulo: str,
     tabs = ""
     if espacio and navegacion:
         pestana = _PESTANA.get(activa, activa)
-        tabs = ('<nav class="tabs"><div class="in">' + "".join(
+        tabs = (f'<nav class="tabs"><div class="tabs-marca"><span class="icono-app">{esc(_inicial(nombre))}</span>'
+                f'{esc(nombre)}</div><div class="in">' + "".join(
             f'<a class="{"on" if s == pestana else ""}" href="{esc(url(espacio, s, llave))}"'
             f'{" aria-current=page" if s == pestana else ""}>{icono(i)}{t}</a>' for s, t, i in SECCIONES)
             + "</div></nav>")
     if refrescar:
         cuerpo = f"<div data-vivo>{cuerpo}</div>"
     accion = f'<div class="accion"><div class="in">{barra}</div></div>' if barra else ""
-    html_cuerpo = (f'<header class="barra-nav"><div class="in">{esc(nombre)}</div></header>'
+    inicio = esc(url(espacio, "", llave)) if espacio else "/"
+    html_cuerpo = (f'<header class="barra-nav" id="barra"><div class="in"><a class="icono-app" href="{inicio}" '
+                   f'aria-label="{esc(nombre)}">{esc(_inicial(nombre))}</a>'
+                   f'<span class="nav-titulo">{esc(titulo)}</span><span></span></div></header>'
                    f'<main class="contenido aparece">'
                    + (f'<a class="atras" href="{esc(atras[1])}">‹ {esc(atras[0])}</a>' if atras else "")
                    + f'<h1 class="titulo-grande">{esc(titulo)}</h1>{cuerpo}</main>'
                    f"{accion}{tabs}")
-    return _documento(espacio, f"{titulo} · {nombre}", html_cuerpo, refrescar, "con-accion" if barra else "")
+    cabeza = ""
+    if espacio:  # instalable desde Safari o Chrome, como app con el nombre y el color del negocio
+        cabeza = (f'<link rel="manifest" href="{esc(url(espacio, "app.webmanifest", llave))}">'
+                  '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">'
+                  f'<meta name="apple-mobile-web-app-title" content="{esc(nombre[:14])}">'
+                  f'<link rel="icon" href="{esc(url(espacio, "icono.svg", llave))}" type="image/svg+xml">')
+    return _documento(espacio, f"{titulo} · {nombre}", html_cuerpo + _JS_BARRA, refrescar,
+                      "con-accion" if barra else "", cabeza)
+
+
+_JS_BARRA = ("<script>(()=>{const b=document.getElementById('barra'),h=document.querySelector('.contenido h1');"
+             "if(!b)return;if(!h||!('IntersectionObserver' in window)){b.classList.add('con-titulo');return}"
+             "new IntersectionObserver(([e])=>b.classList.toggle('con-titulo',!e.isIntersecting&&e.boundingClientRect.top<80),"
+             "{rootMargin:'-48px 0px 0px 0px'}).observe(h)})()</script>")
+
+
+def _inicial(nombre: str) -> str:
+    return (nombre.strip()[:1] or "D").upper()
+
+
+@router.get("/espacios/{cliente_id}/app.webmanifest")
+def manifiesto(cliente_id: str, llave: str | None = None):
+    from fastapi.responses import JSONResponse
+    espacio = _espacio(cliente_id, llave)
+    nombre = (espacio.leer_json("alta.json", {}) or {}).get("nombre_comercial") or cliente_id
+    color = color_de_marca(espacio)
+    return JSONResponse({
+        "name": nombre, "short_name": nombre[:14], "start_url": url(espacio, "", llave), "scope": f"/espacios/{cliente_id}",
+        "display": "standalone", "background_color": "#f2f2f7", "theme_color": color, "lang": "es",
+        "icons": [{"src": url(espacio, "icono.svg", llave), "sizes": "any", "type": "image/svg+xml", "purpose": "any"}],
+    }, media_type="application/manifest+json")
+
+
+@router.get("/espacios/{cliente_id}/icono.svg")
+def icono_app(cliente_id: str, llave: str | None = None):
+    from fastapi.responses import Response
+    espacio = _espacio(cliente_id, llave)
+    nombre = (espacio.leer_json("alta.json", {}) or {}).get("nombre_comercial") or cliente_id
+    color = color_de_marca(espacio)
+    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" '
+           f'fill="{color}"/><text x="256" y="256" dy=".35em" text-anchor="middle" fill="{_tinta(color)}" '
+           f'font-family="-apple-system,Helvetica,Arial,sans-serif" font-size="280" font-weight="600">'
+           f"{esc(_inicial(nombre))}</text></svg>")
+    return Response(svg, media_type="image/svg+xml", headers={"Cache-Control": "private, max-age=3600"})
 
 
 def _enmascarar(telefono: str) -> str:
@@ -479,20 +559,20 @@ def tablero(cliente_id: str, llave: str | None = None) -> str:
     if not alta or alta_mod.faltan(alta):
         tareas.append(_fila("Complete los datos del negocio",
                             ("Falta: " + esc(", ".join(alta_mod.faltan(alta))) + ".") if alta else "Qué ofrece, cómo cobra, quién aprueba.",
-                            url(espacio, "alta", llave), ico("tienda", "ya")))
+                            url(espacio, "alta", llave), ico("tienda", "c c-azul")))
     if not conectado:
         tareas.append(_fila("Conecte su WhatsApp", "Para que su asistente aprenda de cómo atiende usted.",
-                            url(espacio, "negocio", llave), ico("enlace", "ya")))
+                            url(espacio, "negocio", llave), ico("enlace", "c c-verde")))
     if pendiente is not None:
         tareas.append(_fila("Revise lo que aprendió su asistente", "Hay una versión nueva lista para su aprobación.",
-                            url(espacio, "revision", llave), ico("chispa", "ya")))
+                            url(espacio, "revision", llave), ico("chispa", "c c-morado")))
     if cotizaciones:
         tareas.append(_fila(f"{len(cotizaciones)} cotización{'es' if len(cotizaciones) > 1 else ''} espera{'n' if len(cotizaciones) > 1 else ''} su sí",
                             "Nada con precio sale sin su aprobación.", url(espacio, "conversaciones", llave),
-                            ico("visto", "ya")))
+                            ico("visto", "c c-naranja")))
     if abiertos:
         tareas.append(_fila(f"{len(abiertos)} chat{'s' if len(abiertos) > 1 else ''} sin responder",
-                            "El último mensaje es del cliente.", url(espacio, "conversaciones", llave), ico("chat", "ya")))
+                            "El último mensaje es del cliente.", url(espacio, "conversaciones", llave), ico("chat", "c c-azul")))
     pendientes = ("".join(tareas) if tareas
                   else _fila("Todo al día", "No hay nada esperando por usted.", ico=ico("visto", "ok")))
 
@@ -704,7 +784,8 @@ _JS_FOTO = (
     "cuerpo=await new Promise(r=>c.toBlob(r,'image/jpeg',.84));tipo='image/jpeg'}catch(_){}"
     "const r=await fetch(document.getElementById('c-foto').dataset.u,{method:'POST',"
     "headers:{'Content-Type':tipo},body:cuerpo});const j=await r.json().catch(()=>({}));"
-    "if(r.ok){const p=document.getElementById('pv');p.style.backgroundImage='url('+URL.createObjectURL(cuerpo)+')';"
+    "if(r.ok){const p=document.getElementById('pv');p.textContent='';p.classList.remove('sin-foto');"
+    "p.style.backgroundImage='url('+URL.createObjectURL(cuerpo)+')';"
     "tf.textContent='Portada lista ✓'}else{tf.textContent='No se subió: '+(j.detail||'intente con otra foto')}};"
     "document.getElementById('c-color').onchange=async e=>{const tf=document.getElementById('tc');"
     "const r=await fetch(e.target.dataset.u,{method:'POST',headers:{'Content-Type':'application/json'},"
@@ -725,15 +806,21 @@ def negocio(cliente_id: str, llave: str | None = None) -> str:
     foto = portada(espacio)
     fondo = (f'background-image:url(&quot;{esc(url(espacio, "portada", llave, v=int(foto.stat().st_mtime)))}&quot;)'
              if foto else "")
-    tarjeta = (f'<div class="tarjeta-negocio"><div class="portada-mini{"" if foto else " sin-foto"}" id="pv" style="{fondo}">'
-               f'{"" if foto else esc(nombre.strip()[:1].upper())}</div><div><b>{esc(nombre)}</b>'
-               f'<small>{esc(alta.get("giro", ""))}</small></div></div>')
+    def ico(nombre_icono: str, color: str) -> str:
+        return f'<span class="icono c {color}">{icono(nombre_icono)}</span>'
+
+    # Arriba el negocio, como la cuenta en Ajustes; abajo, listas agrupadas con su ícono de color.
+    tarjeta = (f'<div class="grupo"><a class="fila" href="{esc(url(espacio, "alta", llave))}" style="padding:14px 16px">'
+               f'<div class="portada-mini{"" if foto else " sin-foto"}" id="pv" style="{fondo}">'
+               f'{"" if foto else esc(_inicial(nombre))}</div><div class="txt"><b style="font-size:20px">{esc(nombre)}</b>'
+               f'<small>{esc(alta.get("giro", "")) or "Datos del negocio"}</small></div>{icono("chev", "ic chev")}</a></div>')
     enlace = f"/v/{espacio.cliente_id}?t={llave_de_vinculacion(espacio.cliente_id)}"
     telefono = "".join(c for c in str(alta.get("aprobador_telefono", "")) if c.isdigit())
+    faltan = alta_mod.faltan(alta) if alta else ["todo"]
     whatsapp = (
         '<h2 class="sec">WhatsApp</h2><div class="grupo ico">'
         + _fila("WhatsApp Business", f'<span class="estado {tono}">{esc(titulo_wa)}</span>', url(espacio, "vincular", llave),
-                f'<span class="icono">{icono("enlace")}</span>')
+                ico("chat", "c-verde"))
         + '</div><div class="bloque"><b>Enlace para conectar</b><p class="lede" style="margin-bottom:0">Ábralo en otra '
         'pantalla o mándeselo a quien tenga el teléfono del negocio. Solo sirve para conectar.</p>'
         f'<input readonly id="enl" value="{esc(enlace)}" data-ruta="{esc(enlace)}" aria-label="Enlace para conectar">'
@@ -745,21 +832,23 @@ def negocio(cliente_id: str, llave: str | None = None) -> str:
         "function compartir(){if(navigator.share){navigator.share({url:e.value}).catch(()=>{})}"
         "else if(navigator.clipboard){navigator.clipboard.writeText(e.value).then(()=>e.select())}}</script>")
     marca = (
-        '<h2 class="sec">Su marca</h2><div class="grupo">'
-        '<div class="campo"><label for="c-color">Color <small>El de su logo o su volante.</small></label>'
-        '<div style="display:flex;gap:12px;align-items:center;margin-top:8px">'
+        '<h2 class="sec">Su marca</h2><div class="grupo ico">'
+        f'<label class="fila" for="c-color">{ico("chispa", "c-rosa")}<div class="txt"><b>Color</b>'
+        '<small id="tc">El de su logo o su volante.</small></div>'
         f'<input type="color" id="c-color" value="{color_de_marca(espacio)}" data-u="{esc(url(espacio, "marca", llave))}">'
-        '<span class="toast" id="tc"></span></div></div>'
-        '<div class="campo"><label for="c-foto">Foto de portada <small>Una foto real del lugar. JPG, PNG o WebP.'
-        '</small></label><input type="file" id="c-foto" accept="image/jpeg,image/png,image/webp" '
-        f'data-u="{esc(url(espacio, "portada", llave))}"><p class="toast" id="tf"></p></div></div>')
-    datos = "".join(
-        _fila(t, esc("\n".join(alta[c]) if isinstance(alta.get(c), list) else alta.get(c, "")) or
-              '<span style="color:var(--warn)">Falta</span>')
-        for _, campos in CAMPOS_ALTA for c, t, _, _ in campos if c not in ("nombre_comercial", "numero_negocio"))
-    cuerpo = (tarjeta + whatsapp + marca
-              + f'<h2 class="sec">Datos del negocio<small><a href="{esc(url(espacio, "alta", llave))}">Editar</a></small></h2>'
-              f'<div class="grupo datos">{datos}</div>' + _JS_FOTO)
+        f'</label><label class="fila" for="c-foto">{ico("foto", "c-indigo")}<div class="txt"><b>Foto de portada</b>'
+        f'<small id="tf">{"Cambiar la foto" if foto else "Una foto real del lugar"}</small></div>'
+        f'{icono("chev", "ic chev")}<input type="file" id="c-foto" accept="image/jpeg,image/png,image/webp" hidden '
+        f'data-u="{esc(url(espacio, "portada", llave))}"></label></div>')
+    datos = ('<h2 class="sec">Cómo trabaja</h2><div class="grupo ico">'
+             + _fila("Datos del negocio", ("Completos" if not faltan else "Falta: " + esc(", ".join(faltan))),
+                     url(espacio, "alta", llave), ico("tienda", "c-azul"))
+             + _fila("Quién aprueba", esc(alta.get("aprobador", "")) or "Sin definir", url(espacio, "alta", llave),
+                     ico("visto", "c-naranja"))
+             + _fila("Propiedades", esc(", ".join(alta.get("propiedades", []) or [])) or "Sin definir",
+                     url(espacio, "alta", llave), ico("casa", "c-morado"))
+             + "</div>")
+    cuerpo = tarjeta + whatsapp + marca + datos + _JS_FOTO
     return pagina(espacio, llave, "negocio", "Negocio", cuerpo)
 
 
@@ -910,7 +999,7 @@ _JS_POST = ("<script>async function correr(b,u){b.disabled=true;const t=document
 
 @router.get("/espacios/{cliente_id}/banco", response_class=HTMLResponse)
 def banco_pagina(cliente_id: str, llave: str | None = None) -> str:
-    espacio = _espacio(cliente_id, llave)
+    espacio = espacio_taller(cliente_id, llave)
     herramientas = (
         '<div class="bloque"><b>Proponer perfil</b><p class="lede">Una pasada del modelo grande sobre el historial. '
         'Deja una propuesta; la aprueba el dueño en Asistente.</p><button class="btn ancho" onclick="correr(this,'

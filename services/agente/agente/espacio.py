@@ -50,6 +50,13 @@ def llave_valida(cliente_id: str, llave: str | None) -> bool:
     return hmac.compare_digest(llave_de(cliente_id, secreto), llave) or hmac.compare_digest(secreto, llave)
 
 
+def llave_maestra(llave: str | None) -> bool:
+    """Solo `TENANT_INTERNAL_TOKEN`: la de DGED. Abre el taller (banco, sombra,
+    historial crudo, la pasada del perfil), que la llave de un cliente no abre."""
+    secreto = os.environ.get(VARIABLE_LLAVE, "").strip()
+    return bool(secreto and llave) and hmac.compare_digest(secreto, llave or "")
+
+
 def llave_de_vinculacion(cliente_id: str) -> str:
     """La llave del enlace que se le manda al negocio: abre SOLO la pantalla de
     vincular su WhatsApp (`/v/<id>`), no sus datos. Sale del mismo secreto."""

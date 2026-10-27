@@ -183,7 +183,7 @@ async def portada_guardar(cliente_id: str, request: Request, x_tenant_key: str |
 
 @app.get("/espacios/{cliente_id}/historial.jsonl", response_class=PlainTextResponse)
 def descargar_historial(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> str:
-    espacio = _espacio(cliente_id, x_tenant_key or llave)
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
     return "".join(json.dumps(m.a_dict(), ensure_ascii=False) + "\n" for m in historial.cargar(espacio))
 
 
@@ -192,7 +192,7 @@ def correr_simbiosis(cliente_id: str, x_tenant_key: str | None = Header(default=
     """La pasada grande del perfil (Opus, una vez). Deja una PROPUESTA: la enciende el dueño."""
     from . import gasto, modelo, simbiosis
 
-    espacio = _espacio(cliente_id, x_tenant_key or llave)
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
     try:
         n, descartados = simbiosis.construir_perfil(espacio)
     except (modelo.Dormido, gasto.TopeAlcanzado) as error:

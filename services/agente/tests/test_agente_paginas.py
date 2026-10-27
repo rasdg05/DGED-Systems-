@@ -168,3 +168,25 @@ def test_pag_marca_se_guarda_aparte(http, espacio):
     assert http.post(base, json={"color": "#123456"}).status_code == 401
     assert http.post(base, params=LLAVE, json={"color": "url(x)"}).status_code == 422
     assert http.post(base, params=LLAVE, json={"color": "#ABCDEF"}).json() == {"marca_color": "#abcdef"}
+
+
+@pytest.mark.parametrize("ruta", ["/banco", "/historial.jsonl"])
+def test_pag_el_taller_no_existe_para_el_cliente(http, espacio, ruta):
+    """Banco, sombra e historial crudo son de DGED: con la llave del cliente, 404, aunque sepa la URL (D-022)."""
+    from agente.espacio import llave_de
+    cliente = {"llave": llave_de(espacio.cliente_id)}
+    assert http.get(f"/espacios/{espacio.cliente_id}", params=cliente).status_code == 200
+    assert http.get(f"/espacios/{espacio.cliente_id}{ruta}", params=cliente).status_code == 404
+    assert http.post(f"/espacios/{espacio.cliente_id}/simbiosis", params=cliente).status_code == 404
+    assert http.get(f"/espacios/{espacio.cliente_id}{ruta}", params=LLAVE).status_code == 200
+
+
+def test_pag_se_instala_como_app_del_negocio(http, espacio):
+    base = f"/espacios/{espacio.cliente_id}"
+    assert http.get(f"{base}/app.webmanifest").status_code == 401
+    m = http.get(f"{base}/app.webmanifest", params=LLAVE).json()
+    assert m["name"] == "Finca y Quinta de Muestra" and m["display"] == "standalone"
+    assert m["start_url"].startswith(base) and m["icons"][0]["type"] == "image/svg+xml"
+    svg = http.get(f"{base}/icono.svg", params=LLAVE)
+    assert svg.headers["content-type"].startswith("image/svg+xml") and ">F</text>" in svg.text
+    assert 'rel="manifest"' in http.get(base, params=LLAVE).text

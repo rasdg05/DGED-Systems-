@@ -119,3 +119,9 @@ Dicho por el dueño al ver el despliegue: el alta "ya ni tiene caso", el banco "
 - **Negocio**: WhatsApp (estado y enlace para conectar), marca (color y foto, que se guardan solos: `POST /marca`) y los datos del alta en lectura, con "Editar".
 
 El **taller** (`/banco`: proponer perfil, banco pass^k, sombra, descargar historial) sigue abriendo por su ruta y no tiene pestaña. Test: en Inicio, Chats, Asistente, Negocio y Alta no aparece ninguna palabra de desarrollo (pass^k, banco, sombra, simbiosis, jsonl, taller, "modelo grande", "Autor:"). Subcuentas por persona (dueño, encargado, DGED) quedan para después; hoy la llave del espacio abre todo lo del negocio y la maestra además el taller por URL.
+
+## D-022 — 2026-10-27 — El taller no existe para el cliente; el panel toma la forma del de Gestor
+
+El dueño: "Eso del banco quítalo. No se ve confiable, un cliente nuevo ve eso y se va a espantar". D-021 ya le había quitado la pestaña; ahora tampoco abre por URL con la llave del cliente: `/banco`, `/historial.jsonl` y `/simbiosis` piden la llave maestra (`TENANT_INTERNAL_TOKEN`, `espacio.llave_maestra`) y con la del cliente responden **404**, no 401, para no anunciar que hay algo detrás. Test por ruta.
+
+Del rediseño iOS de Gestor Morelos (`a727d51`, "que parezca un software iOS native") se trajo lo que encaja: barra de arriba transparente que se vuelve vidrio con el título chico cuando el grande se va (IntersectionObserver); ícono de la app con la inicial y el color del negocio; barra lateral en iPad grande y Mac (≥ 1024 px); listas tipo Ajustes con íconos de color (Inicio y Negocio); transición entre pantallas (`@view-transition`); instalable desde Safari y Chrome (`app.webmanifest` e `icono.svg` por espacio, con su llave). No se trajo la hoja «Más»: con cuatro pestañas no hace falta. Sin PNG para el ícono de iPhone (no hay Pillow en la imagen): iOS usa una captura hasta que se agregue.
