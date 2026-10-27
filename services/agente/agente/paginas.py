@@ -585,7 +585,8 @@ def _saludo() -> str:
 
 
 def _filas_chats(espacio: Espacio, llave: str | None, hilos: dict, orden: list) -> str:
-    abiertos = set(_sin_responder(hilos))
+    from . import mesa
+    abiertos = set(_sin_responder(mesa.clientes(espacio, hilos)))
     return "".join(
         _fila(esc(_enmascarar(h)), f'<span class="linea" style="display:block">{esc((ms[-1].texto or "")[:90])}</span>',
               url(espacio, "conversaciones", llave, hilo=h), f'<span class="avatar">{esc(h[-2:])}</span>',
@@ -605,7 +606,8 @@ def tablero(cliente_id: str, llave: str | None = None) -> str:
     hilos = historial.hilos(espacio)
     n_msj = sum(len(v) for v in hilos.values())
     conectado = estado.get("estado") in ("conectado", "vinculado")
-    abiertos = _sin_responder(hilos)
+    from . import mesa
+    abiertos = _sin_responder(mesa.clientes(espacio, hilos))
     cotizaciones = _por_aprobar(espacio)
     pendiente = _pendiente(espacio)
 
@@ -721,7 +723,8 @@ def conversaciones(cliente_id: str, llave: str | None = None, hilo: str | None =
         return pagina(espacio, llave, "conversaciones", _enmascarar(hilo), cuerpo,
                       atras=("Chats", url(espacio, "conversaciones", llave)))
     orden = sorted(hilos.items(), key=lambda kv: -kv[1][-1].ts)
-    n_abiertos = len(_sin_responder(hilos))
+    from . import mesa
+    n_abiertos = len(_sin_responder(mesa.clientes(espacio, hilos)))
     cuerpo = (f'<p class="lede">{len(hilos)} conversaciones'
               + (f', {n_abiertos} sin responder' if n_abiertos else "") + '. Los teléfonos van enmascarados.</p>'
               + (f'<div class="grupo chats">{_filas_chats(espacio, llave, hilos, orden)}</div>' if orden
@@ -831,6 +834,8 @@ def revision(cliente_id: str, x_tenant_key: str | None = Header(default=None), l
     tono, titulo, texto = _modo(espacio)
     modo = (f'<div class="bloque"><span class="estado {tono}">{titulo}</span>'
             f'<p class="lede" style="margin:8px 0 0">{texto}</p></div>')
+    from . import operacion
+    modo += operacion.capacidades(espacio, llave)
     mostrar = pendiente if pendiente is not None else activa
     if mostrar is None:
         cuerpo = (modo + '<div class="grupo vacio">Sin propuestas todavía. Cuando su WhatsApp esté conectado, '
@@ -861,7 +866,7 @@ def revision(cliente_id: str, x_tenant_key: str | None = Header(default=None), l
                   "{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({aprobador:a})});"
                   "const d=await r.json().catch(()=>({}));t.textContent=r.ok?'Aprobado ✓':"
                   "(d.detail||'No se pudo');if(r.ok)setTimeout(()=>location.reload(),900);b.disabled=false}</script>")
-        cuerpo = aviso + bloques + fuera + script + '<p class="toast" id="t" style="margin-top:12px"></p>'
+        cuerpo = aviso + bloques + fuera + script + '<p class="toast" id="t" style="margin-top:12px"></p>' + modo
         barra = (f'<input id="apr" value="{esc(alta.get("aprobador", ""))}" placeholder="Quién aprueba" '
                  'autocomplete="name" autocapitalize="words" autocorrect="off" enterkeyhint="done" '
                  'aria-label="Nombre de quien aprueba, como está en el alta">'

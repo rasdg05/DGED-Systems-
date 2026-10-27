@@ -145,11 +145,15 @@ def turno(espacio: Espacio, mandar, ahora: datetime | None = None) -> dict | Non
 
 def correr(espacio: Espacio, mandar, listo=lambda: True) -> None:  # pragma: no cover - bucle del proceso
     """El bucle del proceso vinculado: un turno, una pausa al azar, otra vez."""
+    from . import mesa
+
     ritmo = Ritmo.de(espacio)
     while True:
         espera = 15
         try:
             if listo():
+                mesa.reporte_si_toca(espacio)
+                mesa.despachar(espacio, mandar)  # lo de la mesa no espera turno: es para la dueña
                 hecho = turno(espacio, mandar)
                 if hecho and "enviado" in hecho:
                     logger.info("envío %s: %s", hecho["salida"], "ok" if hecho["enviado"] else "falló")

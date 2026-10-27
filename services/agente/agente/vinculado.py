@@ -361,6 +361,8 @@ def main() -> int:  # pragma: no cover - necesita WhatsApp de verdad
         try:
             if (m := mensaje_vivo(event, client.get_pn_from_lid)):
                 importar(espacio, [m])
+                from . import mesa
+                mesa.atender(espacio, m)  # una orden de la dueña: la respuesta va a su buzón
         except Exception:
             logger.exception("Error guardando un mensaje")
 
@@ -368,12 +370,14 @@ def main() -> int:  # pragma: no cover - necesita WhatsApp de verdad
     def on_logout(_c, _e):
         publicar(espacio, "desconectado")
 
-    if espacio.config().get("canal") == "vinculado":
-        from . import enviador, mandador
-        threading.Thread(target=enviador.correr, args=(espacio, mandador.de(client)),
-                         kwargs={"listo": lambda: leer_estado(espacio).get("estado") == "conectado"},
-                         name="enviador", daemon=True).start()
-        logger.info("Envío por el vinculado encendido (D-037)")
+    # El enviador corre siempre (D-042): la mesa de la dueña y sus reportes, y la cola
+    # de clientes, que solo manda si el espacio eligió "canal": "vinculado" y lo
+    # aprobado pasa los candados (`canal.motivo_para_no_enviar`). Encender el envío
+    # ya no pide redesplegar.
+    from . import enviador, mandador
+    threading.Thread(target=enviador.correr, args=(espacio, mandador.de(client)),
+                     kwargs={"listo": lambda: leer_estado(espacio).get("estado") == "conectado"},
+                     name="enviador", daemon=True).start()
 
     client.connect()
     return 0

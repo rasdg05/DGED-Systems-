@@ -105,7 +105,8 @@ def validar(espacio: Espacio, ronda: dict) -> tuple[list[dict], list[dict]]:
         raise RondaInvalida("la ronda lleva nombre: minúsculas, números y guiones")
     if not str(ronda.get("orden", "")).strip():
         raise RondaInvalida("la ronda dice quién la mandó y qué pidió (`orden`)")
-    hilos = historial.hilos(espacio)
+    from . import mesa
+    hilos = mesa.clientes(espacio, historial.hilos(espacio))  # una administradora no recibe rondas (D-042)
     por_hilo = {p.hilo: p for p in pendientes.leer(hilos)}
     activo = perfil.activo(espacio)
     ocupacion = calendario.Ocupacion.de(espacio)

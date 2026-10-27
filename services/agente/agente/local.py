@@ -90,10 +90,10 @@ def lotes(cliente_id: str, por_lote: int = 10, dias: int | None = None) -> tuple
     esperan respuesta (`tipo: contestar`) y las de seguimiento (`tipo: seguimiento`,
     D-041), cada una con su plática completa. `dias`: solo lo de los últimos N días
     (por defecto, la vigencia del semáforo)."""
-    from . import semaforo
+    from . import mesa, semaforo
 
     espacio = _espacio(cliente_id)
-    hilos = historial.hilos(espacio)
+    hilos = mesa.clientes(espacio, historial.hilos(espacio))
     lista = pendientes.leer(hilos)
     espera = {p.hilo: p for p in lista if p.estado == "espera"}
     limite = (dias if dias is not None else semaforo.DIAS_VIGENCIA) * 24

@@ -4,6 +4,9 @@
 
 ## Corre
 
+- **Mesa de la dueña** (2026-10-27, D-042, LXVII–LXVIII): Mariana manda órdenes al WhatsApp del negocio y recibe
+  reportes a las 9 y 19; puede aprobar la ronda y encender el envío desde ahí. Lista de precios **subida como versión 1
+  por aprobar** en Asistente. 353 tests en verde.
 - **Primer enjambre real, Finca Emiliano** (2026-10-27, D-041): 237 pláticas en 24 lotes y 24 agentes; 145
   borradores, el orquestador sacó 16 (eventos, capacidad, descuento, molestia, cotización por preparar) y corrigió 3;
   **128 cargados en producción esperando aprobación** (ronda `2026-10-27-seguimiento`), sin cifras. 91 "no sale" +

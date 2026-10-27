@@ -267,3 +267,9 @@ def test_pag_cola_cuenta_y_traduce_lo_que_no_salio(http, espacio):
                                                   __import__("datetime").timezone.utc).isoformat()})
     t = http.get(f"/espacios/{espacio.cliente_id}/cola", params=LLAVE).text
     assert "Envío en pausa" in t and "no salieron hoy" in t and "redacta" not in t
+
+
+def test_pag_asistente_dice_lo_que_hace_y_las_ordenes_de_whatsapp(http, espacio):
+    t = http.get(f"/espacios/{espacio.cliente_id}/revision", params=LLAVE).text
+    assert "Lo que hace por usted" in t and "Ordena sus pendientes" in t and "aprueba la ronda" in t
+    assert "Le reporta por WhatsApp" in t and "1 administradora" in t

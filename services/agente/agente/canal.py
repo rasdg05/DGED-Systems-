@@ -74,6 +74,9 @@ def motivo_para_no_enviar(espacio: Espacio, salida: Salida) -> str:
     if not configurado(espacio):
         return ("sin conector oficial (WHATSAPP_TOKEN y phone_number_id) ni vinculado conectado "
                 "con \"canal\": \"vinculado\": el agente no envía")
+    from . import mesa
+    if mesa.es_admin(espacio, salida.hilo):
+        return "la plática es de una administradora: a ella le escribe la mesa, no la cola"
     if salida.requiere_aprobacion and salida.id not in aprobadas(espacio):
         return "cotización sin aprobación de una persona"
     if trae_dinero(salida.texto) and salida.via != "guardada" and salida.id not in aprobadas(espacio):

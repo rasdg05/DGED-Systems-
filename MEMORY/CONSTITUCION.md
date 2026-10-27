@@ -71,6 +71,8 @@
 | LXIV | Por el vinculado (D-037) se manda uno a la vez, 40–50 s entre envíos, de 9:00 a 20:59 de México, ≤ 100 al día, y ninguna plática recibe dos rondas en 24 h; un espacio puede ir más lento, nunca más rápido | `agente/enviador.py` | `test_agente_enviador.py::test_horario_pausa_y_tope_del_dia` y `test_el_espacio_no_puede_ir_mas_rapido_que_los_techos` |
 | LXV | Justo antes de mandar por el vinculado se revisan otra vez todos los candados del canal (aprobación, plática movida, fecha apartada, sombra); lo que no pasa queda escrito y no sale; una falla de WhatsApp no se reintenta sola | `enviador.turno`, `canal.motivo_para_no_enviar` | `test_agente_enviador.py::test_si_la_platica_se_movio_o_se_aparto_la_fecha_no_sale` y vecinos |
 | LXVI | La única llamada que escribe a WhatsApp por el vinculado vive en `mandador.py`; el lector sigue sin enviar en su código | `agente/mandador.py` | `test_agente_enviador.py::test_la_unica_llamada_que_escribe_a_whatsapp_vive_en_mandador` |
+| LXVII | La mesa de la dueña solo le escribe a administradoras (teléfono de quien aprueba y `administradores`); se revisa al despachar | `agente/mesa.py::despachar` | `test_agente_mesa.py::test_la_mesa_solo_le_escribe_a_administradoras` |
+| LXVIII | Una administradora no es clienta: su plática no entra al semáforo, a las rondas ni a la cola de clientes; aprobar una ronda o encender el envío por WhatsApp solo lo ordena quien aprueba | `mesa.clientes`, `canal.motivo_para_no_enviar`, `mesa.ejecutar` | `test_agente_mesa.py::test_una_administradora_no_es_clienta`, `test_la_cola_de_clientes_nunca_manda_a_una_administradora`, `test_aprobar_la_ronda_y_encender_solo_lo_ordena_quien_aprueba` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

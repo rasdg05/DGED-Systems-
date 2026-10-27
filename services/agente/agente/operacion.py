@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
-from . import agente, calendario, canal, enviador, historial, semaforo
+from . import agente, calendario, canal, enviador, historial, mesa, semaforo
 from .espacio import Espacio
 from .paginas import HORA_MX, _cuando, _enmascarar, _espacio, _fila, esc, icono, pagina, url
 
@@ -61,7 +61,7 @@ def semaforo_mosaico(espacio: Espacio, llave: str | None, res: dict) -> str:
 @router.get("/espacios/{cliente_id}/pendientes", response_class=HTMLResponse)
 def pendientes(cliente_id: str, llave: str | None = None) -> str:
     espacio = _espacio(cliente_id, llave)
-    filas = semaforo.leer(historial.hilos(espacio))
+    filas = semaforo.leer(mesa.clientes(espacio, historial.hilos(espacio)))
     res = semaforo.resumen(filas)
     partes = [f'<p class="lede">La más urgente primero, por cuánto lleva esperando. '
               f'{res["seguimiento"]} para dar seguimiento hoy.</p>', semaforo_mosaico(espacio, llave, res)]
@@ -241,9 +241,45 @@ def calendario_pagina(cliente_id: str, llave: str | None = None) -> str:
 
 def resumen_inicio(espacio: Espacio) -> dict:
     """Lo que Inicio enseña de la operación, sin pintar nada."""
-    filas = semaforo.leer(historial.hilos(espacio))
+    filas = semaforo.leer(mesa.clientes(espacio, historial.hilos(espacio)))
     return {"filas": filas, "resumen": semaforo.resumen(filas), "en_cola": len(enviador.pendientes(espacio)),
             "calendario": calendario.Ocupacion.de(espacio).configurada,
             "enviados_hoy": sum(1 for e in espacio.leer_lineas(enviador.ENVIADOS) if e.get("enviado") and e.get("cuando")
                                 and datetime.fromisoformat(e["cuando"]).astimezone(HORA_MX).date()
                                 == datetime.now(timezone.utc).astimezone(HORA_MX).date())}
+
+
+def capacidades(espacio: Espacio, llave: str | None) -> str:
+    """Lo que hace el asistente hoy, con su estado real (Asistente). Como la mesa de Gestor:
+    lo que puede pedirle por WhatsApp va aquí también."""
+    from . import mesa, perfil
+
+    activo = perfil.activo(espacio) or {}
+    con_lista = any(r.get("tipo") == "grupo" for r in activo.get("reglas", []) or [])
+    filas_sem = semaforo.leer(mesa.clientes(espacio, historial.hilos(espacio)))
+    res = semaforo.resumen(filas_sem)
+    por_aprobar = sum(1 for s in agente.salidas(espacio) if s.requiere_aprobacion and not s.aprobada_por)
+    admins = len(mesa.administradores(espacio))
+    cal = calendario.Ocupacion.de(espacio).configurada
+
+    def ico(nombre: str, color: str) -> str:
+        return f'<span class="icono c {color}">{icono(nombre)}</span>'
+
+    filas = [
+        _fila("Ordena sus pendientes", f"{res['rojo']} urgentes · {res['ambar']} para hoy · {res['seguimiento']} "
+              "para dar seguimiento", url(espacio, "pendientes", llave), ico("tablero", "c-rosa")),
+        _fila("Prepara seguimientos y recordatorios", f"{por_aprobar} esperan su sí. Salen al paso de una persona.",
+              url(espacio, "cola", llave), ico("compartir", "c-indigo")),
+        _fila("Cotiza con su lista de precios", "Con su lista aprobada; toda cifra espera su sí." if con_lista
+              else "En cuanto apruebe su lista aquí abajo.", ico=ico("visto", "c-naranja" if not con_lista else "c-verde")),
+        _fila("Cuida su calendario", "No ofrece fechas apartadas." if cal else "Conéctelo para no ofrecer fechas apartadas.",
+              url(espacio, "calendario", llave), ico("tablero", "c-verde" if cal else "c-gris")),
+        _fila("Le reporta por WhatsApp", (f"A las {mesa.HORAS_REPORTE[0]}:00 y {mesa.HORAS_REPORTE[1]}:00 a "
+              f"{admins} administradora{'s' if admins != 1 else ''}.") if admins else "Ponga el teléfono de quien aprueba.",
+              ico=ico("chat", "c-verde")),
+    ]
+    ordenes = ("estado", "pendientes", "cola", "aprueba la ronda", "enciende el envío", "pausa el envío")
+    return ('<h2 class="sec">Lo que hace por usted</h2><div class="grupo ico">' + "".join(filas) + "</div>"
+            '<div class="bloque"><b>Pídaselo por WhatsApp</b><p class="lede" style="margin:6px 0 0">Desde el teléfono de '
+            'quien aprueba, escríbale al número del negocio: ' + ", ".join(f"<i>{o}</i>" for o in ordenes)
+            + ". Le contesta ahí mismo.</p></div>")
