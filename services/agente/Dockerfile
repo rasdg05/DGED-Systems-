@@ -14,5 +14,5 @@ COPY services/agente/requirements.txt services/agente/requirements-vinculado.txt
 RUN pip install -r /tmp/requirements.txt -r /tmp/requirements-vinculado.txt
 COPY services/agente /srv
 
-EXPOSE 8090
+EXPOSE 8080
 CMD ["sh", "/srv/arrancar.sh"]
