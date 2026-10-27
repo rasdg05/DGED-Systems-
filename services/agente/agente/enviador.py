@@ -38,7 +38,7 @@ ENVIADOS = "enviados.jsonl"
 ZONA = ZoneInfo("America/Mexico_City")
 PAUSA_MIN, PAUSA_MAX = 40, 50    # segundos entre envíos (dueño, 2026-10-27: "1 cada 40 segundos")
 HORA_DESDE, HORA_HASTA = 9, 20   # de 9:00 a 20:59, hora de México
-TOPE_DIA = 60                    # envíos por día y número, como techo
+TOPE_DIA = 100                   # envíos por día y número, como techo (dueño, 2026-10-27: de 60 a 100)
 HORAS_ENTRE_RONDAS = 24
 
 
