@@ -117,6 +117,24 @@ def test_vinc_simbiosis_por_http_deja_propuesta(espacio, monkeypatch):
     assert r.json()["version"] == 7 and llamado
 
 
+def test_vinc_simbiosis_que_falla_dice_por_que(espacio, monkeypatch):
+    """En producción la pasada dio un 500 mudo (2026-10-27): el error de la API sale en la respuesta."""
+    from agente import simbiosis
+    from agente.app import app
+    from fastapi.testclient import TestClient
+
+    class ErrorDeApi(Exception):
+        status_code = 400
+
+    def falla(e):
+        raise ErrorDeApi("output_config.format: schema demasiado complejo")
+    monkeypatch.setattr(simbiosis, "construir_perfil", falla)
+    r = TestClient(app).post(f"/espacios/{espacio.cliente_id}/simbiosis", params={"llave": "secreto-de-prueba"})
+    assert r.status_code == 502
+    assert "ErrorDeApi 400" in r.text and "schema demasiado complejo" in r.text
+    assert "secreto-de-prueba" not in r.text
+
+
 def test_vinc_lineas_a_medias_no_tumban_la_lectura(espacio):
     with espacio.ruta(historial.ARCHIVO).open("a", encoding="utf-8") as f:
         f.write('{"id": "medio')

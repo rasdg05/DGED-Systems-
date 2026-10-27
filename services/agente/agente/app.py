@@ -226,4 +226,10 @@ def correr_simbiosis(cliente_id: str, x_tenant_key: str | None = Header(default=
         n, descartados = simbiosis.construir_perfil(espacio)
     except (modelo.Dormido, gasto.TopeAlcanzado) as error:
         raise HTTPException(503, str(error)) from error
+    except Exception as error:
+        # Un 500 mudo no se puede arreglar sin los logs de Railway: se dice qué
+        # contestó la API (o en qué paró la pasada). La llave nunca viaja aquí.
+        estado = getattr(error, "status_code", None)
+        raise HTTPException(502, f"la pasada del perfil falló: {type(error).__name__}"
+                                 f"{f' {estado}' if estado else ''}: {str(error)[:500]}") from error
     return {"version": n, "descartados": len(descartados), "revision": f"/espacios/{cliente_id}/revision"}
