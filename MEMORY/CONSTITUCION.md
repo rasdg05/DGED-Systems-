@@ -67,6 +67,7 @@
 | LX | En la vara, la lista de precios de cada plática se arma solo con desarrollo y sin esa plática | `lista_precios.para_la_vara`, `vara.medir` | `test_agente_lista_precios.py::test_vara_la_lista_de_cada_platica_se_arma_sin_ella` |
 | LXI | Una noche es libre solo si todas las fuentes iCal de esa propiedad respondieron con un calendario de verdad hace menos de `VIGENCIA_HORAS`; sin fuente, con error, con un 200 que no es `VCALENDAR` o vieja, "no se sabe", nunca libre; lo ocupado de una fuente caída sigue ocupado | `agente/calendario.py` | `test_agente_calendario.py::test_libre_solo_si_todas_las_fuentes_de_la_propiedad_respondieron_y_estan_frescas` y `test_una_fuente_que_falla_despues_no_borra_lo_ocupado_ni_se_vuelve_libre` |
 | LXII | Una propiedad ocupada en esas fechas no sale en la cotización; si todas lo están, va a una persona sin cifra | `agente.por_grupo` | `test_agente_calendario.py::test_una_propiedad_ocupada_no_sale_en_la_cotizacion` y `test_si_todas_estan_ocupadas_va_a_una_persona_sin_cifra` |
+| LXIII | Una ronda del enjambre no ofrece fechas que el calendario no dé por libres (sin calendario, ocupada o sin saber: fuera), y nada con fechas se envía si al enviar ya están apartadas | `agente/rondas.py`, `canal.motivo_para_no_enviar`, `calendario.apartada` | `test_agente_enjambre.py::test_inv_ronda_no_vende_fechas_que_el_calendario_no_da_por_libres` y `test_inv_si_se_aparto_despues_de_aprobar_no_se_envia` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

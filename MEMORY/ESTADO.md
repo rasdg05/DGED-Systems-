@@ -4,6 +4,10 @@
 
 ## Corre
 
+- **Calendario antes que enjambre** (2026-10-27, D-036, LXIII): una ronda con fechas entra solo si el
+  calendario dice libre, y al enviar se revisa otra vez. 309 tests del agente en verde. **Para lanzar el
+  enjambre faltan**: `AGENTE_URL` y `TENANT_INTERNAL_TOKEN` en el entorno de la sesión (no hay acceso a
+  producción desde aquí) y el iCal secreto de Mariana para cotizar fechas.
 - **Calendario de ocupación por iCal** (2026-10-27, D-034, rama `claude/agente-a-la-medida`):
   `agente/calendario.py` lee Airbnb, Booking y Google Calendar; `python -m agente.calendario fuente|bajar|ver`,
   `GET /espacios/<id>/calendario.json` y `POST /espacios/<id>/calendario/fuentes` (llave del cliente); el

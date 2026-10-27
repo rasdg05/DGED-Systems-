@@ -16,6 +16,9 @@ esperando el sí de una persona del negocio.
 - `AGENTE_URL` y `TENANT_INTERNAL_TOKEN` (llave maestra) en el entorno.
 - Para cotizar con cifra: **perfil aprobado** en producción. Sin perfil, la
   ronda solo puede pedir el dato que falta o dar seguimiento, sin números.
+- Para cotizar con fechas: **calendario conectado y al día** (`agente.calendario`,
+  D-036). Sin él, la ronda solo da seguimiento sin fechas; lo que ofrezca fechas
+  no libres se descarta solo (LXIII).
 
 ## Pasos
 

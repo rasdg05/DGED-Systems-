@@ -61,6 +61,10 @@ def motivo_para_no_enviar(espacio: Espacio, salida: Salida) -> str:
         # Defensa de fondo: una cifra que no viene de una guardada aprobada sale solo
         # con el sí de una persona, aunque alguien olvide marcar `requiere_aprobacion`.
         return "cifra sin aprobación de una persona"
+    if salida.cotizacion:
+        from . import calendario
+        if (apartada := calendario.apartada(espacio, salida.cotizacion)):
+            return apartada
     if salida.via == "ronda":
         from . import rondas  # rondas importa de agente; aquí se llega ya cargado
         if rondas.se_movio(espacio, salida):

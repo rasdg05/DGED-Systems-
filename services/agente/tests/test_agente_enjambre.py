@@ -80,7 +80,19 @@ def test_inv_ronda_ninguna_cifra_en_el_texto_del_enjambre(con_pendiente):
         assert descartadas and "cifra" in descartadas[0]["motivo"], texto
 
 
+VACIO = "BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR\n"
+RESERVA_QUINTA = ("BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART;VALUE=DATE:20261109\n"
+                  "DTEND;VALUE=DATE:20261111\nSUMMARY:Reserved\nEND:VEVENT\nEND:VCALENDAR\n")
+
+
+def _calendario(espacio, ics=VACIO):
+    from agente import calendario
+    calendario.agregar_fuente(espacio, "quinta", "google", "https://ejemplo.test/quinta.ics")
+    calendario.bajar(espacio, lambda _url: ics)
+
+
 def test_inv_ronda_la_cifra_la_pone_el_cotizador_y_espera_aprobacion(con_pendiente):
+    _calendario(con_pendiente)
     pedido = {"propiedad": "quinta", "llegada": "2026-11-09", "salida": "2026-11-11", "personas": 8}
     salidas, descartadas = rondas.cargar(con_pendiente, _ronda(cotizacion=pedido))
     assert not descartadas and len(salidas) == 1
@@ -161,3 +173,32 @@ def test_local_bajar_deja_tope_cero_y_sombra_y_lotes_solo_con_espera(con_pendien
 def perfil_v1(espacio) -> dict:
     from agente import perfil
     return perfil.leer_version(espacio, 1)
+
+
+def test_inv_ronda_no_vende_fechas_que_el_calendario_no_da_por_libres(con_pendiente):
+    """LXIII: sin calendario, ocupada o sin saber, la ronda no lleva esa cotización."""
+    pedido = {"propiedad": "quinta", "llegada": "2026-11-09", "salida": "2026-11-11", "personas": 8}
+    _, descartadas = rondas.validar(con_pendiente, _ronda(cotizacion=pedido))
+    assert "sin calendario" in descartadas[0]["motivo"]
+    _calendario(con_pendiente, RESERVA_QUINTA)
+    _, descartadas = rondas.validar(con_pendiente, _ronda(cotizacion=pedido))
+    assert "ocupada" in descartadas[0]["motivo"]
+    _calendario(con_pendiente, "<html>login</html>")  # el iCal dejó de responder: no se sabe
+    _, descartadas = rondas.validar(con_pendiente, _ronda(cotizacion=pedido))
+    assert "ocupada" in descartadas[0]["motivo"]  # lo ocupado de antes sigue ocupado
+    # el seguimiento sin fechas sí sale
+    aceptadas, _ = rondas.validar(con_pendiente, _ronda())
+    assert aceptadas
+
+
+def test_inv_si_se_aparto_despues_de_aprobar_no_se_envia(con_pendiente, monkeypatch):
+    """LXIII al enviar: otra plataforma vendió esas noches entre la ronda y el sí."""
+    _calendario(con_pendiente)
+    pedido = {"propiedad": "quinta", "llegada": "2026-11-09", "salida": "2026-11-11", "personas": 8}
+    salidas, _ = rondas.cargar(con_pendiente, _ronda(cotizacion=pedido))
+    agente.aprobar_salida(con_pendiente, salidas[0].id, "Dueña de muestra")
+    con_pendiente.escribir_json("config.json", dict(con_pendiente.config(), phone_number_id="123", encendido="sin_cifra"))
+    monkeypatch.setenv("WHATSAPP_TOKEN", "t")
+    assert "apartadas" not in canal.motivo_para_no_enviar(con_pendiente, salidas[0])
+    _calendario(con_pendiente, RESERVA_QUINTA)
+    assert "apartadas" in canal.motivo_para_no_enviar(con_pendiente, salidas[0])

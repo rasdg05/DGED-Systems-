@@ -289,6 +289,30 @@ class Ocupacion:
         return salida
 
 
+def de_la_cotizacion(oc: Ocupacion, cotizacion: dict | None) -> list[Disponibilidad]:
+    """La disponibilidad de cada propiedad que una cotización ofrece con fechas
+    (la de una propiedad o la de grupo, con sus opciones). Sin fechas: []."""
+    if not cotizacion or not cotizacion.get("llegada") or not cotizacion.get("salida"):
+        return []
+    try:
+        llegada, salida = date.fromisoformat(cotizacion["llegada"]), date.fromisoformat(cotizacion["salida"])
+    except (TypeError, ValueError):
+        return []
+    props = [o.get("propiedad") for o in cotizacion.get("opciones") or []] or [cotizacion.get("propiedad")]
+    return [oc.disponibilidad(p, llegada, salida) for p in props if p]
+
+
+def apartada(espacio: Espacio, cotizacion: dict | None) -> str:
+    """'' si nada de lo que ofrece la cotización está ocupado hoy; si no, qué.
+    Se revisa al enviar: entre que se redactó y que una persona la aprobó, otra
+    plataforma pudo vender esas noches (invariante LXIII)."""
+    oc = Ocupacion.de(espacio)
+    if not oc.configurada:
+        return ""
+    ocupadas = [d.propiedad for d in de_la_cotizacion(oc, cotizacion) if d.estado == OCUPADA]
+    return f"fechas ya apartadas en el calendario: {', '.join(ocupadas)}" if ocupadas else ""
+
+
 REFRESCO_MINUTOS = 30
 
 

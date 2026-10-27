@@ -17,13 +17,17 @@ Lo que Gestor aprendió y aquí es código, no costumbre:
 - **Todo lo de una ronda espera el sí de una persona** (invariante 2, más
   estricta que Gestor: allá lo revisaba el orquestador y salía programado).
 - Una ronda cargada es inmutable: otra ronda, otro nombre.
+- **Una ronda no ofrece fechas que el calendario no dé por libres** (LXIII): ni
+  ocupadas, ni sin saber, ni sin calendario conectado. El turno deja pasar lo
+  que no se sabe con nota porque una persona lo lee en caliente; una ronda son
+  decenas de borradores a aprobar de golpe, y ahí no se vende una fecha a ciegas.
 """
 from __future__ import annotations
 
 import re
 from datetime import date, datetime, timezone
 
-from . import cotizador, guardia, historial, pendientes, perfil, voz
+from . import calendario, cotizador, guardia, historial, pendientes, perfil, voz
 from .agente import ARCHIVO, Salida
 from .espacio import Espacio
 
@@ -57,7 +61,8 @@ def _cotizacion(entrada: dict, activo: dict | None) -> tuple[cotizador.Cotizacio
     return cot, ""
 
 
-def motivo_de_rechazo(entrada: dict, hilos: dict, por_hilo: dict, activo: dict | None) -> str:
+def motivo_de_rechazo(entrada: dict, hilos: dict, por_hilo: dict, activo: dict | None,
+                      ocupacion: calendario.Ocupacion | None = None) -> str:
     """'' si la entrada puede quedar esperando aprobación; si no, por qué no."""
     hilo = str(entrada.get("hilo", ""))
     if hilo not in hilos:
@@ -79,7 +84,14 @@ def motivo_de_rechazo(entrada: dict, hilos: dict, por_hilo: dict, activo: dict |
             return "el texto dice ser una persona"
         if activo is not None and (rasgos := voz.hallazgos(texto, activo)):
             return "voz ajena: " + "; ".join(rasgos)
-    return _cotizacion(entrada, activo)[1]
+    cot, motivo = _cotizacion(entrada, activo)
+    if cot is not None:
+        if ocupacion is None or not ocupacion.configurada:
+            return "cotiza fechas sin calendario conectado: no se vende una fecha a ciegas"
+        d = ocupacion.disponibilidad(cot.propiedad, cot.llegada, cot.salida)
+        if d.estado != calendario.LIBRE:
+            return f"el calendario no da libre {cot.propiedad} en esas fechas ({d.estado}: {d.por_que})"
+    return motivo
 
 
 def validar(espacio: Espacio, ronda: dict) -> tuple[list[dict], list[dict]]:
@@ -92,9 +104,10 @@ def validar(espacio: Espacio, ronda: dict) -> tuple[list[dict], list[dict]]:
     hilos = historial.hilos(espacio)
     por_hilo = {p.hilo: p for p in pendientes.leer(hilos)}
     activo = perfil.activo(espacio)
+    ocupacion = calendario.Ocupacion.de(espacio)
     aceptadas, descartadas, vistos = [], [], set()
     for entrada in ronda.get("entradas", []) or []:
-        motivo = motivo_de_rechazo(entrada, hilos, por_hilo, activo)
+        motivo = motivo_de_rechazo(entrada, hilos, por_hilo, activo, ocupacion)
         if not motivo and entrada.get("hilo") in vistos:
             motivo = "el hilo ya va en esta ronda"
         (descartadas if motivo else aceptadas).append(dict(entrada, motivo=motivo) if motivo else entrada)
