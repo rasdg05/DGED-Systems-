@@ -159,6 +159,8 @@ def mensaje_vivo(event, resolver=None) -> Mensaje | None:
 # --------------------------------------------------------------------------- #
 def publicar(espacio: Espacio, estado: str, **extra) -> None:
     anterior = espacio.leer_json(ESTADO, {}) or {}
+    if anterior.get("estado") != estado:
+        anterior.pop("detalle", None)  # el aviso de un estado viejo no se queda pegado al nuevo (429 del 2026-10-27)
     anterior.update(extra, estado=estado, en=datetime.now(timezone.utc).isoformat(timespec="seconds"))
     if estado != "esperando_qr":
         anterior.pop("qr", None)

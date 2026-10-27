@@ -161,3 +161,9 @@ def test_vinc_si_el_codigo_falla_se_ve_el_qr_y_se_reintenta_despues(espacio):
 def test_vinc_sin_telefono_siempre_qr(espacio):
     e = vinculado.Emparejar(espacio, "", lambda _t: "NO")
     assert e.al_recibir_qr("2@x") is False and vinculado.leer_estado(espacio)["qr"] == "2@x"
+
+
+def test_vinc_el_aviso_viejo_no_se_pega_al_estado_nuevo(espacio):
+    vinculado.publicar(espacio, "esperando_qr", qr="2@x", detalle="WhatsApp pidió esperar")
+    vinculado.publicar(espacio, "esperando_codigo", codigo="HE99-9SL1")
+    assert "detalle" not in vinculado.leer_estado(espacio)
