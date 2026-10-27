@@ -85,24 +85,36 @@ def bajar(cliente_id: str) -> dict:
             "activa": espejo.get("activa"), "carpeta": str(espacio.carpeta)}
 
 
-def lotes(cliente_id: str, por_lote: int = 10) -> tuple[dict, list[Path]]:
-    """La vara sobre la copia local y, para cada `espera`, su plática completa en lotes."""
+def lotes(cliente_id: str, por_lote: int = 10, dias: int | None = None) -> tuple[dict, list[Path]]:
+    """Para el enjambre, en el orden del semáforo (la más urgente primero): las que
+    esperan respuesta (`tipo: contestar`) y las de seguimiento (`tipo: seguimiento`,
+    D-041), cada una con su plática completa. `dias`: solo lo de los últimos N días
+    (por defecto, la vigencia del semáforo)."""
+    from . import semaforo
+
     espacio = _espacio(cliente_id)
     hilos = historial.hilos(espacio)
     lista = pendientes.leer(hilos)
-    espera = [p for p in lista if p.estado == "espera"]
+    espera = {p.hilo: p for p in lista if p.estado == "espera"}
+    limite = (dias if dias is not None else semaforo.DIAS_VIGENCIA) * 24
+    filas = [f for f in semaforo.leer(hilos) if f.horas <= limite and (f.hilo in espera or f.seguimiento)]
     carpeta = espacio.ruta(f"enjambre/{datetime.now(timezone.utc):%Y-%m-%dT%H%M}")
     carpeta.mkdir(parents=True, exist_ok=True)
     escritos = []
-    for i in range(0, len(espera), por_lote):
-        platicas = [{**p.a_dict(), "mensajes": [
-            {"id": m.id, "de": "negocio" if m.del_negocio else "cliente", "ts": m.ts, "tipo": m.tipo, "texto": m.texto}
-            for m in hilos[p.hilo][-MENSAJES_POR_PLATICA:]]} for p in espera[i:i + por_lote]]
+    for i in range(0, len(filas), por_lote):
+        platicas = [{"hilo": f.hilo, "tipo": "contestar" if f.hilo in espera else "seguimiento",
+                     "estado": f.estado, "horas": f.horas, "ultimo_id": f.ultimo_id,
+                     "dicho": espera[f.hilo].dicho if f.hilo in espera else f.dicho,
+                     "mensajes": [{"id": m.id, "de": "negocio" if m.del_negocio else "cliente", "ts": m.ts,
+                                   "tipo": m.tipo, "texto": m.texto}
+                                  for m in hilos[f.hilo][-MENSAJES_POR_PLATICA:]]} for f in filas[i:i + por_lote]]
         ruta = carpeta / f"lote-{i // por_lote + 1:02d}.json"
         ruta.write_text(json.dumps({"cliente_id": cliente_id, "perfil_activo": perfil.version_activa(espacio),
                                     "platicas": platicas}, ensure_ascii=False, indent=1), encoding="utf-8")
         escritos.append(ruta)
-    return pendientes.resumen(lista), escritos
+    return {**pendientes.resumen(lista), "para_el_enjambre": len(filas),
+            "contestar": sum(1 for f in filas if f.hilo in espera),
+            "seguimiento": sum(1 for f in filas if f.hilo not in espera)}, escritos
 
 
 def _leer(ruta: str) -> dict:
@@ -115,6 +127,7 @@ def main(argv: list[str] | None = None) -> int:
     for nombre in ("bajar", "pendientes", "servidor"):
         sub.add_parser(nombre).add_argument("cliente_id")
     sub.choices["pendientes"].add_argument("--por-lote", type=int, default=10)
+    sub.choices["pendientes"].add_argument("--dias", type=int, default=None)
     for nombre in ("validar", "subir", "proponer"):
         s = sub.add_parser(nombre)
         s.add_argument("cliente_id")
@@ -130,7 +143,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.orden == "bajar":
         print(json.dumps(bajar(a.cliente_id), ensure_ascii=False, indent=1))
     elif a.orden == "pendientes":
-        resumen, escritos = lotes(a.cliente_id, a.por_lote)
+        resumen, escritos = lotes(a.cliente_id, a.por_lote, a.dias)
         print(json.dumps(resumen, ensure_ascii=False, indent=1))
         for ruta in escritos:
             print(f"· {ruta}")

@@ -45,3 +45,8 @@ def test_la_mas_urgente_primero_y_dentro_del_color_la_que_mas_espera():
              "cot": [_m("3", "cot", False, 0, "Precio?"), _m("4", "cot", True, 0, "Son 5,000")]}
     orden = [f.hilo for f in semaforo.leer(hilos, 12 * H)]
     assert orden == ["viejo", "nuevo", "cot"]
+
+
+def test_lo_que_nadie_atendio_hace_mas_de_tres_semanas_se_enfrio():
+    viejo = {"v": [_m("1", "v", False, 0, "Info por favor")]}
+    assert _estados(viejo, (semaforo.DIAS_VIGENCIA * 24 + 1) * H)["v"][:2] == ("sin_atender", "gris")

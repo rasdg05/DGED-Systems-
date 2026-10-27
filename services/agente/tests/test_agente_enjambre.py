@@ -164,9 +164,9 @@ def test_local_bajar_deja_tope_cero_y_sombra_y_lotes_solo_con_espera(con_pendien
     assert copia.config()["encendido"] == "sombra" and not gasto.puede_gastar(copia)
     with pytest.raises(gasto.TopeAlcanzado):
         gasto.exigir_saldo(copia)
-    resumen, escritos = local.lotes("muestra-vacacional", por_lote=1)
+    resumen, escritos = local.lotes("muestra-vacacional", por_lote=1, dias=100_000)
     platicas = [p for r in escritos for p in json.loads(r.read_text(encoding="utf-8"))["platicas"]]
-    assert len(platicas) == resumen["espera"] and all(p["estado"] == "espera" for p in platicas)
+    assert len(platicas) == resumen["espera"] and all(p["tipo"] == "contestar" for p in platicas)
     assert any(p["ultimo_id"] == "wamid.E3" for p in platicas)
 
 
@@ -202,3 +202,24 @@ def test_inv_si_se_aparto_despues_de_aprobar_no_se_envia(con_pendiente, monkeypa
     assert "apartadas" not in canal.motivo_para_no_enviar(con_pendiente, salidas[0])
     _calendario(con_pendiente, RESERVA_QUINTA)
     assert "apartadas" in canal.motivo_para_no_enviar(con_pendiente, salidas[0])
+
+
+def test_ronda_de_seguimiento_solo_lo_que_el_semaforo_marca(espacio):
+    """D-041: lo cotizado sin respuesta de 24 h a 21 días sí; recién cotizado o frío, no."""
+    import time
+    ahora = int(time.time())
+    historial.guardar(espacio, [
+        _m("s1", "Precio para 20?", hilo="5301", ts=ahora - 3 * 86400),
+        _m("s2", "Son 22,000 el fin de semana", True, hilo="5301", ts=ahora - 3 * 86400 + 60),
+        _m("r1", "Precio para 20?", hilo="5302", ts=ahora - 3600),
+        _m("r2", "Son 22,000 el fin de semana", True, hilo="5302", ts=ahora - 3500),
+        _m("f1", "Precio para 20?", hilo="5303", ts=ahora - 40 * 86400),
+        _m("f2", "Son 22,000 el fin de semana", True, hilo="5303", ts=ahora - 40 * 86400 + 60),
+    ])
+    texto = ["Buenas tardes, pudo revisar la información?"]
+    ronda = {"nombre": "seg-1", "orden": "dueño, prueba", "entradas": [
+        {"hilo": "5301", "ultimo_id": "s2", "textos": texto}, {"hilo": "5302", "ultimo_id": "r2", "textos": texto},
+        {"hilo": "5303", "ultimo_id": "f2", "textos": texto}]}
+    aceptadas, descartadas = rondas.validar(espacio, ronda)
+    assert [a["hilo"] for a in aceptadas] == ["5301"]
+    assert {d["hilo"] for d in descartadas} == {"5302", "5303"}

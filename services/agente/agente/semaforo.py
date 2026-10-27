@@ -86,6 +86,8 @@ def _color(estado: str, horas: float) -> str:
     if estado == "reclamo":
         return "rojo"
     if estado in ("sin_atender", "nos_toca", "promesa", "solo_medios"):
+        if horas > DIAS_VIGENCIA * 24:
+            return "gris"  # se enfrió: no es lo urgente de hoy (en Finca Emiliano, 126 de 349 rojos)
         return "rojo" if horas >= HORAS_ROJO else "ambar"
     if estado in ("cotizado", "esperando_cliente"):
         return "ambar" if HORAS_SEGUIMIENTO <= horas <= DIAS_VIGENCIA * 24 else ("verde" if horas < HORAS_SEGUIMIENTO

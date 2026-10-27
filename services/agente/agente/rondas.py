@@ -10,7 +10,8 @@ Lo que Gestor aprendió y aquí es código, no costumbre:
   `COLA_CAMBIADA`). Cada entrada cita el `ultimo_id` que leyó; se revisa al
   cargar y otra vez al enviar (`canal.motivo_para_no_enviar`).
 - **Reclamos, medios y acuses no los contesta el enjambre**: solo `espera`
-  (`pendientes.py`).
+  (`pendientes.py`) y el **seguimiento** que marca el semáforo (cotizado o
+  preguntado, sin respuesta del cliente de 24 h a 21 días; D-041).
 - **Ninguna cifra en el texto del enjambre** (invariante 1). Si la entrada pide
   cotizar, la cifra la escribe el cotizador con el perfil aprobado y se pega
   al final, igual que en `agente.decidir`.
@@ -27,7 +28,7 @@ from __future__ import annotations
 import re
 from datetime import date, datetime, timezone
 
-from . import calendario, cotizador, guardia, historial, pendientes, perfil, voz
+from . import calendario, cotizador, guardia, historial, pendientes, perfil, semaforo, voz
 from .agente import ARCHIVO, Salida
 from .espacio import Espacio
 
@@ -62,7 +63,7 @@ def _cotizacion(entrada: dict, activo: dict | None) -> tuple[cotizador.Cotizacio
 
 
 def motivo_de_rechazo(entrada: dict, hilos: dict, por_hilo: dict, activo: dict | None,
-                      ocupacion: calendario.Ocupacion | None = None) -> str:
+                      ocupacion: calendario.Ocupacion | None = None, seguimiento: frozenset = frozenset()) -> str:
     """'' si la entrada puede quedar esperando aprobación; si no, por qué no."""
     hilo = str(entrada.get("hilo", ""))
     if hilo not in hilos:
@@ -70,7 +71,10 @@ def motivo_de_rechazo(entrada: dict, hilos: dict, por_hilo: dict, activo: dict |
     if hilos[hilo][-1].id != entrada.get("ultimo_id"):
         return SE_MOVIO
     pendiente = por_hilo.get(hilo)
-    if pendiente is None or pendiente.estado != "espera":
+    # Seguimiento (D-041): lo último es del negocio (cotizó o preguntó) y el
+    # cliente no contesta hace 24 h a 21 días; el semáforo lo marca. Lo demás
+    # que termina en el negocio no se persigue en ronda.
+    if (pendiente is None or pendiente.estado != "espera") and hilo not in seguimiento:
         return f"no espera respuesta ({pendiente.estado if pendiente else 'lo último es del negocio'})"
     textos = entrada.get("textos")
     if not isinstance(textos, list) or not textos or not all(isinstance(t, str) and t.strip() for t in textos):
@@ -105,9 +109,10 @@ def validar(espacio: Espacio, ronda: dict) -> tuple[list[dict], list[dict]]:
     por_hilo = {p.hilo: p for p in pendientes.leer(hilos)}
     activo = perfil.activo(espacio)
     ocupacion = calendario.Ocupacion.de(espacio)
+    seguimiento = frozenset(f.hilo for f in semaforo.leer(hilos) if f.seguimiento)
     aceptadas, descartadas, vistos = [], [], set()
     for entrada in ronda.get("entradas", []) or []:
-        motivo = motivo_de_rechazo(entrada, hilos, por_hilo, activo, ocupacion)
+        motivo = motivo_de_rechazo(entrada, hilos, por_hilo, activo, ocupacion, seguimiento)
         if not motivo and entrada.get("hilo") in vistos:
             motivo = "el hilo ya va en esta ronda"
         (descartadas if motivo else aceptadas).append(dict(entrada, motivo=motivo) if motivo else entrada)

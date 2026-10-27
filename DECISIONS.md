@@ -226,3 +226,7 @@ Dueño: *"la página se siente muy vacía, ya no debería decir aprendiendo, ya 
 ## D-040 — 2026-10-27 — Tope del vinculado: 100 mensajes al día
 
 Dueño: *"Cámbialo de 60 a 100 mensajes al día"*. `enviador.TOPE_DIA = 100`. A uno cada 40–50 s son ~75 min de envío; lo demás de LXIV no cambia (9:00 a 20:59, una ronda por plática cada 24 h, un espacio puede ir más lento y nunca más rápido).
+
+## D-041 — 2026-10-27 — Las rondas también dan seguimiento; lo de más de 3 semanas se enfría
+
+Para que el enjambre persiga *"los no contestados y cierre cotizaciones"*, una ronda acepta, además de `espera`, el **seguimiento** que marca el semáforo: lo último es del negocio (cotizó o preguntó) y el cliente no contesta hace 24 h a 21 días. Lo recién cotizado (< 24 h) o frío (> 21 días) no. `python -m agente.local pendientes` arma los lotes en el orden del semáforo, con `tipo` contestar o seguimiento y `--dias`. Medido en Finca Emiliano el 2026-10-27 (706 pláticas): 349 rojos, de los cuales 126 llevaban más de 21 días sin que nadie los atendiera; ahora salen en gris ("se enfrió") y el rojo es lo de hoy.
