@@ -245,6 +245,15 @@ def leer_estado(espacio: Espacio) -> dict:
     return espacio.leer_json(ESTADO, {}) or {"estado": "sin_lector"}
 
 
+def numero_de(jid) -> str:
+    """El número de un JID, venga como texto (`5217774969880:12@s.whatsapp.net`) o como el
+    objeto de neonize (con `.User`). El 2026-10-27 `str()` del objeto mezcló los dígitos de
+    `Device` y el número correcto de Finca Emiliano salió "equivocado"."""
+    usuario = getattr(jid, "User", None)
+    texto = str(usuario if usuario is not None else (jid or ""))
+    return "".join(c for c in texto.split("@", 1)[0].split(":", 1)[0] if c.isdigit())
+
+
 def numero_permitido(espacio: Espacio, numero: str) -> bool:
     esperado = "".join(c for c in str(espacio.config().get("numero_negocio", "")) if c.isdigit())
     return not esperado or esperado[-10:] == "".join(c for c in numero if c.isdigit())[-10:]
@@ -317,15 +326,24 @@ def main() -> int:  # pragma: no cover - necesita WhatsApp de verdad
 
     @client.event(PairStatusEv)
     def on_pair(_c, event):
-        numero = _usuario(str(getattr(event, "ID", "") or ""))
+        numero = numero_de(getattr(event, "ID", None))
         publicar(espacio, "vinculado", numero=numero, negocio=getattr(event, "BusinessName", ""))
         if not numero_permitido(espacio, numero):
             publicar(espacio, "numero_ajeno", numero=numero)
 
     @client.event(ConnectedEv)
     def on_connected(_c, _e):
-        estado = leer_estado(espacio)
-        if estado.get("estado") != "numero_ajeno":
+        # El número se confirma en CADA conexión con la sesión misma (como Gestor, `get_me`):
+        # un "numero_ajeno" mal leído al emparejar no se queda pegado para siempre.
+        try:
+            numero = numero_de(getattr(client.get_me(), "JID", None))
+        except Exception:
+            logger.exception("No se pudo leer el número de la sesión")
+            numero = ""
+        if numero:
+            publicar(espacio, "conectado" if numero_permitido(espacio, numero) else "numero_ajeno",
+                     numero=numero, mensajes=len(historial.cargar(espacio)))
+        elif leer_estado(espacio).get("estado") != "numero_ajeno":
             publicar(espacio, "conectado", mensajes=len(historial.cargar(espacio)))
 
     @client.event(HistorySyncEv)

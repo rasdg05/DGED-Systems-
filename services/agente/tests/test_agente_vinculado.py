@@ -208,3 +208,18 @@ def test_vinc_el_aviso_viejo_no_se_pega_al_estado_nuevo(espacio):
     vinculado.publicar(espacio, "esperando_qr", qr="2@x", detalle="WhatsApp pidió esperar")
     vinculado.publicar(espacio, "esperando_codigo", codigo="HE99-9SL1")
     assert "detalle" not in vinculado.leer_estado(espacio)
+
+
+def test_vinc_el_numero_se_lee_del_campo_user_no_del_objeto_entero(espacio):
+    """Finca Emiliano, 2026-10-27: su propio número salió "equivocado" porque str() del JID
+    de neonize mezclaba los dígitos de Device y Server."""
+    from types import SimpleNamespace
+    config = espacio.config()
+    config["numero_negocio"] = "5217774969880"
+    espacio.escribir_json("config.json", config)
+    jid = SimpleNamespace(User="5217774969880", Server="s.whatsapp.net", Device=21, Integrator=0)
+    assert vinculado.numero_de(jid) == "5217774969880"
+    assert vinculado.numero_de("5217774969880:21@s.whatsapp.net") == "5217774969880"
+    assert vinculado.numero_permitido(espacio, vinculado.numero_de(jid))
+    assert not vinculado.numero_permitido(espacio, vinculado.numero_de(SimpleNamespace(User="5215550001111")))
+    assert vinculado.numero_permitido(espacio, "527774969880")  # con o sin el 1 de los celulares de México
