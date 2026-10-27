@@ -34,6 +34,30 @@ Gracias 🙏
 
 ---
 
+## Lo que contestó — 2026-10-27 (WhatsApp, capturas del dueño)
+
+| Hora | Quién | Texto literal | Cómo se lee |
+|---|---|---|---|
+| 12:31 | DGED | La hoja de arriba, tal cual | |
+| 13:47 | Mariana | "Si ándale así" | **La lista en bloque queda confirmada** (finca por grupo, quinta 10k y fin de año 8k, las dos casas 45k, alberca, visitas, mínimo 3 noches en 23 dic – 1 ene). |
+| 14:02 | Mariana | "1.depende si son menos habitaciones como 3 podría dejarles en 5,000 para 6 personas" | Quinta chica: **5,000 para 6 personas con 3 habitaciones**, en "podría". No dice si es la noche (lo más probable: es la moda de lo que ya cotizó la noche, 7 de 14) ni contesta la quinta en **fin de semana**. Sigue a decidir. |
+| 14:02 | Mariana | "Una sola noche para 25 podría variar si 12,000 o 15" | Finca una noche para 25: **entre 12,000 y 15,000**, sin decir qué decide. Sigue a decidir; el cotizador no elige una de las dos. |
+| 14:12 | Mariana | "3. Ya estoy anotando en google calentar pero tenngo que hacerlo y compartirtelo" | Calendario: **Google Calendar**, todavía a medias. |
+| 14:15 | DGED | "No, nada más es para que lo tengas en calendar de tu cuenta y se conectas con la misma herramienta" | Falta el enlace iCal secreto de su cuenta (instrucciones abajo). |
+
+Qué hacer con esto, en la máquina donde vive `datos/espacios/finca-quinta/`:
+
+1. En `lista_precios/propuesta.json`, marcar la lista en bloque como confirmada por
+   ella con la cita de las 13:47, y subirla (`python -m agente.local proponer ...
+   --de-verdad`) para que la apruebe en Asistente → Precios. Confirmar por WhatsApp
+   no es aprobar en la pantalla: la cifra sale hasta que la apruebe ahí.
+2. **No** volver regla los 5,000 de la quinta chica ni la finca una noche: los dos
+   llevan "podría" y el segundo da dos cifras. Para cerrarlos, una pregunta cada uno:
+   - "¿Los $5,000 de la quinta para 6 son por noche? ¿Y por fin de semana?"
+   - "Para la finca una noche con 25, ¿qué hace que sea $12,000 o $15,000? (¿día de la semana, temporada, alberca?)"
+3. Cuando tenga el calendario en su cuenta, pedirle la dirección secreta iCal y darla
+   de alta con `agente.calendario fuente` (no va a git ni al chat).
+
 ## Dónde está el enlace del calendario (para la pregunta 3)
 
 - **Airbnb**: Anuncios → la casa → Disponibilidad → Conectar calendarios →

@@ -1,4 +1,4 @@
-# Estado — 2026-10-27 (calendario por iCal y hoja para Mariana)
+# Estado — 2026-10-27 (Mariana contestó la hoja)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
@@ -11,6 +11,11 @@
   cotiza (LXII). 14 tests; 307 del agente en verde. **No medido**: faltan los enlaces de Finca Emiliano.
 - **Hoja para Mariana** (`docs/20-hoja-para-mariana.md`): el texto para mandarle por WhatsApp en versión corta: la lista en bloque
   para un solo "sí" y 3 preguntas (quinta chica y fin de semana, finca una noche, calendario).
+  **Contestó el 2026-10-27** (doc 20, sección "Lo que contestó"): **"Si ándale así" a la lista en bloque**;
+  quinta chica "podría" 5,000 para 6 con 3 habitaciones (sin unidad; el fin de semana no lo contestó);
+  finca una noche para 25 "12,000 o 15" (rango, no regla); calendario en Google Calendar, a medias.
+  **Siguiente**: en la máquina con `datos/`, marcar la lista confirmada en `propuesta.json` y subirla
+  para que la apruebe en Asistente → Precios; dos preguntas para cerrar lo a decidir; pedir el iCal.
 
 - **Lista de precios y cotizador por grupo** (2026-10-27, `docs/19-lista-de-precios.md`, D-031 a D-033,
   rama `claude/agente-a-la-medida`). Cero llamadas a la API; nada subido a producción.
