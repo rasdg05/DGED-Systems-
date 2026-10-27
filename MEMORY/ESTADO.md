@@ -29,7 +29,8 @@
   (`4f03c48` en su main, desplegado): cifra de la IA revisada por código, también con letra; "grax".
 - **UX/UI** (D-020, 2026-10-27): rediseño "Airbnb de Apple" hecho, sin Basecoat. `/v/` con portada
   (foto o degradado del color del negocio), código en casillas, estado en vivo; pantallas internas
-  con listas agrupadas y pestañas abajo. Color y foto se ponen en el alta. **Falta**: pedir a Finca
+  con listas agrupadas y pestañas abajo. D-021: cuatro pestañas para administrar (Inicio, Chats,
+  Asistente, Negocio); banco y sombra en `/banco` sin pestaña. Subcuentas: pendiente. Color y foto se ponen en el alta. **Falta**: pedir a Finca
   Emiliano su foto original y el verde exacto de su volante, y subirlos desde su alta.
 - **Lector por QR vinculado, solo lectura** (D-018): `services/agente/agente/vinculado.py`, página
   `/espacios/<id>/vincular`. Desplegable en Railway como servicio aparte del mismo repo

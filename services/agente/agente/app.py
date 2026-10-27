@@ -107,8 +107,8 @@ def aprobar_version(cliente_id: str, n: int, aprobador: str = Body(..., embed=Tr
 
 @app.post("/espacios/{cliente_id}/salidas/{salida_id}/aprobar")
 def aprobar_salida(cliente_id: str, salida_id: str, aprobador: str = Body(..., embed=True),
-                   x_tenant_key: str | None = Header(default=None)) -> dict:
-    espacio = _espacio(cliente_id, x_tenant_key)
+                   x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    espacio = _espacio(cliente_id, x_tenant_key or llave)
     try:
         salida = agente.aprobar_salida(espacio, salida_id, aprobador)
     except perfil.AprobacionInvalida as error:
@@ -154,6 +154,18 @@ def alta_guardar(cliente_id: str, datos: dict, x_tenant_key: str | None = Header
             config["marca_color"] = color.lower()
         espacio.escribir_json("config.json", config)
     return {"alta": sorted(registrada), "faltan": alta.faltan(registrada)}
+
+
+@app.post("/espacios/{cliente_id}/marca")
+def marca_guardar(cliente_id: str, color: str = Body(..., embed=True), x_tenant_key: str | None = Header(default=None),
+                  llave: str | None = None) -> dict:
+    espacio = _espacio(cliente_id, x_tenant_key or llave)
+    if not paginas.HEX.match(color or ""):
+        raise HTTPException(422, "color de marca inválido: debe ser #rrggbb")
+    config = espacio.config()
+    config["marca_color"] = color.lower()
+    espacio.escribir_json("config.json", config)
+    return {"marca_color": config["marca_color"]}
 
 
 @app.post("/espacios/{cliente_id}/portada")

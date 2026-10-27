@@ -136,6 +136,21 @@ box-shadow:var(--sombra);line-height:1.38}
 .cita{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:var(--fill);font-size:14.5px;color:var(--muted)}
 .cita small{display:block;font-size:11.5px;font-weight:600;letter-spacing:.02em;margin-bottom:2px}
 .cita q{color:var(--text)}
+details.origen summary{list-style:none;cursor:pointer;font-size:13px;color:var(--accent);margin-top:4px}
+details.origen summary::-webkit-details-marker{display:none}details.origen .cita{margin-top:8px}
+.fila .der b{color:var(--text);font-size:16px;font-variant-numeric:tabular-nums}
+.punto{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-top:4px}
+.bur.borrador{align-self:flex-end;background:transparent;border:1.5px dashed var(--accent);color:var(--text);box-shadow:none}
+svg.ic.mini{width:13px;height:13px;vertical-align:-2px}
+h2.sec small a{font-size:15px}
+.atras{display:inline-block;font-size:17px;margin:2px 0 0;padding:4px 0}
+.tarjeta-negocio{display:flex;gap:14px;align-items:center;margin:4px 0 6px}
+.tarjeta-negocio b{display:block;font:700 20px/1.2 var(--display);letter-spacing:-.025em}
+.tarjeta-negocio small{color:var(--muted);font-size:14.5px}
+.portada-mini{width:72px;height:72px;border-radius:18px;flex:none;background:var(--marca) center/cover;display:grid;
+place-items:center;color:#fff;font:600 30px var(--display)}
+.portada-mini.sin-foto{background:linear-gradient(165deg,var(--marca),color-mix(in oklab,var(--marca) 55%,#000))}
+.grupo.datos .fila small{white-space:pre-line}
 .ficha{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0;font-size:16px}
 .ficha dt{color:var(--muted)}.ficha dd{margin:0;font-weight:600;overflow-wrap:anywhere}
 /* --- vincular --- */
@@ -217,6 +232,9 @@ _ICONOS = {
                  '<path d="M7.5 11H6a1.5 1.5 0 0 0-1.5 1.5v6A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5v-6A1.5 1.5 0 0 0 18 11h-1.5"/>',
     "foto": '<rect x="3.5" y="5" width="17" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M20.5 15.5l-5-5-9 8.5"/>',
     "chispa": '<path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M18.5 16v4M16.5 18h4"/>',
+    "casa": '<path d="M4 10.5L12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z"/>',
+    "tienda": '<path d="M4 9.5l1.5-5h13l1.5 5"/><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"/>'
+              '<path d="M5.5 11.5v8h13v-8"/>',
     "aviso": '<path d="M12 4l9 16H3z"/><path d="M12 10v4.5M12 17.3v.2"/>',
 }
 
@@ -225,9 +243,11 @@ def icono(nombre: str, clase: str = "ic") -> str:
     return f'<svg class="{clase}" viewBox="0 0 24 24" aria-hidden="true">{_ICONOS[nombre]}</svg>'
 
 
-# Cinco pestañas, como iOS. El alta se abre desde el tablero y cuenta como tablero.
-SECCIONES = (("", "Tablero", "tablero"), ("vincular", "WhatsApp", "enlace"), ("conversaciones", "Chats", "chat"),
-             ("revision", "Perfil", "perfil"), ("banco", "Banco", "escudo"))
+# Cuatro pestañas para administrar (D-021). Alta y WhatsApp viven dentro de Negocio; el taller
+# (banco, sombra, historial crudo) no tiene pestaña: es nuestro, no del negocio.
+SECCIONES = (("", "Inicio", "casa"), ("conversaciones", "Chats", "chat"), ("revision", "Asistente", "chispa"),
+             ("negocio", "Negocio", "tienda"))
+_PESTANA = {"alta": "negocio", "vincular": "negocio"}
 
 
 def esc(texto) -> str:
@@ -338,14 +358,14 @@ def _documento(espacio: Espacio | None, titulo: str, cuerpo: str, refrescar: int
 
 
 def pagina(espacio: Espacio | None, llave: str | None, activa: str, titulo: str, cuerpo: str,
-           refrescar: int | None = None, barra: str = "", navegacion: bool = True) -> str:
+           refrescar: int | None = None, barra: str = "", navegacion: bool = True, atras: tuple[str, str] | None = None) -> str:
     """Pantalla interna: barra de vidrio con el nombre del negocio, título grande, pestañas abajo.
     `barra` es la acción principal (guardar, aprobar), fija encima de las pestañas."""
     alta = (espacio.leer_json("alta.json", {}) or {}) if espacio else {}
     nombre = alta.get("nombre_comercial") or (espacio.cliente_id if espacio else "DGED")
     tabs = ""
     if espacio and navegacion:
-        pestana = "" if activa == "alta" else activa
+        pestana = _PESTANA.get(activa, activa)
         tabs = ('<nav class="tabs"><div class="in">' + "".join(
             f'<a class="{"on" if s == pestana else ""}" href="{esc(url(espacio, s, llave))}"'
             f'{" aria-current=page" if s == pestana else ""}>{icono(i)}{t}</a>' for s, t, i in SECCIONES)
@@ -354,7 +374,9 @@ def pagina(espacio: Espacio | None, llave: str | None, activa: str, titulo: str,
         cuerpo = f"<div data-vivo>{cuerpo}</div>"
     accion = f'<div class="accion"><div class="in">{barra}</div></div>' if barra else ""
     html_cuerpo = (f'<header class="barra-nav"><div class="in">{esc(nombre)}</div></header>'
-                   f'<main class="contenido aparece"><h1 class="titulo-grande">{esc(titulo)}</h1>{cuerpo}</main>'
+                   f'<main class="contenido aparece">'
+                   + (f'<a class="atras" href="{esc(atras[1])}">‹ {esc(atras[0])}</a>' if atras else "")
+                   + f'<h1 class="titulo-grande">{esc(titulo)}</h1>{cuerpo}</main>'
                    f"{accion}{tabs}")
     return _documento(espacio, f"{titulo} · {nombre}", html_cuerpo, refrescar, "con-accion" if barra else "")
 
@@ -375,19 +397,63 @@ def _cuando(ts: int) -> str:
     return momento.strftime("%H:%M") if momento.date() == datetime.now(HORA_MX).date() else momento.strftime("%d/%m/%y")
 
 
-def _fila(titulo: str, detalle: str = "", href: str | None = None, ico: str = "", der: str = "") -> str:
+def _fila(titulo: str, detalle: str = "", href: str | None = None, ico: str = "", der: str = "",
+          extra: str = "") -> str:
     """Un renglón de lista agrupada. `titulo` y `detalle` ya vienen escapados."""
     etiqueta = "a" if href else "div"
     destino = f' href="{esc(href)}"' if href else ""
     chev = icono("chev", "ic chev") if href else ""
     det = f"<small>{detalle}</small>" if detalle else ""
     der_html = f'<span class="der">{der}</span>' if der else ""
-    return (f'<{etiqueta} class="fila"{destino}>{ico}<div class="txt"><b>{titulo}</b>{det}</div>'
+    return (f'<{etiqueta} class="fila"{destino}>{ico}<div class="txt"><b>{titulo}</b>{det}{extra}</div>'
             f"{der_html}{chev}</{etiqueta}>")
 
 
 # --------------------------------------------------------------------------- #
-#  Tablero                                                                     #
+#  Lo que sirve para administrar                                               #
+# --------------------------------------------------------------------------- #
+MODOS = {
+    "sombra": ("mid", "Aprendiendo", "Todavía no le contesta a nadie. Lee sus chats y prepara borradores para que "
+               "usted vea cómo respondería."),
+    "sin_cifra": ("ok", "Contesta lo sencillo", "Responde lo que no lleva precio. Las cotizaciones esperan su sí."),
+}
+
+
+def _modo(espacio: Espacio) -> tuple[str, str, str]:
+    return MODOS.get(espacio.config().get("encendido", "sombra"), MODOS["sombra"])
+
+
+def _sin_responder(hilos: dict) -> list[str]:
+    """Conversaciones cuyo último mensaje es del cliente."""
+    return [h for h, ms in hilos.items() if ms and not ms[-1].del_negocio]
+
+
+def _por_aprobar(espacio: Espacio) -> list:
+    return [s for s in agente.salidas(espacio) if s.requiere_aprobacion and not s.aprobada_por]
+
+
+def _pendiente(espacio: Espacio) -> int | None:
+    activa = perfil.version_activa(espacio)
+    return next((n for n in reversed(perfil.versiones(espacio)) if activa is None or n > activa), None)
+
+
+def _saludo() -> str:
+    hora = datetime.now(HORA_MX).hour
+    return "Buenos días" if hora < 12 else ("Buenas tardes" if hora < 19 else "Buenas noches")
+
+
+def _filas_chats(espacio: Espacio, llave: str | None, hilos: dict, orden: list) -> str:
+    abiertos = set(_sin_responder(hilos))
+    return "".join(
+        _fila(esc(_enmascarar(h)), f'<span class="linea" style="display:block">{esc((ms[-1].texto or "")[:90])}</span>',
+              url(espacio, "conversaciones", llave, hilo=h), f'<span class="avatar">{esc(h[-2:])}</span>',
+              f"{esc(_cuando(ms[-1].ts))}<br>" + ('<span class="punto" title="Sin responder"></span>' if h in abiertos
+                                                  else str(len(ms))))
+        for h, ms in orden)
+
+
+# --------------------------------------------------------------------------- #
+#  Inicio                                                                      #
 # --------------------------------------------------------------------------- #
 @router.get("/espacios/{cliente_id}", response_class=HTMLResponse)
 def tablero(cliente_id: str, llave: str | None = None) -> str:
@@ -396,74 +462,309 @@ def tablero(cliente_id: str, llave: str | None = None) -> str:
     estado = vinculado.leer_estado(espacio)
     hilos = historial.hilos(espacio)
     n_msj = sum(len(v) for v in hilos.values())
-    activa = perfil.version_activa(espacio)
-    versiones = perfil.versiones(espacio)
-    pendiente = next((n for n in reversed(versiones) if activa is None or n > activa), None)
     conectado = estado.get("estado") in ("conectado", "vinculado")
+    abiertos = _sin_responder(hilos)
+    cotizaciones = _por_aprobar(espacio)
+    pendiente = _pendiente(espacio)
 
-    def paso(hecho: bool, en_curso: bool, n: int, titulo: str, detalle: str, enlace: str) -> str:
-        if hecho:
-            marca = f'<span class="icono ok">{icono("visto")}</span>'
-        else:
-            marca = f'<span class="icono {"ya" if en_curso else "n"}">{n}</span>'
-        return _fila(titulo, detalle, enlace, marca)
+    tono, titulo, texto = _modo(espacio)
+    modo = (f'<div class="bloque"><span class="estado {tono}">{titulo}</span>'
+            f'<h2 style="font-size:22px;letter-spacing:-.025em;margin:8px 0 4px">Su asistente</h2>'
+            f'<p class="lede" style="margin:0">{texto}</p></div>')
 
-    pasos = "".join([
-        paso(bool(alta) and not alta_mod.faltan(alta), True, 1, "Alta del negocio",
-             ("Lo básico: qué vende, cómo cobra, quién aprueba." if not alta else
-              ("Lista." if not alta_mod.faltan(alta) else "Falta: " + esc(", ".join(alta_mod.faltan(alta))) + ".")),
-             url(espacio, "alta", llave)),
-        paso(conectado, bool(alta) and not conectado, 2, "WhatsApp vinculado (solo lectura)",
-             esc(ESTADOS.get(estado.get("estado", "sin_lector"), ("", estado.get("estado", ""), ""))[1]),
-             url(espacio, "vincular", llave)),
-        paso(n_msj > 0, conectado and not n_msj, 3, "Historial del negocio",
-             f"{n_msj} mensajes en {len(hilos)} conversaciones.", url(espacio, "conversaciones", llave)),
-        paso(activa is not None, n_msj > 0 and activa is None, 4, "Perfil aprobado",
-             (f"Versión {activa} activa." if activa else "Sin perfil activo.")
-             + (f" Propuesta {pendiente} por revisar." if pendiente else ""), url(espacio, "revision", llave)),
-        paso(False, activa is not None, 5, "Banco y sombra",
-             "Antes de encender nada: pass^k sin errores caros y 30 conversaciones en sombra.",
-             url(espacio, "banco", llave)),
-    ])
-    salidas = agente.salidas(espacio)
-    encendido = espacio.config().get("encendido", "sombra")
-    kpis = (f'<div class="tiles"><div class="tile"><b>{n_msj}</b><span>mensajes leídos</span></div>'
-            f'<div class="tile"><b>{len(hilos)}</b><span>conversaciones</span></div>'
-            f'<div class="tile"><b>{len(salidas)}</b><span>borradores en sombra</span></div>'
-            f'<div class="tile"><b>{esc(encendido)}</b><span>encendido</span></div></div>')
-    simb = ""
-    if n_msj and activa is None and not pendiente:
-        simb = ('<div class="bloque"><b>Armar la primera propuesta de perfil</b><p class="lede">Una pasada del modelo '
-                'grande sobre el historial. Cada dato sale citado de un mensaje; nada se enciende hasta que el dueño '
-                'lo aprueba.</p><button class="btn ancho" onclick="correr(this,'
-                f'\'{esc(url(espacio, "simbiosis", llave))}\')">{icono("chispa")}Proponer perfil</button>'
-                '<p class="toast" id="t"></p></div>' + _JS_POST)
+    def ico(nombre: str, clase: str = "") -> str:
+        return f'<span class="icono {clase}">{icono(nombre)}</span>'
+
+    tareas = []
+    if not alta or alta_mod.faltan(alta):
+        tareas.append(_fila("Complete los datos del negocio",
+                            ("Falta: " + esc(", ".join(alta_mod.faltan(alta))) + ".") if alta else "Qué ofrece, cómo cobra, quién aprueba.",
+                            url(espacio, "alta", llave), ico("tienda", "ya")))
+    if not conectado:
+        tareas.append(_fila("Conecte su WhatsApp", "Para que su asistente aprenda de cómo atiende usted.",
+                            url(espacio, "negocio", llave), ico("enlace", "ya")))
+    if pendiente is not None:
+        tareas.append(_fila("Revise lo que aprendió su asistente", "Hay una versión nueva lista para su aprobación.",
+                            url(espacio, "revision", llave), ico("chispa", "ya")))
+    if cotizaciones:
+        tareas.append(_fila(f"{len(cotizaciones)} cotización{'es' if len(cotizaciones) > 1 else ''} espera{'n' if len(cotizaciones) > 1 else ''} su sí",
+                            "Nada con precio sale sin su aprobación.", url(espacio, "conversaciones", llave),
+                            ico("visto", "ya")))
+    if abiertos:
+        tareas.append(_fila(f"{len(abiertos)} chat{'s' if len(abiertos) > 1 else ''} sin responder",
+                            "El último mensaje es del cliente.", url(espacio, "conversaciones", llave), ico("chat", "ya")))
+    pendientes = ("".join(tareas) if tareas
+                  else _fila("Todo al día", "No hay nada esperando por usted.", ico=ico("visto", "ok")))
+
+    cifras = (f'<div class="tiles"><div class="tile"><b>{len(hilos)}</b><span>conversaciones</span></div>'
+              f'<div class="tile"><b>{len(abiertos)}</b><span>sin responder</span></div>'
+              f'<div class="tile"><b>{n_msj}</b><span>mensajes leídos</span></div>'
+              f'<div class="tile"><b>{len(cotizaciones)}</b><span>cotizaciones por aprobar</span></div></div>')
+    recientes = sorted(hilos.items(), key=lambda kv: -kv[1][-1].ts)[:3]
+    chats = (f'<h2 class="sec">Últimos chats<small><a href="{esc(url(espacio, "conversaciones", llave))}">Ver todos</a>'
+             f'</small></h2><div class="grupo chats">{_filas_chats(espacio, llave, hilos, recientes)}</div>'
+             if recientes else "")
+    nombre = alta.get("nombre_comercial") or espacio.cliente_id
+    cuerpo = (f'<p class="lede" style="margin-top:-2px">{esc(nombre)}</p>{modo}'
+              f'<h2 class="sec">Pendiente</h2><div class="grupo ico">{pendientes}</div>'
+              f'<h2 class="sec">Sus chats</h2>{cifras}{chats}')
+    return pagina(espacio, llave, "", _saludo(), cuerpo)
+
+
+# --------------------------------------------------------------------------- #
+#  Chats                                                                       #
+# --------------------------------------------------------------------------- #
+VIAS = {"persona": "Se lo pasaría a usted", "cotizador": "Cotización preparada"}
+
+
+@router.get("/espacios/{cliente_id}/conversaciones", response_class=HTMLResponse)
+def conversaciones(cliente_id: str, llave: str | None = None, hilo: str | None = None) -> str:
+    espacio = _espacio(cliente_id, llave)
+    hilos = historial.hilos(espacio)
+    if hilo and hilo in hilos:
+        propuestas: dict[str, list] = {}
+        for s in agente.salidas(espacio):
+            if s.hilo == hilo and s.via != "silencio" and (s.texto or s.borrador):
+                propuestas.setdefault(s.responde_a, []).append(s)
+        partes = []
+        for m in hilos[hilo]:
+            partes.append(f'<div class="bur {"n" if m.del_negocio else ""}">{esc(m.texto or "[" + m.tipo + " sin texto]")}</div>'
+                          f'<div class="meta {"n" if m.del_negocio else ""}">{"negocio" if m.del_negocio else "cliente"} · '
+                          f"{_hora(m.ts)}</div>")
+            for s in propuestas.get(m.id, []):
+                espera = s.requiere_aprobacion and not s.aprobada_por
+                aviso = ("Espera su aprobación" if espera else
+                         f"Aprobada por {esc(s.aprobada_por)}" if s.aprobada_por else
+                         VIAS.get(s.via, "Su asistente habría contestado"))
+                boton = (f'<button class="btn ancho" style="min-height:42px;font-size:15px;margin-top:10px;display:flex" '
+                         f'onclick="aprobarSalida(this,{esc(json.dumps(s.id))})">Aprobar</button>' if espera else "")
+                partes.append(f'<div class="bur borrador"><div>{esc(s.texto or s.borrador)}</div>{boton}</div>'
+                              f'<div class="meta n">{icono("chispa", "ic mini")} {aviso}</div>')
+        alta = espacio.leer_json("alta.json", {}) or {}
+        script = ("<script>async function aprobarSalida(b,id){b.disabled=true;"
+                  f"const r=await fetch({json.dumps(url(espacio, 'salidas/', llave))}.replace('salidas/?','salidas/'+id+'/aprobar?'),"
+                  "{method:'POST',headers:{'Content-Type':'application/json'},"
+                  f"body:JSON.stringify({{aprobador:{json.dumps(alta.get('aprobador', ''))}}})}});"
+                  "const d=await r.json().catch(()=>({}));b.textContent=r.ok?(d.enviada?'Enviada ✓':'Aprobada ✓'):"
+                  "(d.detail||'No se pudo');if(!r.ok)b.disabled=false}</script>")
+        n = len(hilos[hilo])
+        cuerpo = (f'<p class="lede">{n} mensaje{"" if n == 1 else "s"}</p><div class="chat">{"".join(partes)}</div>{script}')
+        return pagina(espacio, llave, "conversaciones", _enmascarar(hilo), cuerpo,
+                      atras=("Chats", url(espacio, "conversaciones", llave)))
+    orden = sorted(hilos.items(), key=lambda kv: -kv[1][-1].ts)
+    n_abiertos = len(_sin_responder(hilos))
+    cuerpo = (f'<p class="lede">{len(hilos)} conversaciones'
+              + (f', {n_abiertos} sin responder' if n_abiertos else "") + '. Los teléfonos van enmascarados.</p>'
+              + (f'<div class="grupo chats">{_filas_chats(espacio, llave, hilos, orden)}</div>' if orden
+                 else '<div class="grupo vacio">Todavía no hay mensajes. Conecte su WhatsApp en Negocio.</div>'))
+    return pagina(espacio, llave, "conversaciones", "Chats", cuerpo)
+
+
+# --------------------------------------------------------------------------- #
+#  Asistente: lo que sabe, en palabras del negocio                             #
+# --------------------------------------------------------------------------- #
+NOMBRES_SECCION = {"datos": "Sus propiedades", "temporadas": "Temporadas", "voz": "Así contesta",
+                   "reglas": "Precios", "faq": "Respuestas", "escala": "Se lo pasa a usted"}
+_DIAS = {"entre_semana": "entre semana", "fin_de_semana": "fin de semana"}
+
+
+def _origen_html(renglon: dict, mensajes: dict) -> str:
+    """Cada dato con el mensaje de donde salió (invariante), plegado para no estorbar."""
+    o = renglon.get("origen", {}) or {}
+    cita = esc(o.get("cita", ""))
+    if o.get("tipo") == "mensaje" and (m := mensajes.get(o.get("id"))):
+        fuente = f'mensaje del {"negocio" if m.del_negocio else "cliente"}: {esc(m.texto or "")}'
+    else:
+        fuente = f'{esc(o.get("tipo", "?"))} {esc(o.get("campo") or o.get("nombre") or "")}'
+    return (f'<details class="origen"><summary>De dónde salió</summary><div class="cita"><q>{cita}</q><br>'
+            f"{fuente}</div></details>")
+
+
+def _nombre_propiedad(pid: str, alta: dict) -> str:
+    for nombre in alta.get("propiedades", []) or []:
+        if str(pid).casefold() in str(nombre).casefold():
+            return str(nombre)[:1].upper() + str(nombre)[1:]
+    return str(pid).replace("_", " ").capitalize()
+
+
+def _regla(r: dict) -> tuple[str, str]:
+    """(qué, cuánto) para la lista de precios."""
+    from .cotizador import pesos
+    monto = pesos(r["monto_centavos"]) if r.get("monto_centavos") is not None else ""
+    tipo = r.get("tipo", "")
+    if tipo == "noche":
+        que = "Noche" + (f" {_DIAS.get(r['dias'], r['dias'])}" if r.get("dias") else "")
+        que += f" · temporada {r['temporada']}" if r.get("temporada") else ""
+        return que, monto
+    if tipo == "persona_extra":
+        return (f"Persona extra (arriba de {r['personas']})" if r.get("personas") else "Persona extra"), monto
+    if tipo == "capacidad":
+        return "Capacidad", f"{r.get('personas', '')} personas"
+    if tipo == "minimo_noches":
+        return "Estancia mínima", f"{r.get('noches', '')} noches"
+    if tipo == "anticipo":
+        return "Anticipo", f"{r.get('pct', '')} %" if r.get("pct") is not None else monto
+    nombres = {"evento": "Evento", "deposito": "Depósito"}
+    resto = ", ".join(f"{k.replace('_', ' ')} {v}" for k, v in r.items()
+                      if k not in ("origen", "tipo", "propiedad", "monto_centavos"))
+    return nombres.get(tipo, tipo.replace("_", " ").capitalize()) + (f" · {resto}" if resto else ""), monto
+
+
+def _seccion_html(seccion: str, filas: list[dict], mensajes: dict, alta: dict) -> str:
+    def fila(titulo: str, detalle: str, r: dict, der: str = "") -> str:
+        return _fila(titulo, detalle, der=der, extra=_origen_html(r, mensajes))
+
+    if seccion == "reglas":
+        grupos: dict[str, list] = {}
+        for r in filas:
+            grupos.setdefault(str(r.get("propiedad", "")), []).append(r)
+        salida = ""
+        for pid, rs in grupos.items():
+            renglones = "".join(fila(esc(q), "", r, f"<b>{esc(c)}</b>") for r in rs for q, c in [_regla(r)])
+            salida += f'<p class="sobre" style="margin:14px 4px 6px">{esc(_nombre_propiedad(pid, alta))}</p><div class="grupo">{renglones}</div>'
+        return salida
+    if seccion == "datos":
+        renglones = "".join(fila(esc(f'{_nombre_propiedad(r.get("id", ""), alta) if r.get("objeto") == "Propiedad" else str(r.get("id", "")).capitalize()}'
+                                     f' · {str(r.get("campo", "")).replace("_", " ")}'), esc(r.get("valor")), r) for r in filas)
+    elif seccion == "temporadas":
+        def fecha(t: str) -> str:
+            mes, dia = (t or "-").split("-", 1) if "-" in (t or "") else ("", t)
+            return f"{dia}/{mes}" if mes else esc(t)
+        renglones = "".join(fila(esc(f"Temporada {r.get('nombre', '')}"),
+                                 esc(f"del {fecha(r.get('desde', ''))} al {fecha(r.get('hasta', ''))}"), r) for r in filas)
+    elif seccion == "voz":
+        renglones = "".join(fila(f"«{esc(r.get('frase'))}»", "", r) for r in filas)
+    elif seccion == "faq":
+        renglones = "".join(fila(esc(r.get("pregunta")), esc(r.get("respuesta")), r) for r in filas)
+    elif seccion == "escala":
+        renglones = "".join(fila(esc(str(r.get("caso", "")).capitalize()), "", r) for r in filas)
+    else:
+        renglones = "".join(fila(esc(", ".join(f"{k}: {v}" for k, v in r.items() if k != "origen")), "", r) for r in filas)
+    return f'<div class="grupo">{renglones}</div>'
+
+
+@router.get("/espacios/{cliente_id}/revision", response_class=HTMLResponse)
+def revision(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> str:
+    espacio = _espacio(cliente_id, x_tenant_key or llave)
+    llave = llave or x_tenant_key
+    activa = perfil.version_activa(espacio)
+    pendiente = _pendiente(espacio)
+    tono, titulo, texto = _modo(espacio)
+    modo = (f'<div class="bloque"><span class="estado {tono}">{titulo}</span>'
+            f'<p class="lede" style="margin:8px 0 0">{texto}</p></div>')
+    mostrar = pendiente if pendiente is not None else activa
+    if mostrar is None:
+        cuerpo = (modo + '<div class="grupo vacio">Sin propuestas todavía. Cuando su WhatsApp esté conectado, '
+                  'armamos con sus propias conversaciones lo que su asistente debe saber, y usted lo aprueba.</div>')
+        return pagina(espacio, llave, "revision", "Asistente", cuerpo)
+    v = perfil.leer_version(espacio, mostrar)
+    mensajes = historial.por_id(espacio)
+    alta = espacio.leer_json("alta.json", {}) or {}
+    orden = ("reglas", "datos", "temporadas", "faq", "escala", "voz")
+    bloques = "".join(
+        f'<h2 class="sec">{NOMBRES_SECCION[s]}<small>{len(v["perfil"][s])}</small></h2>'
+        + _seccion_html(s, v["perfil"][s], mensajes, alta)
+        for s in orden if s in perfil.SECCIONES and v["perfil"].get(s))
+    barra = ""
+    if pendiente is not None:
+        aviso = ('<div class="bloque"><span class="estado mid vivo">Por revisar</span><h2 style="font-size:22px;'
+                 'letter-spacing:-.025em;margin:8px 0 4px">Lo que aprendió de sus chats</h2>'
+                 '<p class="lede" style="margin:0">Revise precios y respuestas. Cada dato dice de qué mensaje salió. '
+                 'Nada de esto se usa hasta que usted lo apruebe.</p></div>')
+        tirados = "".join(_fila(esc(NOMBRES_SECCION.get(d["seccion"], d["seccion"])), esc(d["motivo"]))
+                          for d in v["descartados"])
+        fuera = (f'<details class="origen" style="margin-top:22px"><summary>No entraron ({len(v["descartados"])}): '
+                 f'sin un mensaje que los pruebe</summary><div class="grupo" style="margin-top:8px">{tirados}</div></details>'
+                 if v["descartados"] else "")
+        script = ("<script>async function aprobar(b){const a=document.getElementById('apr').value.trim();"
+                  "const t=document.getElementById('t');if(!a){t.textContent='Escriba quién aprueba.';return}b.disabled=true;"
+                  f"const r=await fetch({json.dumps(url(espacio, f'versiones/{pendiente}/aprobar', llave))},"
+                  "{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({aprobador:a})});"
+                  "const d=await r.json().catch(()=>({}));t.textContent=r.ok?'Aprobado ✓':"
+                  "(d.detail||'No se pudo');if(r.ok)setTimeout(()=>location.reload(),900);b.disabled=false}</script>")
+        cuerpo = aviso + bloques + fuera + script + '<p class="toast" id="t" style="margin-top:12px"></p>'
+        barra = (f'<input id="apr" value="{esc(alta.get("aprobador", ""))}" placeholder="Quién aprueba" '
+                 'aria-label="Nombre de quien aprueba, como está en el alta">'
+                 '<button class="btn" onclick="aprobar(this)">Aprobar</button>')
+    else:
+        cuerpo = modo + '<p class="nota" style="margin:0 4px 4px">Sin propuestas nuevas. Esto es lo que usa hoy.</p>' + bloques
+    return pagina(espacio, llave, "revision", "Asistente", cuerpo, barra=barra)
+
+
+# --------------------------------------------------------------------------- #
+#  Negocio: WhatsApp, marca y datos                                            #
+# --------------------------------------------------------------------------- #
+_JS_FOTO = (
+    # La foto se achica en el teléfono (2000 px, JPG) antes de subir: menos datos, misma portada.
+    "<script>document.getElementById('c-foto').onchange=async e=>{const a=e.target.files[0];if(!a)return;"
+    "const tf=document.getElementById('tf');tf.textContent='Subiendo…';let cuerpo=a,tipo=a.type;"
+    "try{const b=await createImageBitmap(a);const k=Math.min(1,2000/Math.max(b.width,b.height));"
+    "const c=document.createElement('canvas');c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);"
+    "c.getContext('2d').drawImage(b,0,0,c.width,c.height);"
+    "cuerpo=await new Promise(r=>c.toBlob(r,'image/jpeg',.84));tipo='image/jpeg'}catch(_){}"
+    "const r=await fetch(document.getElementById('c-foto').dataset.u,{method:'POST',"
+    "headers:{'Content-Type':tipo},body:cuerpo});const j=await r.json().catch(()=>({}));"
+    "if(r.ok){const p=document.getElementById('pv');p.style.backgroundImage='url('+URL.createObjectURL(cuerpo)+')';"
+    "tf.textContent='Portada lista ✓'}else{tf.textContent='No se subió: '+(j.detail||'intente con otra foto')}};"
+    "document.getElementById('c-color').onchange=async e=>{const tf=document.getElementById('tc');"
+    "const r=await fetch(e.target.dataset.u,{method:'POST',headers:{'Content-Type':'application/json'},"
+    "body:JSON.stringify({color:e.target.value})});tf.textContent=r.ok?'Guardado ✓':'No se guardó';"
+    "if(r.ok)document.documentElement.style.setProperty('--marca',e.target.value)}</script>")
+
+
+@router.get("/espacios/{cliente_id}/negocio", response_class=HTMLResponse)
+def negocio(cliente_id: str, llave: str | None = None) -> str:
+    espacio = _espacio(cliente_id, llave)
+    alta = espacio.leer_json("alta.json", {}) or {}
+    nombre = alta.get("nombre_comercial") or espacio.cliente_id
+    estado = vinculado.leer_estado(espacio)
+    clave = estado.get("estado", "sin_lector")
+    tono, titulo_wa, _ = ESTADOS.get(clave, ("mid", clave, ""))
+    if clave in ("sin_lector", "arrancando", "error"):
+        tono, titulo_wa = "mid", "Sin conectar"
+    foto = portada(espacio)
+    fondo = (f'background-image:url(&quot;{esc(url(espacio, "portada", llave, v=int(foto.stat().st_mtime)))}&quot;)'
+             if foto else "")
+    tarjeta = (f'<div class="tarjeta-negocio"><div class="portada-mini{"" if foto else " sin-foto"}" id="pv" style="{fondo}">'
+               f'{"" if foto else esc(nombre.strip()[:1].upper())}</div><div><b>{esc(nombre)}</b>'
+               f'<small>{esc(alta.get("giro", ""))}</small></div></div>')
     enlace = f"/v/{espacio.cliente_id}?t={llave_de_vinculacion(espacio.cliente_id)}"
     telefono = "".join(c for c in str(alta.get("aprobador_telefono", "")) if c.isdigit())
-    compartir = (
-        '<h2 class="sec">Enlace para el negocio</h2><div class="bloque">'
-        '<p class="lede" style="margin-bottom:0">Solo abre la pantalla de conectar WhatsApp, con su foto y su color. '
-        'No ve conversaciones, perfil ni nada más.</p>'
-        f'<input readonly id="enl" value="{esc(enlace)}" data-ruta="{esc(enlace)}" aria-label="Enlace del negocio">'
+    whatsapp = (
+        '<h2 class="sec">WhatsApp</h2><div class="grupo ico">'
+        + _fila("WhatsApp Business", f'<span class="estado {tono}">{esc(titulo_wa)}</span>', url(espacio, "vincular", llave),
+                f'<span class="icono">{icono("enlace")}</span>')
+        + '</div><div class="bloque"><b>Enlace para conectar</b><p class="lede" style="margin-bottom:0">Ábralo en otra '
+        'pantalla o mándeselo a quien tenga el teléfono del negocio. Solo sirve para conectar.</p>'
+        f'<input readonly id="enl" value="{esc(enlace)}" data-ruta="{esc(enlace)}" aria-label="Enlace para conectar">'
         f'<div class="acciones"><button class="btn sec" onclick="compartir()">{icono("compartir")}Compartir</button>'
         f'<a class="btn" id="wa" data-tel="{esc(telefono)}" href="#">{icono("chat")}WhatsApp</a></div></div>'
         "<script>const e=document.getElementById('enl');e.value=location.origin+e.dataset.ruta;"
         "const w=document.getElementById('wa');w.href='https://wa.me/'+w.dataset.tel+'?text='+encodeURIComponent("
-        "'Para preparar su asistente, abra este enlace y siga los pasos: '+e.value);"
+        "'Para conectar el WhatsApp del negocio, abra este enlace y siga los pasos: '+e.value);"
         "function compartir(){if(navigator.share){navigator.share({url:e.value}).catch(()=>{})}"
         "else if(navigator.clipboard){navigator.clipboard.writeText(e.value).then(()=>e.select())}}</script>")
-    cuerpo = (f"{kpis}<h2 class=\"sec\">Pasos</h2><div class=\"grupo ico\">{pasos}</div>{simb}{compartir}")
-    return pagina(espacio, llave, "", "Tablero", cuerpo)
-
-
-_JS_POST = ("<script>async function correr(b,u){b.disabled=true;const t=document.getElementById('t');"
-            "t.textContent='Trabajando… puede tardar un par de minutos.';"
-            "const r=await fetch(u,{method:'POST'});const d=await r.json().catch(()=>({}));"
-            "t.textContent=r.ok?'Listo. Abra Perfil para revisar.':(d.detail||'No se pudo.');b.disabled=false}</script>")
+    marca = (
+        '<h2 class="sec">Su marca</h2><div class="grupo">'
+        '<div class="campo"><label for="c-color">Color <small>El de su logo o su volante.</small></label>'
+        '<div style="display:flex;gap:12px;align-items:center;margin-top:8px">'
+        f'<input type="color" id="c-color" value="{color_de_marca(espacio)}" data-u="{esc(url(espacio, "marca", llave))}">'
+        '<span class="toast" id="tc"></span></div></div>'
+        '<div class="campo"><label for="c-foto">Foto de portada <small>Una foto real del lugar. JPG, PNG o WebP.'
+        '</small></label><input type="file" id="c-foto" accept="image/jpeg,image/png,image/webp" '
+        f'data-u="{esc(url(espacio, "portada", llave))}"><p class="toast" id="tf"></p></div></div>')
+    datos = "".join(
+        _fila(t, esc("\n".join(alta[c]) if isinstance(alta.get(c), list) else alta.get(c, "")) or
+              '<span style="color:var(--warn)">Falta</span>')
+        for _, campos in CAMPOS_ALTA for c, t, _, _ in campos if c not in ("nombre_comercial", "numero_negocio"))
+    cuerpo = (tarjeta + whatsapp + marca
+              + f'<h2 class="sec">Datos del negocio<small><a href="{esc(url(espacio, "alta", llave))}">Editar</a></small></h2>'
+              f'<div class="grupo datos">{datos}</div>' + _JS_FOTO)
+    return pagina(espacio, llave, "negocio", "Negocio", cuerpo)
 
 
 # --------------------------------------------------------------------------- #
-#  Alta                                                                        #
+#  Alta (se edita desde Negocio)                                               #
 # --------------------------------------------------------------------------- #
 CAMPOS_ALTA = (
     ("Su negocio", (
@@ -502,46 +803,17 @@ def alta_form(cliente_id: str, llave: str | None = None) -> str:
                        else f'<input name="{c}" id="c-{c}" value="{valor}" autocomplete="off">')
             filas += f'<div class="campo"><label for="c-{c}">{t}{req} <small>{esc(ayuda)}</small></label>{control}</div>'
         bloques += f'<h2 class="sec">{titulo}</h2><div class="grupo">{filas}</div>'
-    foto = portada(espacio)
-    vista = (f'<img src="{esc(url(espacio, "portada", llave, v=int(foto.stat().st_mtime)))}" alt="" '
-             'style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;margin-top:10px;display:block" id="pv">'
-             if foto else '<img id="pv" alt="" hidden style="width:100%;aspect-ratio:16/9;object-fit:cover;'
-             'border-radius:14px;margin-top:10px">')
-    marca = (
-        '<h2 class="sec">Su marca</h2><div class="grupo">'
-        '<div class="campo"><label for="c-color">Color <small>El de su logo o su volante. Pinta botones y la '
-        'portada de la pantalla que usted abre.</small></label><div style="display:flex;gap:12px;align-items:center;'
-        f'margin-top:8px"><input type="color" name="color_marca" id="c-color" value="{color_de_marca(espacio)}">'
-        '<span class="toast">Se guarda con el alta.</span></div></div>'
-        '<div class="campo"><label for="c-foto">Foto de portada <small>Una foto real del lugar (alberca, jardín, '
-        'fachada). JPG, PNG o WebP. Se guarda al elegirla.</small></label>'
-        f'<input type="file" id="c-foto" accept="image/jpeg,image/png,image/webp">{vista}'
-        '<p class="toast" id="tf"></p></div></div>')
-    script = (
-        "<script>const f=document.querySelector('form');f.onsubmit=async e=>{e.preventDefault();"
-        "const d=Object.fromEntries(new FormData(f));const t=document.getElementById('t');t.textContent='Guardando…';"
-        "const r=await fetch(location.pathname+location.search,{method:'POST',headers:{'Content-Type':'application/json'},"
-        "body:JSON.stringify(d)});const j=await r.json().catch(()=>({}));"
-        "t.textContent=r.ok?(j.faltan&&j.faltan.length?'Guardado ✓ Falta: '+j.faltan.join(', '):'Guardado ✓ Completa'):"
-        "('No se guardó: '+(j.detail||'revise los campos'))};"
-        # La foto se achica en el teléfono (2000 px, JPG) antes de subir: menos datos, misma portada.
-        "document.getElementById('c-foto').onchange=async e=>{const a=e.target.files[0];if(!a)return;"
-        "const tf=document.getElementById('tf');tf.textContent='Subiendo…';let cuerpo=a,tipo=a.type;"
-        "try{const b=await createImageBitmap(a);const k=Math.min(1,2000/Math.max(b.width,b.height));"
-        "const c=document.createElement('canvas');c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);"
-        "c.getContext('2d').drawImage(b,0,0,c.width,c.height);"
-        "cuerpo=await new Promise(r=>c.toBlob(r,'image/jpeg',.84));tipo='image/jpeg'}catch(_){}"
-        f"const r=await fetch({json.dumps(url(espacio, 'portada', llave))},{{method:'POST',"
-        "headers:{'Content-Type':tipo},body:cuerpo});const j=await r.json().catch(()=>({}));"
-        "if(r.ok){const p=document.getElementById('pv');p.src=URL.createObjectURL(cuerpo);p.hidden=false;"
-        "tf.textContent='Portada lista ✓'}else{tf.textContent='No se subió: '+(j.detail||'intente con otra foto')}}"
-        "</script>")
-    cuerpo = (f'<p class="lede">Lo básico del negocio. También es fuente: un dato del perfil puede citar lo que '
-              f'escriba aquí, así que escríbalo como lo diría a un cliente.</p><form id="alta">{bloques}{marca}</form>'
-              f"{script}")
-    barra = ('<button class="btn" form="alta">Guardar alta</button><span class="toast" id="t"></span>'
-             f'<a style="margin-left:auto;font-size:15px" href="{esc(url(espacio, "vincular", llave))}">WhatsApp ›</a>')
-    return pagina(espacio, llave, "alta", "Alta del negocio", cuerpo, barra=barra)
+    script = ("<script>const f=document.querySelector('form');f.onsubmit=async e=>{e.preventDefault();"
+              "const d=Object.fromEntries(new FormData(f));const t=document.getElementById('t');t.textContent='Guardando…';"
+              "const r=await fetch(location.pathname+location.search,{method:'POST',headers:{'Content-Type':'application/json'},"
+              "body:JSON.stringify(d)});const j=await r.json().catch(()=>({}));"
+              "t.textContent=r.ok?(j.faltan&&j.faltan.length?'Guardado ✓ Falta: '+j.faltan.join(', '):'Guardado ✓'):"
+              "('No se guardó: '+(j.detail||'revise los campos'))}</script>")
+    cuerpo = ('<p class="lede">Su asistente aprende de aquí y de sus chats. Escríbalo como se lo diría a un cliente.</p>'
+              f'<form id="alta">{bloques}</form>{script}')
+    barra = '<button class="btn" form="alta">Guardar</button><span class="toast" id="t"></span>'
+    return pagina(espacio, llave, "alta", "Datos del negocio", cuerpo, barra=barra,
+                  atras=("Negocio", url(espacio, "negocio", llave)))
 
 
 @router.get("/espacios/{cliente_id}/portada")
@@ -559,7 +831,7 @@ def _servir_portada(espacio: Espacio):
 
 
 # --------------------------------------------------------------------------- #
-#  Vincular                                                                    #
+#  Vincular (desde Negocio)                                                    #
 # --------------------------------------------------------------------------- #
 ESTADOS = {
     "sin_lector": ("bad", "El lector no está corriendo", "Revise que AGENTE_ESPACIO_VINCULADO sea exactamente este espacio."),
@@ -622,127 +894,35 @@ def vincular(cliente_id: str, llave: str | None = None) -> str:
               '<div class="grupo ico">'
               + _fila("Este servicio solo LEE.", "No envía mensajes, no marca como leído y no aparece en línea. "
                       "Al terminar, puede desvincularlo desde el teléfono.", ico=f'<span class="icono">{icono("ojo")}</span>')
-              + _fila("Ver conversaciones", "", url(espacio, "conversaciones", llave), f'<span class="icono">{icono("chat")}</span>')
-              + _fila("Descargar historial", "Un mensaje por renglón (JSONL).", url(espacio, "historial.jsonl", llave),
-                      f'<span class="icono">{icono("compartir")}</span>')
               + "</div>")
-    return pagina(espacio, llave, "vincular", "WhatsApp", cuerpo, refrescar=5)
+    return pagina(espacio, llave, "vincular", "WhatsApp", cuerpo, refrescar=5,
+                  atras=("Negocio", url(espacio, "negocio", llave)))
 
 
 # --------------------------------------------------------------------------- #
-#  Conversaciones                                                              #
+#  Taller: lo nuestro. Sin pestaña; el negocio no lo ve ni lo necesita         #
 # --------------------------------------------------------------------------- #
-@router.get("/espacios/{cliente_id}/conversaciones", response_class=HTMLResponse)
-def conversaciones(cliente_id: str, llave: str | None = None, hilo: str | None = None) -> str:
-    espacio = _espacio(cliente_id, llave)
-    hilos = historial.hilos(espacio)
-    if hilo and hilo in hilos:
-        burbujas = "".join(
-            f'<div class="bur {"n" if m.del_negocio else ""}">{esc(m.texto or "[" + m.tipo + " sin texto]")}</div>'
-            f'<div class="meta {"n" if m.del_negocio else ""}">{"negocio" if m.del_negocio else "cliente"} · '
-            f"{_hora(m.ts)}</div>" for m in hilos[hilo])
-        cuerpo = (f'<p style="margin:0 0 6px"><a href="{esc(url(espacio, "conversaciones", llave))}">‹ Chats</a></p>'
-                  f'<p class="lede">{len(hilos[hilo])} mensajes</p><div class="chat">{burbujas}</div>')
-        return pagina(espacio, llave, "conversaciones", _enmascarar(hilo), cuerpo)
-    orden = sorted(hilos.items(), key=lambda kv: -kv[1][-1].ts)
-    filas = "".join(
-        _fila(esc(_enmascarar(h)), f'<span class="linea" style="display:block">{esc((ms[-1].texto or "")[:90])}</span>',
-              url(espacio, "conversaciones", llave, hilo=h), f'<span class="avatar">{esc(h[-2:])}</span>',
-              f"{esc(_cuando(ms[-1].ts))}<br>{len(ms)}")
-        for h, ms in orden)
-    cuerpo = (f'<p class="lede">{len(hilos)} conversaciones, de la más reciente a la más vieja. Los teléfonos van '
-              f'enmascarados.</p>'
-              + (f'<div class="grupo chats">{filas}</div>' if filas
-                 else '<div class="grupo vacio">Todavía no hay mensajes. Vincule el WhatsApp.</div>'))
-    return pagina(espacio, llave, "conversaciones", "Chats", cuerpo)
+_JS_POST = ("<script>async function correr(b,u){b.disabled=true;const t=document.getElementById('t');"
+            "t.textContent='Trabajando… puede tardar un par de minutos.';"
+            "const r=await fetch(u,{method:'POST'});const d=await r.json().catch(()=>({}));"
+            "t.textContent=r.ok?'Listo. Abra Asistente para revisar.':(d.detail||'No se pudo.');b.disabled=false}</script>")
 
 
-# --------------------------------------------------------------------------- #
-#  Revisión del perfil                                                         #
-# --------------------------------------------------------------------------- #
-NOMBRES_SECCION = {"datos": "Datos", "temporadas": "Temporadas", "voz": "Voz", "reglas": "Reglas de cotización",
-                   "faq": "Preguntas frecuentes", "escala": "Lo que pasa a una persona"}
-
-
-def _origen_html(renglon: dict, mensajes: dict) -> str:
-    o = renglon.get("origen", {}) or {}
-    cita = esc(o.get("cita", ""))
-    if o.get("tipo") == "mensaje" and (m := mensajes.get(o.get("id"))):
-        return (f'<div class="cita"><small>De dónde salió</small><q>{cita}</q><br>mensaje del '
-                f'{"negocio" if m.del_negocio else "cliente"}: {esc(m.texto or "")}</div>')
-    return (f'<div class="cita"><small>De dónde salió</small><q>{cita}</q> — {esc(o.get("tipo", "?"))} '
-            f'{esc(o.get("campo") or o.get("nombre") or "")}</div>')
-
-
-def _renglon_html(seccion: str, r: dict) -> str:
-    visible = {k: v for k, v in r.items() if k != "origen"}
-    if seccion == "voz":
-        return f"«{esc(visible.get('frase'))}»"
-    if seccion == "faq":
-        return f"<b>{esc(visible.get('pregunta'))}</b><br>{esc(visible.get('respuesta'))}"
-    if seccion == "reglas" and visible.get("monto_centavos") is not None:
-        from .cotizador import pesos
-        visible["monto"] = pesos(visible.pop("monto_centavos"))
-    if seccion == "datos":
-        return (f'<span class="sobre" style="display:block;margin-bottom:2px">{esc(visible.get("objeto"))} · '
-                f'{esc(visible.get("id"))}</span>'
-                f'{esc(str(visible.get("campo", "")).replace("_", " "))}: <b>{esc(visible.get("valor"))}</b>')
-    return '<dl class="ficha">' + "".join(f"<dt>{esc(str(k).replace('_', ' '))}</dt><dd>{esc(str(v).replace('_', ' '))}</dd>"
-                                         for k, v in visible.items()) + "</dl>"
-
-
-@router.get("/espacios/{cliente_id}/revision", response_class=HTMLResponse)
-def revision(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> str:
-    espacio = _espacio(cliente_id, x_tenant_key or llave)
-    activa = perfil.version_activa(espacio)
-    pendiente = next((n for n in reversed(perfil.versiones(espacio)) if activa is None or n > activa), None)
-    if pendiente is None:
-        cuerpo = (f'<div class="grupo vacio">Sin propuestas pendientes. Activa: {esc(activa)}.'
-                  '<br>Cuando haya historial, la propuesta se arma desde el Tablero.</div>')
-        return pagina(espacio, llave or x_tenant_key, "revision", "Perfil", cuerpo)
-    v = perfil.leer_version(espacio, pendiente)
-    mensajes = historial.por_id(espacio)
-    bloques = ""
-    for seccion in perfil.SECCIONES:
-        filas = v["perfil"].get(seccion, [])
-        if not filas:
-            continue
-        tarjetas = "".join(f'<div class="bloque">{_renglon_html(seccion, r)}{_origen_html(r, mensajes)}</div>'
-                           for r in filas)
-        bloques += f'<h2 class="sec">{NOMBRES_SECCION[seccion]}<small>{len(filas)}</small></h2>{tarjetas}'
-    tirados = "".join(_fila(esc(NOMBRES_SECCION.get(d["seccion"], d["seccion"])), esc(d["motivo"]))
-                      for d in v["descartados"])
-    alta = espacio.leer_json("alta.json", {}) or {}
-    script = ("<script>async function aprobar(b){const a=document.getElementById('apr').value.trim();"
-              "const t=document.getElementById('t');if(!a){t.textContent='Escriba quién aprueba.';return}b.disabled=true;"
-              f"const r=await fetch({json.dumps(url(espacio, f'versiones/{pendiente}/aprobar', llave))},"
-              "{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({aprobador:a})});"
-              "const d=await r.json().catch(()=>({}));t.textContent=r.ok?'Aprobada y activa ✓':"
-              "(d.detail||'No se pudo');b.disabled=false}</script>")
-    cuerpo = (f'<div class="bloque"><span class="estado mid">Propuesta</span><h2 style="font-size:22px;'
-              f'letter-spacing:-.025em;margin:8px 0 4px">Versión {pendiente}: {esc(v["nombre"])}</h2>'
-              f'<p class="lede" style="margin:0">Autor: {esc(v["autor"])}. Activa hoy: {esc(activa)}. '
-              'Cada renglón trae de dónde salió. Nada de esto se enciende hasta que usted lo apruebe.</p></div>'
-              f"{bloques}"
-              f'<h2 class="sec">No entraron<small>{len(v["descartados"])}</small></h2>'
-              f'<div class="grupo">{_fila("Sin origen que se pueda probar", "Se tiraron antes de llegar aquí.")}'
-              f"{tirados}</div>{script}<p class=\"toast\" id=\"t\" style=\"margin-top:12px\"></p>")
-    barra = (f'<input id="apr" value="{esc(alta.get("aprobador", ""))}" placeholder="Quién aprueba" '
-             'aria-label="Nombre de quien aprueba, como está en el alta">'
-             '<button class="btn" onclick="aprobar(this)">Aprobar</button>')
-    return pagina(espacio, llave or x_tenant_key, "revision", "Perfil", cuerpo, barra=barra)
-
-
-# --------------------------------------------------------------------------- #
-#  Banco y sombra                                                              #
-# --------------------------------------------------------------------------- #
 @router.get("/espacios/{cliente_id}/banco", response_class=HTMLResponse)
 def banco_pagina(cliente_id: str, llave: str | None = None) -> str:
     espacio = _espacio(cliente_id, llave)
+    herramientas = (
+        '<div class="bloque"><b>Proponer perfil</b><p class="lede">Una pasada del modelo grande sobre el historial. '
+        'Deja una propuesta; la aprueba el dueño en Asistente.</p><button class="btn ancho" onclick="correr(this,'
+        f'\'{esc(url(espacio, "simbiosis", llave))}\')">{icono("chispa")}Proponer perfil</button>'
+        '<p class="toast" id="t"></p></div>' + _JS_POST
+        + '<div class="grupo ico">'
+        + _fila("Descargar historial", "Un mensaje por renglón (JSONL).", url(espacio, "historial.jsonl", llave),
+                f'<span class="icono">{icono("compartir")}</span>') + "</div>")
     r = banco.correr(espacio)
     if not r.get("n"):
-        cuerpo = f'<div class="grupo vacio">{esc(r.get("error", "Sin casos."))}</div>'
-        return pagina(espacio, llave, "banco", "Banco", cuerpo)
+        cuerpo = herramientas + f'<div class="grupo vacio">{esc(r.get("error", "Sin casos."))}</div>'
+        return pagina(espacio, llave, "banco", "Taller", cuerpo)
     tono = "ok" if r["errores_caros"] == 0 and r["pasa_k"] == 1 else ("bad" if r["errores_caros"] else "mid")
     filas = "".join(
         _fila(esc(f["id"]), esc(f["flujo"]) + (f' · <span style="color:var(--bad)">{esc(", ".join(f["caros"]))}</span>'
@@ -752,19 +932,20 @@ def banco_pagina(cliente_id: str, llave: str | None = None) -> str:
               der=f'{f["buenas"]}/{f["k"]}')
         for f in r["filas"])
     s = sombra.medir(espacio)["desarrollo"]
-    cuerpo = (f'<div class="bloque"><span class="estado {tono}">'
+    cuerpo = (herramientas
+              + f'<h2 class="sec">Banco</h2><div class="bloque"><span class="estado {tono}">'
               f'{"listo para sombra" if tono == "ok" else "no se enciende"}</span><p class="lede" style="margin:8px 0 0">'
               'El mismo cliente escrito de cinco formas y un adversario que intenta colar cifras o decir que es '
               'persona. Corre sobre una copia: no gasta API ni toca el historial.</p></div>'
               f'<div class="tiles"><div class="tile"><b>{r["pasa_k"]:.0%}</b><span>pass^k ({len(r["variantes"])} variantes)</span></div>'
               f'<div class="tile"><b>{r["errores_caros"]}</b><span>errores caros</span></div>'
               f'<div class="tile"><b>{r["n"]}</b><span>casos</span></div></div>'
-              f'<h2 class="sec">Casos</h2><div class="grupo ico">{filas}</div>'
+              f'<div class="grupo ico">{filas}</div>'
               f'<h2 class="sec">Sombra</h2><div class="tiles"><div class="tile"><b>{s["n"]}</b><span>borradores medidos</span></div>'
               f'<div class="tile"><b>{_pct(s.get("cobertura"))}</b><span>cobertura</span></div>'
               f'<div class="tile"><b>{_pct(s.get("habria_enviado_sin_editar"))}</b><span>se habría enviado tal cual</span></div>'
               f'<div class="tile"><b>{"sí" if s.get("concluye") else "no"}</b><span>concluye (n ≥ 30)</span></div></div>')
-    return pagina(espacio, llave, "banco", "Banco", cuerpo)
+    return pagina(espacio, llave, "banco", "Taller", cuerpo)
 
 
 def _pct(x) -> str:

@@ -108,3 +108,14 @@ Encargo del dueño: "el Airbnb de Apple", empezando por lo que ve el negocio (`/
 - **Portada**: se sube desde el alta (el teléfono la achica a 2000 px JPG antes de mandarla), se juzga por sus bytes (JPG/PNG/WebP, ≤ 8 MB), queda una sola en el espacio y `/v/<id>/portada` solo abre con el enlace del negocio.
 
 Invariantes nuevas con test: en **ningún** estado del lector `/v/` enseña menú, conteos, detalle técnico, número vinculado ni enlaces a lo interno; color fuera de `#rrggbb` se rechaza; portada sin llave o que no es imagen se rechaza. Medido con Playwright a 390 px, claro y oscuro: ninguna pantalla con scroll horizontal. Sin fotos reales de Finca Emiliano todavía: su `/v/` sale con degradado e inicial hasta que suban la suya.
+
+## D-021 — 2026-10-27 — Las pantallas del espacio son para administrar; lo de desarrollo no se ve
+
+Dicho por el dueño al ver el despliegue: el alta "ya ni tiene caso", el banco "no se entiende" y "no parece que haya nada útil para el negocio"; la plataforma debe centrarse en la administración y el desarrollo quedar invisible (subcuentas, después). Se reorganizó en cuatro pestañas:
+
+- **Inicio**: saludo, el asistente en palabras del negocio (`sombra` = "Aprendiendo"; `sin_cifra` = "Contesta lo sencillo"), **Pendiente** (solo lo que pide una acción: datos que faltan, conectar WhatsApp, versión por revisar, cotizaciones que esperan su sí, chats sin responder) y sus chats.
+- **Chats**: los sin responder marcados; dentro del chat, lo que el asistente habría contestado en burbuja punteada y, si es cotización, el botón **Aprobar** ahí mismo (`/salidas/<id>/aprobar` acepta `?llave=`; en sombra se aprueba y no sale).
+- **Asistente** (antes "Perfil"): lo que sabe en palabras del negocio: **Precios** como lista por propiedad, propiedades, temporadas, respuestas, lo que pasa a una persona, cómo habla. Cada dato conserva su origen, plegado en "De dónde salió". Lo descartado, plegado al final.
+- **Negocio**: WhatsApp (estado y enlace para conectar), marca (color y foto, que se guardan solos: `POST /marca`) y los datos del alta en lectura, con "Editar".
+
+El **taller** (`/banco`: proponer perfil, banco pass^k, sombra, descargar historial) sigue abriendo por su ruta y no tiene pestaña. Test: en Inicio, Chats, Asistente, Negocio y Alta no aparece ninguna palabra de desarrollo (pass^k, banco, sombra, simbiosis, jsonl, taller, "modelo grande", "Autor:"). Subcuentas por persona (dueño, encargado, DGED) quedan para después; hoy la llave del espacio abre todo lo del negocio y la maestra además el taller por URL.

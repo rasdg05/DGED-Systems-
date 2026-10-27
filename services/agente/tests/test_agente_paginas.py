@@ -22,10 +22,29 @@ def test_pag_toda_pantalla_pide_llave(http, espacio, ruta):
     assert r.status_code == 200 and '<nav class="tabs">' in r.text and "Finca y Quinta de Muestra" in r.text
 
 
-def test_pag_tablero_cuenta_y_guia(http, espacio):
+def test_pag_inicio_es_para_administrar(http, espacio):
     t = http.get(f"/espacios/{espacio.cliente_id}", params=LLAVE).text
     n = len(historial.cargar(espacio))
-    assert f"<b>{n}</b>" in t and "Perfil aprobado" in t and "Banco y sombra" in t
+    assert f"<b>{n}</b>" in t and "Pendiente" in t and "Su asistente" in t and "Aprendiendo" in t
+
+
+DE_DESARROLLO = ("pass^k", "Banco", "banco", "simbiosis", "jsonl", "sombra", "Taller", "modelo grande", "Autor:")
+
+
+@pytest.mark.parametrize("ruta", ["", "/conversaciones", "/revision", "/negocio", "/alta"])
+def test_pag_lo_de_desarrollo_no_se_ve_en_lo_del_negocio(http, espacio, ruta):
+    """El negocio administra; banco, sombra e historial crudo son nuestros y no tienen pestaña (D-021)."""
+    import re
+
+    from agente import perfil
+    from conftest import leer_muestra
+    perfil.proponer(espacio, leer_muestra("perfil_grabado.json"), autor="t", nombre="otra")
+    t = http.get(f"/espacios/{espacio.cliente_id}{ruta}", params=LLAVE).text
+    visible = re.sub(r"<style>.*?</style>", "", t, flags=re.S)
+    for palabra in DE_DESARROLLO:
+        assert palabra not in visible, (ruta, palabra)
+    # El taller sigue abriendo por su ruta, para nosotros.
+    assert "pass^k" in http.get(f"/espacios/{espacio.cliente_id}/banco", params=LLAVE).text
 
 
 def test_pag_conversaciones_enmascara_y_escapa(http, espacio):
@@ -65,8 +84,8 @@ def test_pag_enlace_del_negocio_solo_abre_vincular(http, espacio):
     # Con la llave del enlace no se abre nada más.
     for ruta in ("", "/conversaciones", "/revision", "/historial.jsonl"):
         assert http.get(f"/espacios/{espacio.cliente_id}{ruta}", params={"llave": t}).status_code == 401
-    # El tablero lo ofrece para copiar.
-    assert f"/v/{espacio.cliente_id}?t={t}" in http.get(f"/espacios/{espacio.cliente_id}", params=LLAVE).text
+    # Negocio lo ofrece para compartir.
+    assert f"/v/{espacio.cliente_id}?t={t}" in http.get(f"/espacios/{espacio.cliente_id}/negocio", params=LLAVE).text
 
 
 def test_pag_alta_se_guarda_a_medias_y_dice_que_falta(http, tmp_path, monkeypatch):
@@ -126,3 +145,26 @@ def test_pag_marca_color_y_portada(http, espacio, tmp_path):
     jpg = b"\xff\xd8\xff" + b"0" * 64
     assert http.post(f"{base}/portada", params=LLAVE, content=jpg).json()["portada"] == "jpg"
     assert not espacio.ruta("portada.png").exists()  # una sola portada
+
+
+def test_pag_chat_ensena_lo_que_contestaria_y_se_aprueba_ahi(http, espacio):
+    from agente import agente
+    from conftest import ModeloFalso
+    entrante = historial.Mensaje("in-cot", "5215559990000", False, 9_999_999_999, "text", "Precio de la quinta")
+    historial.guardar(espacio, [entrante])
+    s = agente.atender(espacio, entrante, ModeloFalso(
+        "Con gusto. [[META cotizar=si propiedad=quinta llegada=2026-11-09 salida=2026-11-11 personas=4 evento=no]]"))
+    assert s.requiere_aprobacion
+    hilo = http.get(f"/espacios/{espacio.cliente_id}/conversaciones", params={**LLAVE, "hilo": "5215559990000"}).text
+    assert "Espera su aprobación" in hilo and "bur borrador" in hilo
+    assert "cotización espera su sí" in http.get(f"/espacios/{espacio.cliente_id}", params=LLAVE).text
+    r = http.post(f"/espacios/{espacio.cliente_id}/salidas/{s.id}/aprobar", params=LLAVE,
+                  json={"aprobador": "Dueña de muestra"})
+    assert r.status_code == 200 and r.json()["aprobada"] and not r.json()["enviada"]  # en sombra no sale
+
+
+def test_pag_marca_se_guarda_aparte(http, espacio):
+    base = f"/espacios/{espacio.cliente_id}/marca"
+    assert http.post(base, json={"color": "#123456"}).status_code == 401
+    assert http.post(base, params=LLAVE, json={"color": "url(x)"}).status_code == 422
+    assert http.post(base, params=LLAVE, json={"color": "#ABCDEF"}).json() == {"marca_color": "#abcdef"}
