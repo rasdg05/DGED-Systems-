@@ -135,6 +135,16 @@ def test_vinc_simbiosis_que_falla_dice_por_que(espacio, monkeypatch):
     assert "secreto-de-prueba" not in r.text
 
 
+def test_vinc_llave_sin_espacio_de_trabajo_manda_el_encabezado(monkeypatch):
+    """Railway, 2026-10-27: la llave no es de un workspace y la API pide `anthropic-workspace-id`."""
+    from agente import modelo
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-prueba")
+    monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_prueba")
+    assert modelo.cliente_real().default_headers["anthropic-workspace-id"] == "wrkspc_prueba"
+    monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "")
+    assert "anthropic-workspace-id" not in modelo.cliente_real().default_headers
+
+
 def test_vinc_lineas_a_medias_no_tumban_la_lectura(espacio):
     with espacio.ruta(historial.ARCHIVO).open("a", encoding="utf-8") as f:
         f.write('{"id": "medio')

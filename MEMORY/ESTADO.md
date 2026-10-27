@@ -44,6 +44,15 @@
   (`/espacios/finca-quinta/banco` con la llave maestra): proponer perfil, que Mariana lo apruebe en
   Asistente, banco y 30 conversaciones en sombra. Color y foto se ponen en el alta. **Falta**: pedir a Finca
   Emiliano su foto original y el verde exacto de su volante, y subirlos desde su alta.
+- **Historial de Finca Emiliano entró (2026-10-27)**: 11,463 mensajes, 701 chats (4,835 de texto,
+  5,421 imágenes, casi todas del negocio: las tarifas viven en imágenes, la pasada de texto no las lee).
+  Línea base al estilo de la vara de Gestor (n = 699 chats donde escribió el cliente): 410 (59%) solo
+  recibieron plantillas; primera respuesta humana mediana 45 min, p90 ~25 h (n = 289); precio escrito
+  en 68 chats, mediana 36 min. **La pasada del perfil no corre**: la llave de Anthropic de Railway no es
+  de un workspace (400, pide `anthropic-workspace-id`). Arreglo en código: `ANTHROPIC_WORKSPACE_ID`.
+  **Del dueño**: poner esa variable en Railway o cambiar a una llave de workspace; luego
+  `POST /espacios/finca-quinta/simbiosis` con la llave maestra. "Entrenar" aquí es perfil citado +
+  sombra + vara, no reentrenar pesos: una tarifa en los pesos es una cifra inventada mañana.
 - **Lector por QR vinculado, solo lectura** (D-018): `services/agente/agente/vinculado.py`, página
   `/espacios/<id>/vincular`. Desplegable en Railway como servicio aparte del mismo repo
   (`services/agente/railway.json`). Medido: WhatsApp entrega el QR al contenedor. **Falta**:

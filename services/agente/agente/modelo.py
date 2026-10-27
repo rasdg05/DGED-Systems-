@@ -1,6 +1,8 @@
 """La única puerta a la API de Anthropic. Todo lo que gasta pasa por aquí.
 
 - Dormido sin `ANTHROPIC_API_KEY` (como el Oráculo y el lector): `Dormido`.
+  Una llave que no es de un espacio de trabajo exige `ANTHROPIC_WORKSPACE_ID`
+  (la API contesta 400 sin el encabezado; medido en Railway el 2026-10-27).
 - Antes de cada llamada, el tope del cliente (`gasto.exigir_saldo`); después,
   el gasto anotado con el `usage` real. Al tope, cero llamadas (invariante 5).
 - El contexto se arma solo con el perfil del espacio que llama (invariante 4).
@@ -57,6 +59,9 @@ def cliente_real():
         raise Dormido("sin ANTHROPIC_API_KEY el agente no redacta: todo pasa a la persona")
     import anthropic
 
+    espacio_de_trabajo = os.environ.get("ANTHROPIC_WORKSPACE_ID", "").strip()
+    if espacio_de_trabajo:
+        return anthropic.Anthropic(default_headers={"anthropic-workspace-id": espacio_de_trabajo})
     return anthropic.Anthropic()
 
 
