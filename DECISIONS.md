@@ -243,6 +243,11 @@ Con el sí del dueño y la conformidad de Mariana (*"Si, está de acuerdo"*, *"R
 
 La segunda vuelta de Mariana (*"12 min"*, *"dejemoslo en 15 mil"*) llegó por el WhatsApp personal del dueño, no por el del negocio: sin un mensaje del historial, `perfil.validar` la tiraría (invariante 3). Se agrega `POST /espacios/<id>/documentos` (llave maestra, no pisa) y `python -m agente.local documento`: el texto de la respuesta queda en el espacio y cada renglón lo cita (`origen.tipo = documento`). Lista **v2** = v1 + quinta para 6: $5,000 la noche y $12,000 el fin de semana, y finca una noche para 25: $15,000; 24 reglas, 0 descartadas. Lo que no dijo sigue a decidir (finca una noche para 26–40, quinta 7–16). Queda **por aprobar** en Asistente; la v1 sigue activa hasta que Mariana apruebe.
 
+Nota a D-044 (2026-10-28): la lista completa quedó como **v3** (24 reglas, 0 descartadas, verificada en Asistente). La v2 se subió antes de que `/documentos` estuviera desplegado y quedó igual a la v1: se ignora.
 ## D-045 — 2026-10-28 — Un mensaje con salida no se vuelve a contestar en ronda
 
 El enjambre del 2026-10-28 armó 98 borradores y 85 iban a pláticas que ya recibieron seguimiento en la ronda del 27 (enviado o en cola). Lo que el enviador manda por el vinculado no vuelve al historial, así que la plática se sigue viendo "sin contestar"; el único freno era el de 24 h al enviar (`enviador._ronda_reciente`), y al día siguiente se les habría escrito otra vez. Ahora `rondas.validar` rechaza y `local.lotes` no reparte un `(hilo, ultimo_id)` que ya tiene una salida (LXIX). Cuando el cliente escribe algo nuevo, ese mensaje sí se contesta. Falta de fondo: que lo enviado por el vinculado quede en el historial.
+
+## D-046 — 2026-10-28 — Lo enviado por el vinculado entra al historial
+
+La raíz del hallazgo de D-045: lo que el enviador manda no volvía al historial, así que el semáforo, los pendientes, la Cola y el enjambre trataban como "sin respuesta" a los 128 que ya recibieron seguimiento. Ahora cada envío entra como mensaje del negocio con el ID que devuelve WhatsApp (su eco no duplica, como `importador.eco_propio` de Gestor), igual lo de la mesa, y al arrancar el enviador asienta una vez lo enviado antes (LXX). El candado de D-045 se queda como defensa de fondo.
