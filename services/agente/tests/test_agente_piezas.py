@@ -408,3 +408,20 @@ def test_numeros_lee_las_dos_formas_mexicanas_de_escribir_montos():
     # el candado de la cifra lee igual: la del cotizador escrita con punto de miles sigue permitida
     from agente import guardia
     assert guardia.cifras_no_permitidas("Le queda en 12.000", numeros("$12,000")) == []
+
+
+def test_documento_del_negocio_se_sube_con_la_maestra_y_el_perfil_lo_cita(espacio):
+    from agente import perfil
+    from agente.app import app
+    from agente.espacio import llave_de
+    from fastapi.testclient import TestClient
+    http, ruta = TestClient(app), f"/espacios/{espacio.cliente_id}/documentos"
+    cuerpo = {"nombre": "respuestas-2026-10-28.md", "texto": "Quinta fin de semana: 12,000"}
+    assert http.post(ruta, json=cuerpo, headers={"X-Tenant-Key": llave_de(espacio.cliente_id)}).status_code == 404
+    maestra = {"X-Tenant-Key": "secreto-de-prueba"}
+    assert http.post(ruta, json={**cuerpo, "nombre": "../fuera.md"}, headers=maestra).status_code == 422
+    assert http.post(ruta, json=cuerpo, headers=maestra).status_code == 200
+    assert http.post(ruta, json=cuerpo, headers=maestra).status_code == 409
+    origen = {"tipo": "documento", "nombre": "respuestas-2026-10-28.md", "cita": "Quinta fin de semana: 12,000"}
+    texto, motivo = perfil._texto_de_origen(espacio, origen, {}, "reglas")
+    assert texto and "12,000" in texto and not motivo

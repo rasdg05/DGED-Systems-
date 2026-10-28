@@ -239,7 +239,10 @@ Dueño: *"el agente asistente debe tener las mismas o más capacidades que el de
 
 Con el sí del dueño y la conformidad de Mariana (*"Si, está de acuerdo"*, *"Ronda aprobada"*), la ronda `2026-10-27-seguimiento` se aprobó a nombre de Mariana Díaz por `POST /rondas/<nombre>/aprobar` y el envío se encendió (`canal vinculado sin_cifra`): **128 encoladas, 0 rechazadas; el primer mensaje salió por WhatsApp** (medido en la Cola de producción). Hallazgo en producción: la Cola seguía diciendo "128 esperan su sí" porque `agente.salidas` no juntaba `aprobaciones_salida.jsonl`; ahora lo junta, con test.
 
-## D-044 — 2026-10-28 — Un mensaje con salida no se vuelve a contestar en ronda
+## D-044 — 2026-10-28 — Una respuesta del dueño entra al perfil como documento citado; lista v2 por aprobar
+
+La segunda vuelta de Mariana (*"12 min"*, *"dejemoslo en 15 mil"*) llegó por el WhatsApp personal del dueño, no por el del negocio: sin un mensaje del historial, `perfil.validar` la tiraría (invariante 3). Se agrega `POST /espacios/<id>/documentos` (llave maestra, no pisa) y `python -m agente.local documento`: el texto de la respuesta queda en el espacio y cada renglón lo cita (`origen.tipo = documento`). Lista **v2** = v1 + quinta para 6: $5,000 la noche y $12,000 el fin de semana, y finca una noche para 25: $15,000; 24 reglas, 0 descartadas. Lo que no dijo sigue a decidir (finca una noche para 26–40, quinta 7–16). Queda **por aprobar** en Asistente; la v1 sigue activa hasta que Mariana apruebe.
+
+## D-045 — 2026-10-28 — Un mensaje con salida no se vuelve a contestar en ronda
 
 El enjambre del 2026-10-28 armó 98 borradores y 85 iban a pláticas que ya recibieron seguimiento en la ronda del 27 (enviado o en cola). Lo que el enviador manda por el vinculado no vuelve al historial, así que la plática se sigue viendo "sin contestar"; el único freno era el de 24 h al enviar (`enviador._ronda_reciente`), y al día siguiente se les habría escrito otra vez. Ahora `rondas.validar` rechaza y `local.lotes` no reparte un `(hilo, ultimo_id)` que ya tiene una salida (LXIX). Cuando el cliente escribe algo nuevo, ese mensaje sí se contesta. Falta de fondo: que lo enviado por el vinculado quede en el historial.
-

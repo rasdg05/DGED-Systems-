@@ -140,6 +140,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("cliente_id"), ap.add_argument("ronda"), ap.add_argument("aprobador")
     ca = sub.add_parser("canal", help="por dónde y qué sale: oficial|vinculado, sombra|sin_cifra (D-037)")
     ca.add_argument("cliente_id"), ca.add_argument("canal"), ca.add_argument("encendido")
+    do = sub.add_parser("documento", help="sube un documento del negocio para que el perfil lo cite")
+    do.add_argument("cliente_id"), do.add_argument("archivo")
     a = p.parse_args(argv)
 
     if a.orden == "bajar":
@@ -171,6 +173,13 @@ def main(argv: list[str] | None = None) -> int:
         print(_pedir("POST", f"/espacios/{a.cliente_id}/rondas/{a.ronda}/aprobar", {"aprobador": a.aprobador}).decode())
     elif a.orden == "canal":
         print(_pedir("POST", f"/espacios/{a.cliente_id}/canal", {"canal": a.canal, "encendido": a.encendido}).decode())
+    elif a.orden == "documento":
+        ruta = Path(a.archivo)
+        texto = ruta.read_text(encoding="utf-8")
+        destino = _espacio(a.cliente_id).ruta(f"documentos/{ruta.name}")
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        destino.write_text(texto, encoding="utf-8")  # la copia local valida igual que producción
+        print(_pedir("POST", f"/espacios/{a.cliente_id}/documentos", {"nombre": ruta.name, "texto": texto}).decode())
     elif a.orden == "servidor":
         print(f'AGENTE_DATOS={RAIZ_LOCAL} ANTHROPIC_API_KEY= uvicorn agente.app:app --port 8090\n'
               f"→ http://localhost:8090/espacios/{a.cliente_id}?llave=$TENANT_INTERNAL_TOKEN")

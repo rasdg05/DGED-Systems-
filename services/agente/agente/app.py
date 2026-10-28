@@ -385,6 +385,25 @@ def aprobar_ronda(cliente_id: str, nombre: str, aprobador: str = Body(..., embed
     return resultado
 
 
+@app.post("/espacios/{cliente_id}/documentos")
+def subir_documento(cliente_id: str, nombre: str = Body(..., embed=True), texto: str = Body(..., embed=True),
+                    x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """Un documento del negocio (respuestas del dueño, lista escrita) como texto, para que un
+    renglón del perfil pueda citarlo (`origen.tipo = documento`). Solo con la llave maestra;
+    no se pisa uno que ya existe: otra versión, otro nombre."""
+    import re
+
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,60}\.(?:md|txt)", nombre) or not texto.strip():
+        raise HTTPException(422, "nombre: minúsculas, números y guiones, .md o .txt; y un texto")
+    ruta = espacio.ruta(f"documentos/{nombre}")
+    if ruta.exists():
+        raise HTTPException(409, "ya existe un documento con ese nombre")
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    ruta.write_text(texto, encoding="utf-8")
+    return {"documento": nombre, "caracteres": len(texto)}
+
+
 @app.post("/espacios/{cliente_id}/propuestas")
 def subir_propuesta(cliente_id: str, cuerpo: dict,
                     x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
