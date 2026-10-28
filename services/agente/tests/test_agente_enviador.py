@@ -169,3 +169,27 @@ def test_el_canal_lo_cambia_solo_la_maestra_y_queda_escrito(con_pendiente):
     r = http.post(ruta, json=cuerpo, headers=maestra).json()
     assert r["antes"] == {"canal": "oficial", "encendido": "sombra"} and not r["listo"]  # sin lector conectado
     assert con_pendiente.config()["canal"] == "vinculado" and con_pendiente.leer_lineas("cambios_canal.jsonl")
+
+
+def test_lo_enviado_entra_al_historial_y_la_platica_ya_no_espera(con_pendiente):
+    """LXX. 2026-10-28: lo enviado por el vinculado no volvía al historial y el semáforo
+    seguía contando como sin respuesta a quien ya recibió la ronda."""
+    from agente import pendientes
+    _vinculado(con_pendiente)
+    s = _ronda_aprobada(con_pendiente)[0]
+    enviador.turno(con_pendiente, lambda h, t: "WAMID-1", MEDIODIA)
+    hilo = historial.hilos(con_pendiente)[s.hilo]
+    assert hilo[-1].id == "WAMID-1" and hilo[-1].del_negocio and hilo[-1].texto == s.texto
+    assert s.hilo not in {p.hilo for p in pendientes.leer(historial.hilos(con_pendiente))}
+    historial.guardar(con_pendiente, [historial.Mensaje("WAMID-1", s.hilo, True, 1, "text", s.texto)])  # el eco
+    assert sum(1 for m in historial.hilos(con_pendiente)[s.hilo] if m.texto == s.texto) == 1
+
+
+def test_lo_enviado_antes_se_asienta_una_vez(con_pendiente):
+    _vinculado(con_pendiente)
+    s = _ronda_aprobada(con_pendiente)[0]
+    con_pendiente.agregar_linea(enviador.ENVIADOS, {"salida": s.id, "hilo": s.hilo, "enviado": True,
+                                                    "cuando": MEDIODIA.isoformat()})
+    assert enviador.asentar_enviados(con_pendiente) == 1
+    assert enviador.asentar_enviados(con_pendiente) == 0
+    assert historial.hilos(con_pendiente)[s.hilo][-1].id == f"dged-{s.id}"

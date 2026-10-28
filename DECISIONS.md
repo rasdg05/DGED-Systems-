@@ -247,3 +247,7 @@ Nota a D-044 (2026-10-28): la lista completa quedó como **v3** (24 reglas, 0 de
 ## D-045 — 2026-10-28 — Un mensaje con salida no se vuelve a contestar en ronda
 
 El enjambre del 2026-10-28 armó 98 borradores y 85 iban a pláticas que ya recibieron seguimiento en la ronda del 27 (enviado o en cola). Lo que el enviador manda por el vinculado no vuelve al historial, así que la plática se sigue viendo "sin contestar"; el único freno era el de 24 h al enviar (`enviador._ronda_reciente`), y al día siguiente se les habría escrito otra vez. Ahora `rondas.validar` rechaza y `local.lotes` no reparte un `(hilo, ultimo_id)` que ya tiene una salida (LXIX). Cuando el cliente escribe algo nuevo, ese mensaje sí se contesta. Falta de fondo: que lo enviado por el vinculado quede en el historial.
+
+## D-046 — 2026-10-28 — Lo enviado por el vinculado entra al historial
+
+La raíz del hallazgo de D-045: lo que el enviador manda no volvía al historial, así que el semáforo, los pendientes, la Cola y el enjambre trataban como "sin respuesta" a los 128 que ya recibieron seguimiento. Ahora cada envío entra como mensaje del negocio con el ID que devuelve WhatsApp (su eco no duplica, como `importador.eco_propio` de Gestor), igual lo de la mesa, y al arrancar el enviador asienta una vez lo enviado antes (LXX). El candado de D-045 se queda como defensa de fondo.

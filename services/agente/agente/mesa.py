@@ -332,11 +332,13 @@ def despachar(espacio: Espacio, mandar, ahora: datetime | None = None) -> int:
         if del_dia >= TOPE_DIA:
             break
         try:
-            mandar(e["para"], e["texto"])
+            wamid = mandar(e["para"], e["texto"])
         except Exception as error:  # noqa: BLE001 - queda escrito y no se reintenta solo
             espacio.agregar_linea(ENVIADOS, {**registro, "enviado": False, "motivo": f"falló: {type(error).__name__}"})
             continue
         espacio.agregar_linea(ENVIADOS, {**registro, "enviado": True})
+        from .enviador import al_historial
+        al_historial(espacio, e["para"], e["texto"], ahora, wamid, f"mesa-{e['id']}")
         del_dia += 1
         n += 1
     return n

@@ -25,6 +25,7 @@ from __future__ import annotations
 import logging
 import random
 import time
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -134,19 +135,53 @@ def turno(espacio: Espacio, mandar, ahora: datetime | None = None) -> dict | Non
             espacio.agregar_linea(ENVIADOS, {**registro, "enviado": False, "motivo": motivo})
             continue
         try:
-            mandar(salida.hilo, salida.texto)
+            wamid = mandar(salida.hilo, salida.texto)
         except Exception as error:  # noqa: BLE001 - lo que diga WhatsApp queda escrito y no se reintenta solo
             espacio.agregar_linea(ENVIADOS, {**registro, "enviado": False, "motivo": f"falló: {type(error).__name__}"})
             return {"salida": salida_id, "enviado": False}
-        espacio.agregar_linea(ENVIADOS, {**registro, "enviado": True})
+        espacio.agregar_linea(ENVIADOS, {**registro, "enviado": True, "wamid": wamid if isinstance(wamid, str) else None})
+        al_historial(espacio, salida.hilo, salida.texto, ahora, wamid, salida_id)
         return {"salida": salida_id, "enviado": True}
     return None
+
+
+def al_historial(espacio: Espacio, hilo: str, texto: str, cuando: datetime, wamid=None, salida_id: str = "") -> None:
+    """Lo que salió por el vinculado entra al historial como mensaje del negocio (LXX).
+    WhatsApp no lo devuelve siempre, y sin esto el semáforo, los pendientes y el
+    enjambre creían que el cliente seguía sin respuesta (2026-10-28: 85 de 98
+    borradores del segundo enjambre iban a quien ya había recibido la ronda)."""
+    from . import historial
+    ident = wamid if isinstance(wamid, str) and wamid else f"dged-{salida_id or uuid.uuid4().hex[:12]}"
+    historial.guardar(espacio, [historial.Mensaje(id=ident, hilo=hilo, del_negocio=True, ts=int(cuando.timestamp()),
+                                                  tipo="text", texto=texto)])
+
+
+def asentar_enviados(espacio: Espacio) -> int:
+    """Lo enviado antes de que existiera `al_historial` (la ronda del 27-oct), una vez."""
+    from . import agente, historial
+    ya = {m.id for m in historial.cargar(espacio)}
+    salidas = {s.id: s for s in agente.salidas(espacio)}
+    n = 0
+    for e in espacio.leer_lineas(ENVIADOS):
+        s = salidas.get(e.get("salida", ""))
+        if not e.get("enviado") or s is None:
+            continue
+        if (e.get("wamid") or f"dged-{s.id}") in ya:
+            continue
+        al_historial(espacio, s.hilo, s.texto, datetime.fromisoformat(e["cuando"]), e.get("wamid"), s.id)
+        n += 1
+    return n
 
 
 def correr(espacio: Espacio, mandar, listo=lambda: True) -> None:  # pragma: no cover - bucle del proceso
     """El bucle del proceso vinculado: un turno, una pausa al azar, otra vez."""
     from . import mesa
 
+    try:
+        if (n := asentar_enviados(espacio)):
+            logger.info("Al historial: %s enviados que faltaban", n)
+    except Exception:
+        logger.exception("No se pudieron asentar los enviados")
     ritmo = Ritmo.de(espacio)
     while True:
         espera = 15

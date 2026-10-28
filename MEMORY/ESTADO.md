@@ -10,7 +10,7 @@
   `2026-10-28-seguimiento`**, sin cifras, probada contra producción (10 aceptadas, nada escrito); **no cargada**
   (falta el sí del dueño). **125 para Mariana, 25 urgentes** (fechas de noviembre sin cotizar, grupos más grandes
   que la capacidad, eventos, audios sin escuchar) en `datos/.../enjambre/2026-10-28T1630/para-la-duena.json`
-  (fuera de git). Pendiente: que lo enviado por el vinculado quede en el historial.
+  (fuera de git). Lo enviado por el vinculado ya entra al historial (D-046, LXX): al redesplegar se asientan los 128.
 - **Llave maestra pegada en el chat el 2026-10-28** (es la misma del enlace del negocio): hay que cambiarla.
 - **Ronda 2026-10-27-seguimiento completa** (28-oct, 10:30): **128 de 128 enviados, 0 fallidos**, WhatsApp conectado.
   Respondieron **25 de 128** (19.5%; n < 30, no concluye); 8 ya los atendió Mariana. Esperan a una persona: …0070
