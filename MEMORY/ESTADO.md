@@ -7,8 +7,8 @@
 - **Enjambre del 2026-10-28** (orden del dueño: seguimiento y escalamiento): 220 pláticas en 22 lotes y 22
   agentes; 98 borradores y 122 "no sale". **85 de los 98 iban a quien ya recibió la ronda del 27**: lo enviado
   por el vinculado no vuelve al historial. Arreglado con candado (D-045, LXIX). Quedan **10 en la ronda
-  `2026-10-28-seguimiento`**, sin cifras, probada contra producción (10 aceptadas, nada escrito); **no cargada**
-  (falta el sí del dueño). **125 para Mariana, 25 urgentes** (fechas de noviembre sin cotizar, grupos más grandes
+  `2026-10-28-seguimiento`**, sin cifras, **cargada en producción con el sí del dueño** (10 esperan aprobación,
+  0 descartadas); sale cuando Mariana escriba "aprueba ronda 2026-10-28-seguimiento". **125 para Mariana, 25 urgentes** (fechas de noviembre sin cotizar, grupos más grandes
   que la capacidad, eventos, audios sin escuchar) en `datos/.../enjambre/2026-10-28T1630/para-la-duena.json`
   (fuera de git). Pendiente: que lo enviado por el vinculado quede en el historial.
 - **Llave maestra pegada en el chat el 2026-10-28** (es la misma del enlace del negocio): hay que cambiarla.
