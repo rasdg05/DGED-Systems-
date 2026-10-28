@@ -4,6 +4,11 @@
 
 ## Corre
 
+- **Ronda 2026-10-27-seguimiento completa** (28-oct, 10:30): **128 de 128 enviados, 0 fallidos**, WhatsApp conectado.
+  Respondieron **25 de 128** (19.5%; n < 30, no concluye); 8 ya los atendió Mariana. Esperan a una persona: …0070
+  (30–35 personas), …5340 (pide precios), …5175 (4 personas, 24–26 dic), …3467 (capacidad), …1077, …1930 (120
+  personas, excede capacidad) y 4 que mandaron solo archivo. Arreglado con test: *"nos decidimos por otro lugar"*
+  y *"será en otra ocasión"* no se leían como cierre.
 - **Cierre del 2026-10-27, envío Finca Emiliano**: **100 enviados** (tope del día), 0 fallidos, WhatsApp conectado;
   **28 salen el 28-oct desde las 9:00**. Respondieron **22 de 100** en ~6 h (n < 30, no concluye): 5 cerraron
   (ya rentaron o no van), y piden algo para Mariana …0070 (30–35 personas, precio), …5340 ("no me regaló

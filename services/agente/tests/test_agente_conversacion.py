@@ -45,6 +45,8 @@ def test_conv_eres_bot_va_antes_que_pedir_persona():
 @pytest.mark.parametrize("texto, esperado", [
     ("Gracias, ya rentamos en otro lado", True), ("Ya reservé en otra, gracias", True),
     ("Ya encontramos, gracias", True), ("Ya apartamos, ¿cuánto es el depósito?", False),
+    ("Gracias, nos decidimos por otro lugar en hidalgo 😊", True), ("muchas gracias, sera en otra ocasion", True),
+    ("Nos decidimos por otra fecha, tienen el 14?", False),
     ("No me interesa", True), ("Está muy caro, gracias", True), ("Número equivocado", True),
     ("Ya no, gracias", True), ("Ya reservé, ¿cuánto es el depósito?", False),
 ])

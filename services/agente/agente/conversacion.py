@@ -136,6 +136,7 @@ CIERRE = re.compile(
     r"|\b(?:estan|esta|es|sale|muy)\s+(?:muy\s+|bien\s+)?car[oa]s?\b.*\b(?:gra(?:c|s)ias|grax)\b"
     r"|\bgra(?:c|s)ias\b.*\b(?:estan|esta|muy)\s+(?:muy\s+)?car[oa]s?\b"
     r"|\bno\s+me\s+alcanza\b|\bdejelo\s+mejor\b|\bmejor\s+lo\s+dejo\b"
+    r"|\bnos\s+decidimos\s+por\s+otr[oa]s?\b|\b(?:sera|seria)\s+(?:en|para)\s+otra\s+ocasion\b"
     r"|\bya\s+no\s+(?:lo\s+|la\s+)?vamos\s+a\s+(?:hacer|rentar|necesitar)\b"
     r"|^(?:esta|estas|se)\s+equivocad[oa]\b|\bnumero\s+equivocado\b")
 LA_PELOTA_ES_SUYA = re.compile(
