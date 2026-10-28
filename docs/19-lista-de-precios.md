@@ -69,8 +69,8 @@ Es el rango de las estancias a las que la casa les escribió *"mínimo 3 noches"
 | Qué | Lo que la casa ha dado |
 |---|---|
 | Quinta, temporada normal, 5 a 16 personas, la noche | 5,000 (7 de 14) · 7,000 · 6,000 · 5,500 · 4,500 · 9,000 · 3,000. Mariana (2026-10-27, doc 20): "podría" 5,000 para 6 con 3 habitaciones, sin unidad |
-| Quinta, el fin de semana (5 a 20) | 12,000 (3 de 8) · 6,000 · 8,000 · 9,000 · 10,000 · 15,000. Se le preguntó el 2026-10-27 y no contestó esta parte |
-| Finca, una noche (15 a 40) | 15,000 (2 de 4) · 16,000 · 20,000. Mariana (2026-10-27, doc 20): para 25 "podría variar si 12,000 o 15" |
+| Quinta, el fin de semana (5 a 20) | 12,000 (3 de 8) · 6,000 · 8,000 · 9,000 · 10,000 · 15,000. Se le preguntó el 2026-10-27 y no contestó esta parte. **2026-10-28: 12,000** (doc 20, segunda vuelta) |
+| Finca, una noche (15 a 40) | 15,000 (2 de 4) · 16,000 · 20,000. Mariana (2026-10-27, doc 20): para 25 "podría variar si 12,000 o 15". **2026-10-28: 15,000** (doc 20) |
 | Finca, fin de año, la noche | 17,000 (n = 1) |
 | Las dos casas, una noche (50) | 22,000 (n = 1) |
 | Semana Santa, puentes, Navidad antes del 23 | sin cotizaciones con fechas |

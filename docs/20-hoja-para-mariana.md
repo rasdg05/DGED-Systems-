@@ -58,6 +58,16 @@ Qué hacer con esto, en la máquina donde vive `datos/espacios/finca-quinta/`:
 3. Cuando tenga el calendario en su cuenta, pedirle la dirección secreta iCal y darla
    de alta con `agente.calendario fuente` (no va a git ni al chat).
 
+## Segunda vuelta — 2026-10-28 (por el dueño)
+
+| Pregunta | Respuesta, como la pasó el dueño | Cómo se lee |
+|---|---|---|
+| "¿Los $5,000 de la quinta para 6 son por noche? ¿Y cuánto por fin de semana?" | "12 min" | **Quinta, fin de semana: 12,000** ("min" se lee "mil"; es también lo que más cotizó, 3 de 8). Que los 5,000 sean la noche no lo dice de forma explícita: se toma así porque la pregunta lo ofrecía y nadie lo corrigió, a confirmar en la primera plática que lo use. |
+| "Para la finca una noche con 25, ¿qué hace que sea $12,000 o $15,000?" | "dejemoslo en 15 mil" | **Finca, una noche para 25: 15,000.** Deja de ser rango. |
+
+Entran a la lista como versión nueva del perfil (la v1 sigue activa) y se encienden
+cuando Mariana las aprueba en Asistente → Precios.
+
 ## Dónde está el enlace del calendario (para la pregunta 3)
 
 - **Airbnb**: Anuncios → la casa → Disponibilidad → Conectar calendarios →

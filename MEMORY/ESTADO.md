@@ -1,9 +1,16 @@
-# Estado — 2026-10-27 (Mariana contestó la hoja)
+# Estado — 2026-10-28 (precios de la segunda vuelta; enjambre trabado)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
 ## Corre
 
+- **2026-10-28, segunda vuelta de precios** (doc 20): quinta fin de semana **12,000** ("12 min"), finca una
+  noche para 25 **15,000**. Faltan como versión nueva del perfil para que Mariana la apruebe en Asistente.
+  **Enjambre de seguimiento pedido por el dueño y no corrido**: esta sesión no tiene `AGENTE_URL` ni
+  `TENANT_INTERNAL_TOKEN` (ni computadora conectada por Remote Control). Sin eso no se baja nada de producción.
+  Escalado al dueño, de lo que ya se sabía: los 8 que piden algo a Mariana desde el 27 (…0070, …5340, …5175,
+  …9452, …3467, …7950, …1930, …1180), los 16 de `para-la-duena.json` y los 91 "no sale" del primer enjambre,
+  y el iCal de Google Calendar, sin el cual no se cotizan fechas.
 - **Cierre del 2026-10-27, envío Finca Emiliano**: **100 enviados** (tope del día), 0 fallidos, WhatsApp conectado;
   **28 salen el 28-oct desde las 9:00**. Respondieron **22 de 100** en ~6 h (n < 30, no concluye): 5 cerraron
   (ya rentaron o no van), y piden algo para Mariana …0070 (30–35 personas, precio), …5340 ("no me regaló
