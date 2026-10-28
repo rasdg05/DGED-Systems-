@@ -242,3 +242,5 @@ Con el sí del dueño y la conformidad de Mariana (*"Si, está de acuerdo"*, *"R
 ## D-044 — 2026-10-28 — Una respuesta del dueño entra al perfil como documento citado; lista v2 por aprobar
 
 La segunda vuelta de Mariana (*"12 min"*, *"dejemoslo en 15 mil"*) llegó por el WhatsApp personal del dueño, no por el del negocio: sin un mensaje del historial, `perfil.validar` la tiraría (invariante 3). Se agrega `POST /espacios/<id>/documentos` (llave maestra, no pisa) y `python -m agente.local documento`: el texto de la respuesta queda en el espacio y cada renglón lo cita (`origen.tipo = documento`). Lista **v2** = v1 + quinta para 6: $5,000 la noche y $12,000 el fin de semana, y finca una noche para 25: $15,000; 24 reglas, 0 descartadas. Lo que no dijo sigue a decidir (finca una noche para 26–40, quinta 7–16). Queda **por aprobar** en Asistente; la v1 sigue activa hasta que Mariana apruebe.
+
+Nota a D-044 (2026-10-28): la lista completa quedó como **v3** (24 reglas, 0 descartadas, verificada en Asistente). La v2 se subió antes de que `/documentos` estuviera desplegado y quedó igual a la v1: se ignora.
