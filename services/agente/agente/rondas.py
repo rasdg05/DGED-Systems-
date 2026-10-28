@@ -62,14 +62,26 @@ def _cotizacion(entrada: dict, activo: dict | None) -> tuple[cotizador.Cotizacio
     return cot, ""
 
 
+def ya_atendidos(espacio: Espacio) -> frozenset[tuple[str, str]]:
+    """(hilo, mensaje) que ya tienen una salida, aprobada o no. Lo que el enviador
+    manda por el vinculado no vuelve al historial, así que la plática sigue
+    viéndose "sin contestar" aunque ayer recibió su seguimiento (2026-10-28: 85
+    de 98 borradores del enjambre iban a quien ya se le escribió)."""
+    from . import agente
+    return frozenset((s.hilo, s.responde_a) for s in agente.salidas(espacio))
+
+
 def motivo_de_rechazo(entrada: dict, hilos: dict, por_hilo: dict, activo: dict | None,
-                      ocupacion: calendario.Ocupacion | None = None, seguimiento: frozenset = frozenset()) -> str:
+                      ocupacion: calendario.Ocupacion | None = None, seguimiento: frozenset = frozenset(),
+                      atendidos: frozenset = frozenset()) -> str:
     """'' si la entrada puede quedar esperando aprobación; si no, por qué no."""
     hilo = str(entrada.get("hilo", ""))
     if hilo not in hilos:
         return "el hilo no existe en el espacio"
     if hilos[hilo][-1].id != entrada.get("ultimo_id"):
         return SE_MOVIO
+    if (hilo, entrada.get("ultimo_id")) in atendidos:
+        return "ese mensaje ya tiene una salida (de otra ronda o de la cola): no se le escribe dos veces"
     pendiente = por_hilo.get(hilo)
     # Seguimiento (D-041): lo último es del negocio (cotizó o preguntó) y el
     # cliente no contesta hace 24 h a 21 días; el semáforo lo marca. Lo demás
@@ -111,9 +123,10 @@ def validar(espacio: Espacio, ronda: dict) -> tuple[list[dict], list[dict]]:
     activo = perfil.activo(espacio)
     ocupacion = calendario.Ocupacion.de(espacio)
     seguimiento = frozenset(f.hilo for f in semaforo.leer(hilos) if f.seguimiento)
+    atendidos = ya_atendidos(espacio)
     aceptadas, descartadas, vistos = [], [], set()
     for entrada in ronda.get("entradas", []) or []:
-        motivo = motivo_de_rechazo(entrada, hilos, por_hilo, activo, ocupacion, seguimiento)
+        motivo = motivo_de_rechazo(entrada, hilos, por_hilo, activo, ocupacion, seguimiento, atendidos)
         if not motivo and entrada.get("hilo") in vistos:
             motivo = "el hilo ya va en esta ronda"
         (descartadas if motivo else aceptadas).append(dict(entrada, motivo=motivo) if motivo else entrada)

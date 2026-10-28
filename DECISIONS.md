@@ -238,3 +238,8 @@ Dueño: *"el agente asistente debe tener las mismas o más capacidades que el de
 ## D-043 — 2026-10-27 — Primer envío real por el vinculado; lo aprobado deja de contar como "espera su sí"
 
 Con el sí del dueño y la conformidad de Mariana (*"Si, está de acuerdo"*, *"Ronda aprobada"*), la ronda `2026-10-27-seguimiento` se aprobó a nombre de Mariana Díaz por `POST /rondas/<nombre>/aprobar` y el envío se encendió (`canal vinculado sin_cifra`): **128 encoladas, 0 rechazadas; el primer mensaje salió por WhatsApp** (medido en la Cola de producción). Hallazgo en producción: la Cola seguía diciendo "128 esperan su sí" porque `agente.salidas` no juntaba `aprobaciones_salida.jsonl`; ahora lo junta, con test.
+
+## D-044 — 2026-10-28 — Un mensaje con salida no se vuelve a contestar en ronda
+
+El enjambre del 2026-10-28 armó 98 borradores y 85 iban a pláticas que ya recibieron seguimiento en la ronda del 27 (enviado o en cola). Lo que el enviador manda por el vinculado no vuelve al historial, así que la plática se sigue viendo "sin contestar"; el único freno era el de 24 h al enviar (`enviador._ronda_reciente`), y al día siguiente se les habría escrito otra vez. Ahora `rondas.validar` rechaza y `local.lotes` no reparte un `(hilo, ultimo_id)` que ya tiene una salida (LXIX). Cuando el cliente escribe algo nuevo, ese mensaje sí se contesta. Falta de fondo: que lo enviado por el vinculado quede en el historial.
+
