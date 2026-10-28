@@ -1,4 +1,4 @@
-# Estado — 2026-10-27 (Mariana contestó la hoja)
+# Estado — 2026-10-28 (ronda completa 128/128; precios de la segunda vuelta)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
@@ -9,6 +9,9 @@
   (30–35 personas), …5340 (pide precios), …5175 (4 personas, 24–26 dic), …3467 (capacidad), …1077, …1930 (120
   personas, excede capacidad) y 4 que mandaron solo archivo. Arreglado con test: *"nos decidimos por otro lugar"*
   y *"será en otra ocasión"* no se leían como cierre.
+- **2026-10-28, segunda vuelta de precios** (doc 20): quinta fin de semana **12,000** ("12 min"), finca una
+  noche para 25 **15,000**. Faltan como versión nueva del perfil para que Mariana la apruebe en Asistente.
+  (Esa sesión no tenía acceso a producción; el enjambre sí corrió en la sesión del 27, ver arriba.)
 - **Cierre del 2026-10-27, envío Finca Emiliano**: **100 enviados** (tope del día), 0 fallidos, WhatsApp conectado;
   **28 salen el 28-oct desde las 9:00**. Respondieron **22 de 100** en ~6 h (n < 30, no concluye): 5 cerraron
   (ya rentaron o no van), y piden algo para Mariana …0070 (30–35 personas, precio), …5340 ("no me regaló
