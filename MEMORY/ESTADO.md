@@ -4,6 +4,12 @@
 
 ## Corre
 
+- **Cierre del 2026-10-27, envío Finca Emiliano**: **100 enviados** (tope del día), 0 fallidos, WhatsApp conectado;
+  **28 salen el 28-oct desde las 9:00**. Respondieron **22 de 100** en ~6 h (n < 30, no concluye): 5 cerraron
+  (ya rentaron o no van), y piden algo para Mariana …0070 (30–35 personas, precio), …5340 ("no me regaló
+  precios"), …5175 (4 personas, 24–26 dic), …9452 (cambió a 14–16 nov), …3467 (capacidad), …7950 (ubicación),
+  …1930 (120 personas, marzo: excede capacidad), …1180 (boda, ya la lleva ella). La lista de precios sigue
+  **por aprobar** (perfil activo: ninguno): con ella aprobada, el asistente cotiza esas respuestas.
 - **Envío real encendido, Finca Emiliano** (2026-10-27, D-043): ronda de 128 seguimientos aprobada a nombre de Mariana,
   canal vinculado `sin_cifra`; el primero salió por WhatsApp. Siguen saliendo uno cada 40–50 s, 9:00–20:59, ≤ 100/día.
   Pausa: Mariana escribe "pausa el envío" o `python -m agente.local canal finca-quinta vinculado sombra`.
