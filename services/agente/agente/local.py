@@ -97,7 +97,9 @@ def lotes(cliente_id: str, por_lote: int = 10, dias: int | None = None) -> tuple
     lista = pendientes.leer(hilos)
     espera = {p.hilo: p for p in lista if p.estado == "espera"}
     limite = (dias if dias is not None else semaforo.DIAS_VIGENCIA) * 24
-    filas = [f for f in semaforo.leer(hilos) if f.horas <= limite and (f.hilo in espera or f.seguimiento)]
+    atendidos = rondas.ya_atendidos(espacio)
+    filas = [f for f in semaforo.leer(hilos) if f.horas <= limite and (f.hilo in espera or f.seguimiento)
+             and (f.hilo, f.ultimo_id) not in atendidos]
     carpeta = espacio.ruta(f"enjambre/{datetime.now(timezone.utc):%Y-%m-%dT%H%M}")
     carpeta.mkdir(parents=True, exist_ok=True)
     escritos = []

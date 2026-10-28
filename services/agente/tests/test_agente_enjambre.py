@@ -113,6 +113,22 @@ def test_inv_ronda_no_contesta_reclamos_ni_acuses_y_no_se_carga_dos_veces(con_pe
         rondas.cargar(con_pendiente, _ronda())
 
 
+def test_inv_ronda_no_le_escribe_dos_veces_al_mismo_mensaje(con_pendiente, monkeypatch):
+    """Lo enviado por el vinculado no vuelve al historial: la plática sigue "sin
+    contestar" y sin este candado el enjambre del día siguiente le volvía a escribir."""
+    from agente import local
+    rondas.cargar(con_pendiente, _ronda())
+    otra = dict(_ronda(), nombre="prueba-2")
+    _, descartadas = rondas.validar(con_pendiente, otra)
+    assert "ya tiene una salida" in descartadas[0]["motivo"]
+    monkeypatch.setattr(local, "_espacio", lambda _id: con_pendiente)
+    _, escritos = local.lotes(con_pendiente.cliente_id, dias=100_000)
+    assert not any(HILO in r.read_text(encoding="utf-8") for r in escritos)
+    historial.guardar(con_pendiente, [_m("wamid.E4", "¿Siguen teniendo la quinta?", ts=1790000300)])
+    aceptadas, _ = rondas.validar(con_pendiente, dict(otra, entradas=[dict(otra["entradas"][0], ultimo_id="wamid.E4")]))
+    assert len(aceptadas) == 1  # el cliente volvió a escribir: ese mensaje nuevo sí se contesta
+
+
 def test_inv_ronda_sin_perfil_no_hay_cotizacion(tmp_path, monkeypatch):
     monkeypatch.setenv("TENANT_INTERNAL_TOKEN", "s")
     vacio = Espacio("sin-perfil", tmp_path)

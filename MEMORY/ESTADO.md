@@ -1,9 +1,17 @@
-# Estado — 2026-10-28 (ronda completa 128/128; precios de la segunda vuelta)
+# Estado — 2026-10-28 (ronda 128/128; enjambre de seguimiento y escalamiento)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
 ## Corre
 
+- **Enjambre del 2026-10-28** (orden del dueño: seguimiento y escalamiento): 220 pláticas en 22 lotes y 22
+  agentes; 98 borradores y 122 "no sale". **85 de los 98 iban a quien ya recibió la ronda del 27**: lo enviado
+  por el vinculado no vuelve al historial. Arreglado con candado (D-045, LXIX). Quedan **10 en la ronda
+  `2026-10-28-seguimiento`**, sin cifras, probada contra producción (10 aceptadas, nada escrito); **no cargada**
+  (falta el sí del dueño). **125 para Mariana, 25 urgentes** (fechas de noviembre sin cotizar, grupos más grandes
+  que la capacidad, eventos, audios sin escuchar) en `datos/.../enjambre/2026-10-28T1630/para-la-duena.json`
+  (fuera de git). Pendiente: que lo enviado por el vinculado quede en el historial.
+- **Llave maestra pegada en el chat el 2026-10-28** (es la misma del enlace del negocio): hay que cambiarla.
 - **Ronda 2026-10-27-seguimiento completa** (28-oct, 10:30): **128 de 128 enviados, 0 fallidos**, WhatsApp conectado.
   Respondieron **25 de 128** (19.5%; n < 30, no concluye); 8 ya los atendió Mariana. Esperan a una persona: …0070
   (30–35 personas), …5340 (pide precios), …5175 (4 personas, 24–26 dic), …3467 (capacidad), …1077, …1930 (120

@@ -73,6 +73,7 @@
 | LXVI | La única llamada que escribe a WhatsApp por el vinculado vive en `mandador.py`; el lector sigue sin enviar en su código | `agente/mandador.py` | `test_agente_enviador.py::test_la_unica_llamada_que_escribe_a_whatsapp_vive_en_mandador` |
 | LXVII | La mesa de la dueña solo le escribe a administradoras (teléfono de quien aprueba y `administradores`); se revisa al despachar | `agente/mesa.py::despachar` | `test_agente_mesa.py::test_la_mesa_solo_le_escribe_a_administradoras` |
 | LXVIII | Una administradora no es clienta: su plática no entra al semáforo, a las rondas ni a la cola de clientes; aprobar una ronda o encender el envío por WhatsApp solo lo ordena quien aprueba | `mesa.clientes`, `canal.motivo_para_no_enviar`, `mesa.ejecutar` | `test_agente_mesa.py::test_una_administradora_no_es_clienta`, `test_la_cola_de_clientes_nunca_manda_a_una_administradora`, `test_aprobar_la_ronda_y_encender_solo_lo_ordena_quien_aprueba` |
+| LXIX | Agente: a un mensaje que ya tiene una salida (de otra ronda o de la cola) no se le escribe otra vez; lo enviado por el vinculado no vuelve al historial | `services/agente/agente/rondas.py::ya_atendidos`, `local.lotes` | `services/agente/tests/test_agente_enjambre.py::test_inv_ronda_no_le_escribe_dos_veces_al_mismo_mensaje` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 
