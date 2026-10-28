@@ -4,6 +4,9 @@
 
 ## Corre
 
+- **2026-10-28, con el sí del dueño** (*"Si aprobada"*): **lista de precios v3 activa** (quinta para 6: 5,000 la noche
+  y 12,000 el fin de semana; finca una noche para 25: 15,000) y **ronda `2026-10-28-seguimiento` aprobada** a nombre
+  de Mariana: 10 encolados, revisados contra su plática (el "pet friendly" lo dice la ficha de la quinta).
 - **Enjambre del 2026-10-28** (orden del dueño: seguimiento y escalamiento): 220 pláticas en 22 lotes y 22
   agentes; 98 borradores y 122 "no sale". **85 de los 98 iban a quien ya recibió la ronda del 27**: lo enviado
   por el vinculado no vuelve al historial. Arreglado con candado (D-045, LXIX). Quedan **10 en la ronda
