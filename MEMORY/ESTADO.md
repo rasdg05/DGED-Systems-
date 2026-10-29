@@ -5,7 +5,9 @@
 ## Corre
 
 - **Corrida GM del agente, 2026-10-29** (`docs/21-corrida-gm-agente.md`, D-047 a D-052, LXXI–LXXVI; el
-  runbook de Gestor aplicado aquí). En producción hasta `a9d7f69`; 437 tests del agente en verde.
+  runbook de Gestor aplicado aquí). En producción hasta `9597cab`; 468 tests del agente en verde.
+  Dos revisiones adversariales con agentes; la primera cazó lecturas mías que callaban a quien pedía
+  (17 casos, arreglados con corpus) y que la referencia del backtest avanzaba sola (alarma pegajosa).
   - **Lo que más dinero mueve**: de 128 seguimientos del 27 contestaron 26; **10 esperan respuesta** desde
     hace ~31 h y estaban al fondo del semáforo (lugares 170–192 de 194). Hoy van primero
     (`contesto_ronda`) y el reporte de las 9 y 19 abre con ellos. 2 clientes aceptaron una cotización
@@ -15,8 +17,11 @@
   - **Backtest honesto**: la caída 0.30 → 0.106 era "iría al modelo" sin medir, no un agente peor; la
     alarma ya no la borra otro despliegue. `/health` dice el commit.
   - **Clasificador de pendientes** contra oro ciego (kappa 0.947): 92.1% → 96.6% (in-sample).
-  - **Vara** (universo `8c8c8b3f`, 3 de 4 intentos, holdout sin abrir): perfil v3 0.339 vs base 0.300,
-    DSR 1.0; **el monto del cotizador coincide con la casa en 15 de 34–37**. Tres lecturas arregladas.
+  - **Vara** (cierre: familia `finca-2`, universo `2ba35776`, holdout sin abrir): perfil v3 0.336 vs base
+    0.300, DSR 1.0, 0 caros; **el monto del cotizador coincide con la casa en 15 de 34**. Siguiente
+    holdout: con ≥ 5 días de momentos posteriores al 2026-10-27.
+  - **Tiempo al número** (`agente/tiempos.py`, en el reporte): 213 pedidos de precio, 131 con cifra
+    (mediana 0.2 h), 22 con foto, **58 nunca recibieron precio**.
   - **Banco** con el perfil real: 0.902 → 1.0, 0 caros. Órdenes al asistente van a una persona. Una
     ronda ya no pregunta lo que el cliente ya dijo (3 de 138 lo hacían).
   - **Llave maestra pegada otra vez en el chat el 2026-10-29**: rotarla.

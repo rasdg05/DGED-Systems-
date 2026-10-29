@@ -146,3 +146,8 @@
   Re-medido: oro 96.2% (un caso más va a "espera"), prueba de propiedad contra `0fffaad`: 16 ráfagas
   cambian, todas revisadas; banco con el perfil real 1.0, 0 caros. Sin hallazgo: ningún camino nuevo deja
   salir una cifra sin el sí; `/rondas.json` y `/tiempos.json` solo con la maestra.
+- **B11 · vara de cierre** (familia `finca-2`, universo `2ba35776`, 1,071 momentos, dev 554, holdout 268
+  **sin abrir**): `c2-base` 0.300; `c2-v3-tope0` (perfil v3 activo, todas las lecturas de la corrida)
+  **0.336** (IC 0.315–0.362), DSR 1.0 con 2 intentos, PBO 0.0, placebo colapsa (93.3 → 87.1), caros 0,
+  cobertura 13.2%, monto igual a la casa 15 de 34 (44.1%). **No se enciende nada**: la compuerta pide el
+  holdout (y n ≥ 30 por jugada que se enciende) y el turno no tiene conector oficial.
