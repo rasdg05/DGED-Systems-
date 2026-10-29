@@ -114,3 +114,11 @@
   al modelo. Ahora `conversacion.intenta_cambiar_las_reglas` lo manda a una persona antes (cuarentena
   de Gestor); el test del candado roto se movió a un ataque que sí llega al modelo. En la vara: 0
   momentos cambian (chequeo sin registrar).
+- **B8 · cerrado** · lo que el cliente ya dijo no se pregunta (Gestor C5-I). Medido en el historial: la
+  casa repite *"¿cuántas personas?"* en **15 de 43** y pide fechas ya dichas en 5 de 102 (**13.8 por cada
+  100** preguntas de dato). En las rondas enviadas: **3 de 138** preguntaban personas a quien ya las
+  había dicho (150, 16 y 37). Candado nuevo en `rondas.motivo_de_rechazo` (`pregunta_lo_ya_dicho`):
+  personas dichas, o fechas por venir que nadie dijo ocupadas. Re-corrido sobre las 138: para las 3
+  reales y 0 de las demás (los 4 falsos positivos del primer intento —"¿siguen interesados en sus
+  fechas?", pedir otra fecha tras "ya tenemos reservado"— entraron al corpus). La instrucción del
+  enjambre lo dice también.

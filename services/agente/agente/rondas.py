@@ -37,6 +37,42 @@ MAX_TEXTOS = 3
 SE_MOVIO = "la plática se movió desde que el enjambre la leyó"
 
 
+#: Preguntar de nuevo lo que el cliente ya dijo (Gestor C5-I: "cada una le confirma al
+#: cliente que nadie lo leyó"). Corrida GM, 2026-10-29: la casa lo hace en 15 de 43
+#: "¿cuántas personas?" y una ronda aprobada le preguntó las personas a quien dijo 150.
+#: Pedir OTRA fecha (la suya ya pasó) no es repetir: solo cuenta si sus fechas siguen por venir.
+_PREGUNTA_PERSONAS = re.compile(r"\bcuant[oa]s (?:personas|son|serian|serán|vienen|huespedes|invitados)\b"
+                                r"|\bpara cuant[oa]s\b")
+_PREGUNTA_FECHAS = re.compile(r"\bque (?:fecha|fechas|dia|dias|mes)\b|\bpara (?:que|cuando) (?:fecha|dia)\b"
+                              r"|\bde que mes\b|\bpara cuando\b"
+                              # "nos comparte sus fechas" pide; "sigue interesado en sus fechas" confirma.
+                              r"|\b(?:comparte|compartes|diga|dice|dime|indique|indica|pasa|pasas|manda|mande)\w*"
+                              r"\s+(?:sus|tus|las)\s+fechas\b"
+                              r"|\bque dia (?:les|le|te) gustaria\b"
+                              r"|\bcuando (?:seria|serian|les gustaria|quieren|vienen|llegarian)\b")
+
+
+_OCUPADO = re.compile(r"\b(?:ocupad[oa]s?|reservad[oa]s?|apartad[oa]s?|no (?:tenemos|hay) (?:disponib\w*|lugar))\b")
+
+
+def _ya_no_hay(mensajes: list[historial.Mensaje]) -> bool:
+    """La casa ya dijo que esa fecha no se puede: pedir otra no es repetir."""
+    from . import conversacion
+    return any(m.del_negocio and m.texto and _OCUPADO.search(conversacion.normalizar(m.texto)) for m in mensajes[-12:])
+
+
+def pregunta_lo_ya_dicho(mensajes: list[historial.Mensaje], texto: str) -> str:
+    """'' o qué dato ya había dicho el cliente que el texto vuelve a pedir."""
+    from . import conversacion, lectura
+    t = conversacion.normalizar(texto)
+    if _PREGUNTA_PERSONAS.search(t) and (n := lectura.personas(mensajes)) is not None:
+        return f"personas ({n})"
+    if _PREGUNTA_FECHAS.search(t) and mensajes and (f := lectura.fechas(mensajes)) is not None \
+            and f[1] >= lectura.hoy_de(mensajes[-1]) and not _ya_no_hay(mensajes):
+        return f"fechas ({f[0].isoformat()})"
+    return ""
+
+
 class RondaInvalida(ValueError):
     pass
 
@@ -100,6 +136,8 @@ def motivo_de_rechazo(entrada: dict, hilos: dict, por_hilo: dict, activo: dict |
             return "el texto dice ser una persona"
         if activo is not None and (rasgos := voz.hallazgos(texto, activo)):
             return "voz ajena: " + "; ".join(rasgos)
+        if (dato := pregunta_lo_ya_dicho(hilos[hilo], texto)):
+            return f"pregunta lo que el cliente ya dijo: {dato}"
     cot, motivo = _cotizacion(entrada, activo)
     if cot is not None:
         if ocupacion is None or not ocupacion.configurada:

@@ -42,6 +42,8 @@ python -m agente.local pendientes <id> --por-lote 10 # vara + lotes en datos/esp
    > fechas y personas, llena `cotizacion` y el código pega la cifra. Si falta
    > un dato, pídelo. No contestes reclamos, lo que ya cerró, lo que lleva una
    > persona ni lo que pide algo que solo el dueño sabe: ponlo en "no sale".
+   > No vuelvas a preguntar lo que el cliente ya dijo (personas, fechas): léelo
+   > en la plática y úsalo. Pedir otra fecha solo si la suya ya pasó o está ocupada.
    > Copia `hilo` y `ultimo_id` tal cual del lote. Máximo 3 textos cortos.
 
 3. **El orquestador revisa cada texto contra su plática** (Gestor: "comprueba que
@@ -83,6 +85,9 @@ python -m agente.local pendientes <id> --por-lote 10 # vara + lotes en datos/esp
 - Cifra en el texto del enjambre (con número o con letra) → fuera. La cifra la
   pone el cotizador con el perfil aprobado.
 - Voz ajena o "soy una persona" → fuera.
+- Pregunta lo que el cliente ya dijo (cuántas personas, o fechas que siguen por venir y
+  nadie dijo ocupadas) → fuera (`rondas.pregunta_lo_ya_dicho`, corrida GM: 3 de 138
+  enviadas lo hacían).
 - Todo espera aprobación de una persona. Una ronda cargada no se recarga.
 
 ## Perfil en local (en vez de la pasada de Opus)

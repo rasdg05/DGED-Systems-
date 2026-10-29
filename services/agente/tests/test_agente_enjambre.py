@@ -239,3 +239,51 @@ def test_ronda_de_seguimiento_solo_lo_que_el_semaforo_marca(espacio):
     aceptadas, descartadas = rondas.validar(espacio, ronda)
     assert [a["hilo"] for a in aceptadas] == ["5301"]
     assert {d["hilo"] for d in descartadas} == {"5302", "5303"}
+
+
+def test_inv_ronda_no_pregunta_lo_que_el_cliente_ya_dijo(espacio):
+    """Gestor C5-I. Corrida GM, 2026-10-29: una ronda aprobada preguntó "Para cuántas personas
+    sería" a quien había dicho 150; la casa lo hace en 15 de 43 de sus "¿cuántas personas?"."""
+    h = "5210000008888"
+    historial.guardar(espacio, [
+        _m("p1", "25 personas del 28 al 30 de noviembre", ts=1790000000, hilo=h),
+        _m("p2", "Le comparto la información de la finca", True, ts=1790000100, hilo=h),
+        _m("p3", "¿Y si hay alberca?", ts=1790000200, hilo=h),
+    ])
+    ronda = {"nombre": "prueba-2", "orden": "dueño, prueba", "entradas": [
+        {"hilo": h, "ultimo_id": "p3", "resumen": "x", "textos": ["Sí tenemos alberca. Para cuántas personas sería?"]}]}
+    _, descartadas = rondas.validar(espacio, ronda)
+    assert descartadas and descartadas[0]["motivo"] == "pregunta lo que el cliente ya dijo: personas (25)"
+    ronda["entradas"][0]["textos"] = ["Sí tenemos alberca. Qué fecha les interesa más?"]
+    _, descartadas = rondas.validar(espacio, ronda)
+    assert descartadas and descartadas[0]["motivo"].startswith("pregunta lo que el cliente ya dijo: fechas")
+    ronda["entradas"][0]["textos"] = ["Sí tenemos alberca climatizada."]
+    aceptadas, descartadas = rondas.validar(espacio, ronda)
+    assert aceptadas and not descartadas
+
+
+def test_ronda_pedir_otra_fecha_cuando_la_suya_ya_paso_no_es_repetir():
+    from datetime import datetime
+    viejo = int(datetime(2026, 10, 1, 12).timestamp())
+    ms = [_m("a", "Para el 10 de octubre, somos 6 personas", ts=viejo),
+          _m("b", "Ya tenemos ocupado esa fecha", True, ts=viejo + 60),
+          _m("c", "Ok", ts=int(datetime(2026, 10, 27, 12).timestamp()))]
+    assert rondas.pregunta_lo_ya_dicho(ms, "Sigue buscando? Para qué fecha sería ahora?") == ""
+    assert rondas.pregunta_lo_ya_dicho(ms, "Para cuántas personas sería?") == "personas (6)"
+
+
+@pytest.mark.parametrize("texto", [
+    "Siguen interesados en sus fechas de enero? Con gusto se las aparto.",
+    "Hola, seguimos a tus órdenes, te gustaría apartar la quinta para tus fechas?",
+])
+def test_ronda_confirmar_sus_fechas_no_es_preguntarlas(texto):
+    """Falsos positivos al pasar el candado por las 138 rondas enviadas (corrida GM)."""
+    ms = [_m("a", "Del 28 al 30 de diciembre, somos 6 personas", ts=1790000000)]
+    assert rondas.pregunta_lo_ya_dicho(ms, texto) == ""
+    assert rondas.pregunta_lo_ya_dicho(ms, "Nos comparte sus fechas para apartar?").startswith("fechas")
+
+
+def test_ronda_pedir_otra_fecha_tras_un_ocupado_no_es_repetir():
+    ms = [_m("a", "Del 28 al 30 de diciembre, somos 6 personas", ts=1790000000),
+          _m("b", "Ya tenemos reservado, una disculpa", True, ts=1790000060)]
+    assert rondas.pregunta_lo_ya_dicho(ms, "Sigue buscando? Si me dice qué fechas le paso la información.") == ""
