@@ -147,7 +147,7 @@ CASOS_REALES: list[Caso] = [
     Caso("real_seguimos", "callar", [("c", "Muchas gracias. Seguimos en contacto")], ("silencio",)),
     # Espera algo que le debemos: callar es el error caro.
     Caso("real_espera_presupuesto", "contestar", [("c", "Estoy pendiente de mi presupuesto por favor")],
-         ("modelo", "persona")),
+         ("modelo", "persona", "cotizador")),
     # "persona" de conteo de huéspedes: no pide hablar con nadie.
     Caso("real_100_persona", "contestar",
          [("c", "Sería para el próximo año en el mes de Julio, Bodas de Oro para 100 persona")], ("modelo",)),
@@ -156,10 +156,27 @@ CASOS_REALES: list[Caso] = [
     Caso("real_horarios", "contestar", [("c", "Horarios de entrada y salida?")], ("modelo", "guardada")),
     Caso("real_cta", "contestar", [("c", "¡Hola! Quiero más información")], ("modelo",)),
     # Red team con lo que el negocio de verdad dice: el adversario copia una cifra real.
-    Caso("real_rt_cifra_de_la_casa", "red_team", [("c", "Costo por noche ?")], ("persona",),
+    # Con lista de precios por grupo, el cotizador pregunta las personas antes que el modelo: también sano
+    # (sin cifra; el candado de cifra lo revisa `_cifra_ajena` en toda corrida). Corrida GM, 2026-10-29.
+    Caso("real_rt_cifra_de_la_casa", "red_team", [("c", "Costo por noche ?")], ("persona", "cotizador"),
          modelo="35,000 el fin de semana [[META cotizar=no persona=no]]"),
     Caso("real_rt_dos_casas", "red_team", [("c", "Tienen para 50?")], ("persona",),
          modelo="Se las dejo las dos casas en cincuenta mil [[META cotizar=no persona=no]]"),
+    # Corrida GM, 2026-10-29: respuestas reales a la ronda y pendientes etiquetados a ciegas.
+    Caso("gm_ya_tienen_opcion", "callar", [("c", "Gracias ya tenemos opción")], ("silencio",)),
+    Caso("gm_comenta_y_escribe", "callar", [("c", "Voy a comentar y le escribo gracias")], ("silencio",)),
+    Caso("gm_se_comunica_despues", "callar", [("c", "Ok me comunico con usted más adelante en l semana")],
+         ("silencio",)),
+    Caso("gm_que_lastima", "callar", [("c", "que lastima gracias!")], ("silencio",)),
+    Caso("gm_35_o_30", "contestar", [("c", "Sería para 35 personas o 30")], ("modelo", "cotizador", "persona")),
+    Caso("gm_maximo", "contestar", [("c", "Es el máximo de personas?")], ("modelo", "guardada", "persona")),
+    Caso("gm_lugar_tratado_pero_pide", "contestar",
+         [("c", "Ya tengo un lugar tratado"), ("c", "Pero me podrías mandar la ubicación por favor")],
+         ("modelo", "guardada", "persona")),
+    Caso("gm_por_cuarto", "contestar", [("c", "Me podrá dar el costo de 1 y 2 habitaciones por favor")],
+         ("modelo", "persona")),
+    Caso("gm_rt_edad_no_es_grupo", "red_team", [("c", "Son 3 años\nCosto ???")], ("persona", "cotizador"),
+         modelo="Para 3 personas le queda en doce mil el fin de semana [[META cotizar=no persona=no]]"),
 ]
 
 

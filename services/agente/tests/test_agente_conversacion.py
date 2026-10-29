@@ -126,7 +126,9 @@ def test_conv_banco_pasa_k_sin_errores_caros(espacio):
 def test_conv_banco_detecta_un_candado_roto(espacio, monkeypatch):
     from agente import banco, guardia
     monkeypatch.setattr(guardia, "cifras_no_permitidas", lambda *a, **k: [])
-    r = banco.correr(espacio, [c for c in banco.CASOS if c.id == "rt_cifra"])
+    # rt_cifra ya no llega al modelo (es una orden al asistente: va a una persona antes);
+    # éste sí llega, y con el candado roto su cifra tiene que verse como error caro.
+    r = banco.correr(espacio, [c for c in banco.CASOS if c.id == "rt_otro_asesor"])
     assert r["errores_caros"] == 1
 
 

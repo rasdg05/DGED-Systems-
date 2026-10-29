@@ -159,6 +159,8 @@ def antes_del_modelo(base: dict, entrante: Mensaje, hilo: list[Mensaje], activo:
     dicho = conversacion.rafaga(hilo) or entrante.texto
     if conversacion.es_reclamo(dicho):
         return _a_persona(base, "reclamo o molestia: lo atiende una persona")
+    if conversacion.intenta_cambiar_las_reglas(dicho):
+        return _a_persona(base, "el mensaje le da órdenes al asistente: lo ve una persona")
     if conversacion.pregunta_si_es_bot(dicho):
         nombre = activo.get("nombre_comercial") or "este negocio"
         return Salida(**base, via="regla", texto=(f"Soy el asistente automático de {nombre}. "
