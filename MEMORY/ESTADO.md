@@ -1,8 +1,25 @@
-# Estado — 2026-10-28 (ronda 128/128; enjambre de seguimiento y escalamiento)
+# Estado — 2026-10-29 (corrida GM del agente: medir lo que pasa después de la ronda)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
 ## Corre
+
+- **Corrida GM del agente, 2026-10-29** (`docs/21-corrida-gm-agente.md`, D-047 a D-052, LXXI–LXXVI; el
+  runbook de Gestor aplicado aquí). En producción hasta `a9d7f69`; 437 tests del agente en verde.
+  - **Lo que más dinero mueve**: de 128 seguimientos del 27 contestaron 26; **10 esperan respuesta** desde
+    hace ~31 h y estaban al fondo del semáforo (lugares 170–192 de 194). Hoy van primero
+    (`contesto_ronda`) y el reporte de las 9 y 19 abre con ellos. 2 clientes aceptaron una cotización
+    prometida que no llegó (…3150, …9562): ahora son "quedamos de mandar" en rojo.
+  - **Métrica de cada ronda** (`agente/desenlace.py`, `python -m agente.local desenlace finca-quinta`,
+    `GET /rondas.json`): ronda del 27 contestaron 26, cerraron 7, esperan 10, atendidos 7 (mediana 0.7 h).
+  - **Backtest honesto**: la caída 0.30 → 0.106 era "iría al modelo" sin medir, no un agente peor; la
+    alarma ya no la borra otro despliegue. `/health` dice el commit.
+  - **Clasificador de pendientes** contra oro ciego (kappa 0.947): 92.1% → 96.6% (in-sample).
+  - **Vara** (universo `8c8c8b3f`, 3 de 4 intentos, holdout sin abrir): perfil v3 0.339 vs base 0.300,
+    DSR 1.0; **el monto del cotizador coincide con la casa en 15 de 34–37**. Tres lecturas arregladas.
+  - **Banco** con el perfil real: 0.902 → 1.0, 0 caros. Órdenes al asistente van a una persona. Una
+    ronda ya no pregunta lo que el cliente ya dijo (3 de 138 lo hacían).
+  - **Llave maestra pegada otra vez en el chat el 2026-10-29**: rotarla.
 
 - **2026-10-28, con el sí del dueño** (*"Si aprobada"*): **lista de precios v3 activa** (quinta para 6: 5,000 la noche
   y 12,000 el fin de semana; finca una noche para 25: 15,000) y **ronda `2026-10-28-seguimiento` aprobada** a nombre
@@ -283,6 +300,12 @@
 6. Primeras cuentas (D-012): Fibra Mty, FIBRA Prologis, Vesta.
 
 ## Lo que es del dueño
+- **Corrida GM (2026-10-29)**: que Mariana conteste hoy a los 10 que respondieron la ronda (…1930 120
+  personas en marzo, …0070 35 o 30, …5175 "4" para diciembre, …5340 "no me regaló precios", …3467
+  "¿es el máximo?", …1077 mascotas, y 4 con foto o audio) y mande las 2 cotizaciones prometidas
+  (…3150, …9562); precio de la **quinta por noche para 7–16 personas** (la casa cotizaba 7,500–10,000;
+  la lista lo tiene a decidir); decidir si la tabla de costos v3 de la vara entra en el siguiente
+  universo; rotar `TENANT_INTERNAL_TOKEN`.
 - **Agente (sesión del calendario)**: mandar a Mariana `docs/20-hoja-para-mariana.md`; con sus enlaces
   iCal, darlos de alta y medir (`python -m agente.calendario bajar finca-quinta`).
 - **Agente (sesión del cotizador)**: que Mariana confirme `docs/19-lista-de-precios.md` (lo a decidir y el
