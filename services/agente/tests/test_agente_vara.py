@@ -234,6 +234,80 @@ def test_backtest_avisa_la_regresion_en_los_mismos_momentos(tmp_path, monkeypatc
     assert [h["commit"] for h in backtest.leer(espacio)["historial"]] == ["aaaaaaa", "bbbbbbb"]
 
 
+def test_backtest_la_regresion_no_la_borra_el_siguiente_despliegue(tmp_path, monkeypatch):
+    """Producción, 2026-10-28: la alarma sonó en 8af42e5 y el despliegue de minutos
+    después (a3c763b) dijo "sin regresión" porque comparaba contra el regresado.
+    La referencia no avanza hasta que sale sin regresión o una persona la acepta."""
+    from agente import backtest
+
+    espacio = _universo(tmp_path, hilos=80, dias=10)
+    monkeypatch.setenv("RAILWAY_GIT_COMMIT_SHA", "aaaaaaa1")
+    backtest.correr(espacio)
+    casa = {m["id"]: m["casa"] for m in vara.universo(espacio)[1]}
+    buena = {i: {"bot": casa[i], "via": "guardada", "texto": ""} for i in espacio.leer_json(backtest.PREDICCIONES)}
+    espacio.escribir_json(backtest.PREDICCIONES, buena)
+    monkeypatch.setenv("RAILWAY_GIT_COMMIT_SHA", "bbbbbbb2")
+    assert backtest.correr_si_toca(espacio)["contra_el_anterior"]["regresion"]
+    monkeypatch.setenv("RAILWAY_GIT_COMMIT_SHA", "ccccccc3")       # otro despliegue, el mismo agente
+    tercero = backtest.correr_si_toca(espacio)
+    assert tercero["contra_el_anterior"]["regresion"]
+    assert espacio.leer_json(backtest.PREDICCIONES) == buena      # la referencia no se movió
+    referencia = backtest.aceptar(espacio, "Mariana")
+    assert referencia["commit"] == "ccccccc" and "Mariana" in referencia["por"]
+    monkeypatch.setenv("RAILWAY_GIT_COMMIT_SHA", "ddddddd4")
+    assert not backtest.correr_si_toca(espacio)["contra_el_anterior"]["regresion"]
+
+
+def test_backtest_lo_que_pasa_al_modelo_no_cuenta_como_regresion_sino_como_sin_medir(tmp_path, monkeypatch):
+    """Encender un perfil manda momentos de "a una persona" (0.3) a "iría al modelo"
+    (0.0, sin medir): eso no es un agente peor, es un agente sin medir."""
+    from agente import backtest
+
+    espacio = _universo(tmp_path, hilos=80, dias=10)
+    monkeypatch.setenv("RAILWAY_GIT_COMMIT_SHA", "aaaaaaa1")
+    backtest.correr(espacio)
+    hoy = espacio.leer_json(backtest.ULTIMAS)
+    assert {p["bot"] for p in hoy.values()} - {"ia"}, "la base pasa a una persona"
+    # La referencia pasaba todo a una persona; hoy la mitad iría al modelo.
+    comunes = [dict(m, **vara.simular(m["_m"], None)) for m in vara.universo(espacio)[1]]
+    for i, m in enumerate(comunes):
+        if i % 2:
+            m.update(bot="ia", via="ia", texto="")
+    vara.calificar(comunes)
+    antes = {m["id"]: {"bot": "persona", "via": "persona", "texto": ""} for m in comunes}
+    c = backtest.comparar(comunes, antes)
+    assert c["puntaje_hoy"] < c["puntaje_antes"] - backtest.MARGEN_PUNTAJE
+    assert c["sin_medir"] and c["pasaron_al_modelo"] == len(comunes) // 2
+    assert not c["regresion"]
+
+
+def test_backtest_jugar_activo_contra_una_base_que_todo_lo_pasa_no_es_regresion():
+    """Medido en Finca Emiliano (2026-10-29, n = 98 sin modelo): con la lista de precios
+    el puntaje sube 0.30 → 0.37 y A_pol cae 100 → 60, porque la base "alinea" pasándolo
+    todo. La alineación sola no hace regresión si el puntaje con costos mejoró."""
+    from agente import backtest
+
+    comunes = []
+    for i in range(40):
+        casa = "cifra" if i % 2 else "fotos"
+        comunes.append({"id": f"m{i}", "hilo": f"h{i}", "ts": T0 + i, "casa": casa, "cliente": "precio?",
+                        "bot": "cifra", "via": "cotizador", "texto": ""})
+    vara.calificar(comunes)
+    antes = {m["id"]: {"bot": "persona", "via": "persona", "texto": ""} for m in comunes}
+    c = backtest.comparar(comunes, antes)
+    assert c["sin_modelo"]["A_pol_hoy"] < c["sin_modelo"]["A_pol_antes"] - backtest.MARGEN_A_POL
+    assert c["sin_modelo"]["puntaje_hoy"] > c["sin_modelo"]["puntaje_antes"]
+    assert not c["regresion"]
+
+
+def test_health_dice_el_commit_de_railway(monkeypatch):
+    from agente.app import health
+
+    monkeypatch.delenv("GIT_COMMIT", raising=False)
+    monkeypatch.setenv("RAILWAY_GIT_COMMIT_SHA", "0fffaad5339598cb")
+    assert health()["commit"] == "0fffaad"
+
+
 def test_backtest_al_arrancar_no_tumba_el_servicio(tmp_path, monkeypatch):
     from agente import backtest
 

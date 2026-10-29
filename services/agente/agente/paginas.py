@@ -1166,11 +1166,14 @@ def _backtest_html(espacio: Espacio) -> str:
     if not b.get("n"):
         return ""
     m, c = b.get("metricas") or {}, b.get("contra_el_anterior") or {}
-    regresion = c.get("regresion")
+    regresion, ref = c.get("regresion"), b.get("referencia") or {}
+    sin_medir = (f' {c.get("pasaron_al_modelo")} momentos que antes iban a una persona hoy irían al modelo: '
+                 'no están medidos (la vara no llama a nada).') if c.get("sin_medir") else ""
     return (f'<h2 class="sec">Backtest</h2><div class="bloque"><span class="estado {"bad" if regresion else "ok"}">'
             f'{"regresión" if regresion else "sin regresión"}</span><p class="lede" style="margin:8px 0 0">'
             f'El agente del commit {esc(b.get("commit") or "?")} contra los momentos del {esc(b.get("desde", ""))} '
-            f'al {esc(b.get("hasta", ""))}. {esc(b.get("nota") or "")}</p></div>'
+            f'al {esc(b.get("hasta", ""))}, comparado con la referencia del commit {esc(ref.get("commit") or "?")} '
+            f'({esc(ref.get("por") or "")}). {esc(b.get("nota") or "")}{esc(sin_medir)}</p></div>'
             f'<div class="tiles"><div class="tile"><b>{b["n"]}</b><span>momentos</span></div>'
             f'<div class="tile"><b>{m.get("puntaje")}</b><span>puntaje</span></div>'
             f'<div class="tile"><b>{m.get("cobertura")}%</b><span>cobertura</span></div>'

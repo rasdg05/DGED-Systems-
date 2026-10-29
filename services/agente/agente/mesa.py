@@ -99,7 +99,8 @@ def _rondas_cargadas(espacio: Espacio) -> list[dict]:
 def reporte(espacio: Espacio) -> str:
     from . import agente, calendario, enviador, historial, operacion, semaforo
 
-    filas = semaforo.leer(clientes(espacio, historial.hilos(espacio)))
+    hilos = clientes(espacio, historial.hilos(espacio))
+    filas = semaforo.leer(hilos, de_ronda=semaforo.nuestros(espacio, hilos))
     res = semaforo.resumen(filas)
     por_aprobar = [s for s in agente.salidas(espacio) if s.requiere_aprobacion and not s.aprobada_por]
     hoy = _hoy(espacio)
@@ -113,7 +114,11 @@ def reporte(espacio: Espacio) -> str:
         lineas.append(f"No salieron hoy: {len(no_salieron)} (el cliente escribió antes, fecha apartada o envío en pausa).")
     if not calendario.Ocupacion.de(espacio).configurada:
         lineas.append("Calendario: sin conectar. Las rondas no ofrecen fechas hasta que se conecte.")
-    urgentes = [f for f in filas if f.color == "rojo" and f.estado in ("nos_toca", "sin_atender", "promesa")][:5]
+    calientes = [f for f in filas if f.estado == "contesto_ronda" and f.color in ("rojo", "ambar")]
+    if calientes:
+        lineas.append(f"Contestaron al seguimiento y esperan respuesta: {len(calientes)}. Van primero.")
+    urgentes = [f for f in filas if f.estado == "contesto_ronda" and f.color in ("rojo", "ambar")
+                or f.color == "rojo" and f.estado in ("nos_toca", "sin_atender", "promesa")][:5]
     if urgentes:
         lineas.append("Lo más urgente:")
         lineas += [f"· …{f.hilo[-4:]} {semaforo.ETIQUETA[f.estado].lower()}, {operacion._horas_txt(f.horas)}: "
@@ -128,7 +133,8 @@ def reporte(espacio: Espacio) -> str:
 
 def _pendientes(espacio: Espacio) -> str:
     from . import historial, operacion, semaforo
-    filas = [f for f in semaforo.leer(clientes(espacio, historial.hilos(espacio))) if f.color in ("rojo", "ambar")]
+    hilos = clientes(espacio, historial.hilos(espacio))
+    filas = [f for f in semaforo.leer(hilos, de_ronda=semaforo.nuestros(espacio, hilos)) if f.color in ("rojo", "ambar")]
     if not filas:
         return "No hay pendientes urgentes."
     return "Pendientes, el más urgente primero:\n" + "\n".join(

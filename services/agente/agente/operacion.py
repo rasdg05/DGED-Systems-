@@ -28,6 +28,12 @@ COLOR_TXT = {"rojo": "Urgente", "ambar": "Hoy", "verde": "Al día", "gris": "Sin
 PLATAFORMAS = (("google", "Google Calendar"), ("airbnb", "Airbnb"), ("booking", "Booking.com"))
 
 
+def _semaforo(espacio: Espacio) -> list:
+    """El semáforo de las clientas, con lo que salió en ronda marcado (contestó al seguimiento)."""
+    hilos = mesa.clientes(espacio, historial.hilos(espacio))
+    return semaforo.leer(hilos, de_ronda=semaforo.nuestros(espacio, hilos))
+
+
 def _horas_txt(horas: float) -> str:
     if horas < 1:
         return f"{max(1, round(horas * 60))} min"
@@ -61,7 +67,7 @@ def semaforo_mosaico(espacio: Espacio, llave: str | None, res: dict) -> str:
 @router.get("/espacios/{cliente_id}/pendientes", response_class=HTMLResponse)
 def pendientes(cliente_id: str, llave: str | None = None) -> str:
     espacio = _espacio(cliente_id, llave)
-    filas = semaforo.leer(mesa.clientes(espacio, historial.hilos(espacio)))
+    filas = _semaforo(espacio)
     res = semaforo.resumen(filas)
     partes = [f'<p class="lede">La más urgente primero, por cuánto lleva esperando. '
               f'{res["seguimiento"]} para dar seguimiento hoy.</p>', semaforo_mosaico(espacio, llave, res)]
@@ -241,7 +247,7 @@ def calendario_pagina(cliente_id: str, llave: str | None = None) -> str:
 
 def resumen_inicio(espacio: Espacio) -> dict:
     """Lo que Inicio enseña de la operación, sin pintar nada."""
-    filas = semaforo.leer(mesa.clientes(espacio, historial.hilos(espacio)))
+    filas = _semaforo(espacio)
     return {"filas": filas, "resumen": semaforo.resumen(filas), "en_cola": len(enviador.pendientes(espacio)),
             "calendario": calendario.Ocupacion.de(espacio).configurada,
             "enviados_hoy": sum(1 for e in espacio.leer_lineas(enviador.ENVIADOS) if e.get("enviado") and e.get("cuando")
@@ -256,7 +262,7 @@ def capacidades(espacio: Espacio, llave: str | None) -> str:
 
     activo = perfil.activo(espacio) or {}
     con_lista = any(r.get("tipo") == "grupo" for r in activo.get("reglas", []) or [])
-    filas_sem = semaforo.leer(mesa.clientes(espacio, historial.hilos(espacio)))
+    filas_sem = _semaforo(espacio)
     res = semaforo.resumen(filas_sem)
     por_aprobar = sum(1 for s in agente.salidas(espacio) if s.requiere_aprobacion and not s.aprobada_por)
     admins = len(mesa.administradores(espacio))

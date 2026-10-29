@@ -50,3 +50,28 @@ def test_la_mas_urgente_primero_y_dentro_del_color_la_que_mas_espera():
 def test_lo_que_nadie_atendio_hace_mas_de_tres_semanas_se_enfrio():
     viejo = {"v": [_m("1", "v", False, 0, "Info por favor")]}
     assert _estados(viejo, (semaforo.DIAS_VIGENCIA * 24 + 1) * H)["v"][:2] == ("sin_atender", "gris")
+
+
+def test_quien_contesto_a_la_ronda_va_primero_aunque_espere_menos():
+    """Corrida GM, 2026-10-29: 18 de 26 respuestas a la ronda seguían sin contestar a
+    las 26 h, en los lugares 170–192 de 194 rojos (debajo de pláticas de tres semanas)."""
+    hilos = {
+        "viejo": [_m("1", "viejo", False, 0, "Info por favor"), _m("2", "viejo", True, 60, "Para cuántas personas?"),
+                  _m("3", "viejo", False, 120, "Somos 20, precio?")],
+        "ronda": [_m("4", "ronda", False, 0, "Precio para el 20?"), _m("5", "ronda", True, 60, "Son 12,000"),
+                  _m("6", "ronda", True, 300 * H, "Hola, sigue interesado? Le confirmo disponibilidad"),
+                  _m("7", "ronda", False, 310 * H, "Sería para 35 personas o 30")],
+    }
+    filas = semaforo.leer(hilos, 340 * H, de_ronda=frozenset({"6"}))
+    assert [(f.hilo, f.estado, f.color) for f in filas][:2] == [("ronda", "contesto_ronda", "rojo"),
+                                                                ("viejo", "nos_toca", "rojo")]
+    assert semaforo.leer(hilos, 340 * H)[0].hilo == "viejo"    # sin saber de la ronda, el orden de siempre
+
+
+def test_un_seguimiento_nuestro_que_pregunta_no_es_una_promesa():
+    """La ronda decía "...haznos saber cuál y te confirmamos disponibilidad": el semáforo
+    lo leía como "quedamos de mandar" (rojo) aunque la pelota era del cliente."""
+    hilos = {"r": [_m("1", "r", False, 0, "Precio?"), _m("2", "r", True, 60, "Son 12,000"),
+                   _m("2b", "r", False, 120, "Gracias, lo platico"), _m("3", "r", True, 48 * H, "Sigue buscando lugar? Digame la fecha y le confirmo disponibilidad")]}
+    assert _estados(hilos, 50 * H)["r"][:2] == ("promesa", "rojo")
+    assert semaforo.leer(hilos, 50 * H, de_ronda=frozenset({"3"}))[0].estado == "esperando_cliente"

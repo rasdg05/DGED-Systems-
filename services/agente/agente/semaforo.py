@@ -9,6 +9,11 @@ Sobre `pendientes.py` (la única vara de "espera respuesta") agrega lo que pasa
 cuando lo último es del negocio, que es donde se cierran o se pierden las
 cotizaciones:
 
+- `contesto_ronda`: contestó a un seguimiento nuestro (una ronda aprobada) y nadie le
+  ha contestado. Es el cliente más caliente: va **primero** dentro de su color.
+  Corrida GM del 2026-10-29: de 26 que contestaron la ronda del 27, 18 seguían sin
+  respuesta a las 26 h, en los lugares 170–192 de 194 rojos, debajo de pláticas de
+  tres semanas; el reporte enseña los 5 de arriba y nunca las veía.
 - `sin_atender`: escribió y solo le contestó la bienvenida automática.
 - `nos_toca`: escribió, ya lo atendió una persona antes, y nadie le contestó esto.
 - `reclamo` y `solo_medios`: los ve una persona; el enjambre no los toca.
@@ -36,6 +41,7 @@ HORAS_SEGUIMIENTO = 24    # un cotizado o una pregunta sin respuesta: el seguimi
 DIAS_VIGENCIA = 21        # después, la plática se enfrió: no se persigue en ronda
 
 QUE_HACER = {
+    "contesto_ronda": "contestó a nuestro seguimiento: es de los más calientes, contéstele hoy",
     "sin_atender": "solo recibió la bienvenida automática: nadie lo ha atendido",
     "nos_toca": "escribió y nadie le ha contestado",
     "reclamo": "está molesto o reclama dinero: lo atiende una persona",
@@ -45,10 +51,12 @@ QUE_HACER = {
     "esperando_cliente": "se le preguntó y no ha contestado",
     "cerrada": "ya lo resolvió, dijo que no o no pide nada",
 }
-ETIQUETA = {"sin_atender": "Sin atender", "nos_toca": "Le toca contestar", "reclamo": "Reclamo",
+ETIQUETA = {"contesto_ronda": "Contestó al seguimiento", "sin_atender": "Sin atender", "nos_toca": "Le toca contestar", "reclamo": "Reclamo",
             "solo_medios": "Foto o audio", "promesa": "Quedamos de mandar", "cotizado": "Cotizado",
             "esperando_cliente": "Esperando al cliente", "cerrada": "Cerrada"}
 COLORES = ("rojo", "ambar", "verde", "gris")
+#: Dentro de un color, estos van primero (y entre ellos, la que más espera).
+PRIMERO = ("contesto_ronda",)
 #: La casa quedó de dar algo (*"déjeme revisar"*, *"ahorita le mando"*, *"le confirmo"*).
 _PROMETE = re.compile(
     r"\b(?:dejame|dejeme|permitame|permiteme)\s+(?:revisar|checar|validar|verificar|confirmar\w*|consultar|preguntar)\b|"
@@ -85,7 +93,7 @@ def _horas(desde_ts: int, ahora_ts: float) -> float:
 def _color(estado: str, horas: float) -> str:
     if estado == "reclamo":
         return "rojo"
-    if estado in ("sin_atender", "nos_toca", "promesa", "solo_medios"):
+    if estado in ("contesto_ronda", "sin_atender", "nos_toca", "promesa", "solo_medios"):
         if horas > DIAS_VIGENCIA * 24:
             return "gris"  # se enfrió: no es lo urgente de hoy (en Finca Emiliano, 126 de 349 rojos)
         return "rojo" if horas >= HORAS_ROJO else "ambar"
@@ -95,7 +103,25 @@ def _color(estado: str, horas: float) -> str:
     return "gris"
 
 
-def _del_negocio_al_final(hilo: str, mensajes: list[Mensaje], auto: set[str], ahora_ts: float) -> Fila:
+def nuestros(espacio, hilos: dict[str, list[Mensaje]]) -> frozenset[str]:
+    """Los ids de los mensajes del historial que salieron de una ronda aprobada (el
+    enviador los asienta con su wamid o `dged-<salida>`, D-046). Se reconocen por el
+    texto de la salida en su plática, que es igual en local y en producción."""
+    from . import agente
+    textos: dict[str, set[str]] = {}
+    for s in agente.salidas(espacio):
+        if s.via == "ronda" and s.aprobada_por and s.texto:
+            textos.setdefault(s.hilo, set()).add(s.texto.strip())
+    return frozenset(m.id for h, t in textos.items() for m in hilos.get(h, [])
+                     if m.del_negocio and (m.texto or "").strip() in t)
+
+
+def _ultimo_del_negocio(mensajes: list[Mensaje]) -> Mensaje | None:
+    return next((m for m in reversed(mensajes) if m.del_negocio), None)
+
+
+def _del_negocio_al_final(hilo: str, mensajes: list[Mensaje], auto: set[str], ahora_ts: float,
+                          de_ronda: frozenset[str] = frozenset()) -> Fila:
     i = len(mensajes)
     while i > 0 and mensajes[i - 1].del_negocio:
         i -= 1
@@ -112,8 +138,8 @@ def _del_negocio_al_final(hilo: str, mensajes: list[Mensaje], auto: set[str], ah
         estado = "sin_atender"  # solo le contestó la máquina: la pelota sigue siendo nuestra
     elif any(jugadas.es_monto(m.texto) for m in tanda if m.texto):
         estado = "cotizado"
-    elif _PROMETE.search(t):
-        estado = "promesa"
+    elif _PROMETE.search(t) and not any(m.id in de_ronda for m in tanda):
+        estado = "promesa"  # un seguimiento nuestro ("...y le confirmo disponibilidad") pregunta, no promete
     else:
         estado = "esperando_cliente"
     desde = (previo_cliente[-1].ts if estado == "sin_atender" and previo_cliente else tanda[-1].ts)
@@ -125,9 +151,11 @@ def _del_negocio_al_final(hilo: str, mensajes: list[Mensaje], auto: set[str], ah
                 seguimiento=estado in ("cotizado", "esperando_cliente") and color == "ambar")
 
 
-def leer(hilos: dict[str, list[Mensaje]], ahora_ts: float | None = None) -> list[Fila]:
-    """Una fila por plática, la más urgente primero: rojo, ámbar, verde, gris; y dentro
-    de cada color, la que más lleva esperando."""
+def leer(hilos: dict[str, list[Mensaje]], ahora_ts: float | None = None,
+         de_ronda: frozenset[str] = frozenset()) -> list[Fila]:
+    """Una fila por plática, la más urgente primero: rojo, ámbar, verde, gris; dentro
+    de cada color, quien contestó a una ronda (`de_ronda`: ids de lo que salió en
+    ronda, `nuestros`) y luego la que más lleva esperando."""
     ahora_ts = ahora_ts if ahora_ts is not None else time.time()
     fijas = jugadas.plantillas(hilos)
     del_cliente = {p.hilo: p for p in pendientes.leer(hilos)}
@@ -140,13 +168,16 @@ def leer(hilos: dict[str, list[Mensaje]], ahora_ts: float | None = None) -> list
         if p is not None:
             estado = {"espera": "nos_toca" if p.hubo_persona else "sin_atender", "solo_medios": "solo_medios",
                       "reclamo": "reclamo", "no_pide": "cerrada"}[p.estado]
+            ultimo = _ultimo_del_negocio(mensajes)
+            if estado in ("nos_toca", "sin_atender", "solo_medios") and ultimo is not None and ultimo.id in de_ronda:
+                estado = "contesto_ronda"
             horas = _horas(p.espera_desde, ahora_ts)
             filas.append(Fila(hilo=hilo, estado=estado, color=_color(estado, horas), horas=horas,
                               que_hacer=QUE_HACER[estado], dicho=(p.dicho or "")[:200], ultimo_id=p.ultimo_id,
                               hubo_persona=p.hubo_persona, seguimiento=False))
         else:
-            filas.append(_del_negocio_al_final(hilo, mensajes, auto, ahora_ts))
-    return sorted(filas, key=lambda f: (COLORES.index(f.color), -f.horas))
+            filas.append(_del_negocio_al_final(hilo, mensajes, auto, ahora_ts, de_ronda))
+    return sorted(filas, key=lambda f: (COLORES.index(f.color), f.estado not in PRIMERO, -f.horas))
 
 
 def resumen(filas: list[Fila]) -> dict:

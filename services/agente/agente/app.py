@@ -77,7 +77,11 @@ def _por_numero(phone_number_id: str) -> Espacio | None:
 @app.get("/health")
 @app.get("/api/health")  # si Railway lee el railway.json de la raíz (el de Atlas), su healthcheck es éste
 def health() -> dict:
-    return {"ok": True, "service": "dged-agente", "commit": os.environ.get("GIT_COMMIT", "")}
+    """El commit que corre: Railway lo pone en `RAILWAY_GIT_COMMIT_SHA` (antes se leía solo
+    `GIT_COMMIT`, que nadie ponía: producción decía `"commit": ""`, 2026-10-29)."""
+    from . import backtest
+
+    return {"ok": True, "service": "dged-agente", "commit": backtest.commit()}
 
 
 @app.get("/webhook", response_class=PlainTextResponse)
@@ -428,7 +432,16 @@ def ver_backtest(cliente_id: str, x_tenant_key: str | None = Header(default=None
 
 
 @app.post("/espacios/{cliente_id}/backtest")
-def correr_backtest(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+def correr_backtest(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None,
+                    aceptar: bool = False, quien: str = "") -> dict:
+    """Corre el backtest a mano; con `aceptar=1`, el último pasa a ser la referencia
+    (una regresión no se borra sola con otro despliegue)."""
     from . import backtest
 
-    return backtest.correr(paginas.espacio_taller(cliente_id, x_tenant_key or llave), "a mano")
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    if aceptar:
+        try:
+            return {"referencia": backtest.aceptar(espacio, quien)}
+        except ValueError as error:
+            raise HTTPException(409, str(error)) from error
+    return backtest.correr(espacio, "a mano")
