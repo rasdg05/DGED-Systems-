@@ -63,7 +63,25 @@ _PROMETE = re.compile(
     r"\b(?:ahorita|en un momento|mas tarde|al rato|en un rato|en breve|hoy|manana)\s+(?:le|te)\s+"
     r"(?:mando|envio|paso|confirmo|digo|aviso|escribo|comparto)\b|"
     r"\b(?:le|te) (?:confirmo|aviso|paso|mando|comparto) (?:en|el|la|mas|ahorita|hoy|manana|disponibilidad|fechas)\b|"
-    r"\bya (?:lo|la|le) estoy (?:checando|revisando|cotizando|validando)\b")
+    r"\bya (?:lo|la|le) estoy (?:checando|revisando|cotizando|validando)\b|"
+    # Corrida GM, 2026-10-29: "Le envío una cotización", "Le hago una cotización".
+    r"\b(?:le|te|les) (?:envio|mando|paso|hago|preparo|comparto|armo) (?:una |la |su |tu |el |un )?"
+    r"(?:cotizacion|presupuesto|propuesta|precios?|lista|ubicacion|informacion|fotos?)\b")
+
+
+def _promesa_pendiente(tanda: list[Mensaje], de_ronda: frozenset[str] = frozenset()) -> Mensaje | None:
+    """El mensaje de la casa que prometió algo y no se cumplió en la misma tanda: ni un
+    adjunto ni una cifra después (*"Le envío la ubicación"* + el pin sí se cumplió).
+    Un seguimiento nuestro de ronda pregunta, no promete."""
+    for i in range(len(tanda) - 1, -1, -1):
+        m = tanda[i]
+        if m.id in de_ronda or not m.texto or not _PROMETE.search(conversacion.normalizar(m.texto)):
+            continue
+        despues = tanda[i + 1:]
+        if any(x.tipo != "text" or not x.texto or jugadas.es_monto(x.texto) for x in despues):
+            return None
+        return m
+    return None
 
 
 @dataclass(frozen=True)
@@ -116,6 +134,17 @@ def nuestros(espacio, hilos: dict[str, list[Mensaje]]) -> frozenset[str]:
                      if m.del_negocio and (m.texto or "").strip() in t)
 
 
+def _tanda_antes(mensajes: list[Mensaje]) -> list[Mensaje]:
+    """La última tanda de la casa antes de la ráfaga del cliente que cierra el hilo."""
+    i = len(mensajes)
+    while i > 0 and not mensajes[i - 1].del_negocio:
+        i -= 1
+    j = i
+    while j > 0 and mensajes[j - 1].del_negocio:
+        j -= 1
+    return mensajes[j:i]
+
+
 def _ultimo_del_negocio(mensajes: list[Mensaje]) -> Mensaje | None:
     return next((m for m in reversed(mensajes) if m.del_negocio), None)
 
@@ -127,7 +156,6 @@ def _del_negocio_al_final(hilo: str, mensajes: list[Mensaje], auto: set[str], ah
         i -= 1
     tanda = mensajes[i:]
     texto = "\n".join(m.texto for m in tanda if m.texto)
-    t = conversacion.normalizar(texto)
     previo_cliente = [m for m in mensajes[:i] if not m.del_negocio and m.texto]
     hubo_persona = any(m.del_negocio and m.texto and m.id not in auto for m in mensajes)
     cerro = previo_cliente and (conversacion.es_cierre(previo_cliente[-1].texto)
@@ -138,7 +166,7 @@ def _del_negocio_al_final(hilo: str, mensajes: list[Mensaje], auto: set[str], ah
         estado = "sin_atender"  # solo le contestó la máquina: la pelota sigue siendo nuestra
     elif any(jugadas.es_monto(m.texto) for m in tanda if m.texto):
         estado = "cotizado"
-    elif _PROMETE.search(t) and not any(m.id in de_ronda for m in tanda):
+    elif _promesa_pendiente(tanda, de_ronda) is not None:
         estado = "promesa"  # un seguimiento nuestro ("...y le confirmo disponibilidad") pregunta, no promete
     else:
         estado = "esperando_cliente"
@@ -169,9 +197,16 @@ def leer(hilos: dict[str, list[Mensaje]], ahora_ts: float | None = None,
             estado = {"espera": "nos_toca" if p.hubo_persona else "sin_atender", "solo_medios": "solo_medios",
                       "reclamo": "reclamo", "no_pide": "cerrada"}[p.estado]
             ultimo = _ultimo_del_negocio(mensajes)
+            desde = p.espera_desde
             if estado in ("nos_toca", "sin_atender", "solo_medios") and ultimo is not None and ultimo.id in de_ronda:
                 estado = "contesto_ronda"
-            horas = _horas(p.espera_desde, ahora_ts)
+            elif estado == "cerrada" and not conversacion.es_cierre(p.dicho or ""):
+                # "Le envío una cotización" → "Sí, por favor": el sí no cierra, la pelota es nuestra
+                # (corrida GM, 2026-10-29: 3 de 268 en gris, de 214 a 530 h).
+                prometio = _promesa_pendiente(_tanda_antes(mensajes), de_ronda)
+                if prometio is not None:
+                    estado, desde = "promesa", prometio.ts
+            horas = _horas(desde, ahora_ts)
             filas.append(Fila(hilo=hilo, estado=estado, color=_color(estado, horas), horas=horas,
                               que_hacer=QUE_HACER[estado], dicho=(p.dicho or "")[:200], ultimo_id=p.ultimo_id,
                               hubo_persona=p.hubo_persona, seguimiento=False))

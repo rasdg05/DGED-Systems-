@@ -113,9 +113,10 @@ def pide_persona(texto: str) -> bool:
 ACUSE = re.compile(
     r"^(?:(?:hola|buen dia|buenos dias|buenas tardes|buenas noches)\s+)?"
     r"(?:(?:ok\w*|oka+y|okey|oki|va|vale|sale|perfecto|excelente|entendido|bueno|"
-    r"enterado|de acuerdo|a ok|ah ok|ah ya|ya veo|muy bien|bien|listo|claro|"
+    r"enterado|de acuerdo|a ok|ah ok|ah ya|ya veo|muy bien|bien|listo|claro|entiendo|"
+    r"(?:que )?lastima|ni modo|se agradece|(?:te|le|les) agradezco(?: mucho| muchisimo)?|"
     r"si de nada|de nada|muchas gracias|mil gracias|muchas grax|mil grax|gracias igualmente|"
-    r"igualmente|gracias|garcias|grax|thanks|"
+    r"igualmente|gracias|garcias|gracis|grax|thanks|"
     r"(?:yo\s+)?(?:te|le|les)\s+(?:aviso|confirmo|escribo|marco)|"
     r"lo (?:voy a )?pienso|lo voy a pensar|lo checo|saludos|bendiciones|"
     r"gracias a (?:usted|ustedes|ti)|a (?:usted|ustedes|ti)|"
@@ -138,7 +139,12 @@ CIERRE = re.compile(
     r"|\bno\s+me\s+alcanza\b|\bdejelo\s+mejor\b|\bmejor\s+lo\s+dejo\b"
     r"|\bnos\s+decidimos\s+por\s+otr[oa]s?\b|\b(?:sera|seria)\s+(?:en|para)\s+otra\s+ocasion\b"
     r"|\bya\s+no\s+(?:lo\s+|la\s+)?vamos\s+a\s+(?:hacer|rentar|necesitar)\b"
-    r"|^(?:esta|estas|se)\s+equivocad[oa]\b|\bnumero\s+equivocado\b")
+    r"|^(?:esta|estas|se)\s+equivocad[oa]\b|\bnumero\s+equivocado\b"
+    # Corrida GM, 2026-10-29 (respuestas a la ronda): "ya tenemos opción", "ya tengo
+    # un lugar tratado", "será próxima vez, ahora no", "tuve que cancelar".
+    r"|\bya\s+(?:tenemos|tengo)\s+(?:otra\s+|una\s+|un\s+)?(?:opcion|lugar|reservacion)\b"
+    r"|\b(?:sera|seria)\s+(?:la\s+)?proxima\s+vez\b|\bahora\s+no[\s,.!]*$"
+    r"|\b(?:tuve|tuvimos)\s+que\s+cancelar\b|\bya\s+tienen\s+(?:una\s+)?reservacion\b")
 LA_PELOTA_ES_SUYA = re.compile(
     r"\b(?:lo pienso|lo voy a pensar|(?:te|le|les) aviso|(?:te|le) confirmo|"
     r"quedo (?:al )?pendiente|estoy (?:al )?pendiente|"
@@ -160,10 +166,14 @@ LA_PELOTA_ES_SUYA = re.compile(
     r"|(?:deja|dejame|dejeme|deje) (?:le |les )?(?:pregunto|consulto|comento|ensen\w*|muestro|mostrarlo|mostrarla)"
     r"|hablo con mi (?:familia|esposo|esposa|marido|novio|novia|jefe|jefa|mama|papa|hermana|hermano)"
     r"|(?:le|les) (?:comento|pregunto|paso los datos) a mi (?:familia|esposo|esposa|marido|novio|novia|jefe|jefa)"
-    r"|espero tener(?:le|te)? (?:la|una) (?:confirmacion|respuesta))\b")
+    r"|espero tener(?:le|te)? (?:la|una) (?:confirmacion|respuesta)"
+    # Corrida GM, 2026-10-29.
+    r"|(?:le|te|les) (?:avisamos|avisaremos|escribimos|confirmamos)|me comunico con (?:usted|ustedes|ud)"
+    r"|voy a (?:comentar|platicar|consultar)(?:lo|la)?)\b")
 # "Estoy pendiente de mi presupuesto" NO es "quedo pendiente": espera algo que le
 # debemos (Finca Emiliano, 2026-10-27: el turno callaba).
-SIGUE_PIDIENDO = re.compile(r"\?|\b(?:quiero|necesito|cuanto|cotiza\w*|ahora|precio|disponib\w*|presupuesto|estimado)\b")
+SIGUE_PIDIENDO = re.compile(r"\?|\b(?:quiero|necesito|cuanto|cotiza\w*|ahora|precio|disponib\w*|presupuesto|estimado|"
+                            r"podria|podrias|me (?:puede|pueden|puedes|manda|mandas|pasa|pasas|envia|envias))\b")
 PROMESA = re.compile(
     r"\b(?:ma[nñ]ana|al rato|luego|ahorita|hoy|en un momento)\b[^.]{0,40}"
     r"\b(?:le mando|le env[ií]o|te mando|te env[ií]o|se lo mando|le paso|paso|los mando)\b"
@@ -202,9 +212,24 @@ CLAUSULA_SIN_PEDIDO = re.compile(
     r"a (?:ti|usted|ustedes)|para servirle|(?:con )?mucho gusto|"
     r"(?:entonces )?ya (?:esta|quedo) (?:aclarado|claro)|porfa|por favor|confirmo|confirmado|"
     r"voy a esperar(?: \w+){0,8}|"
+    # Corrida GM, 2026-10-29 (pendientes etiquetados a ciegas):
+    r"(?:linda|lindo|bonita|bonito|feliz) (?:tard\w*|dia|noche|fin)(?: de semana)?(?: \w{1,2})?|"
+    r"gracias (?:de|por) todas (?:maneras|formas)|de todas (?:maneras|formas)(?: gracias)?|"
+    r"(?:nunca|no) me fije(?: en eso)?|gracias por estar (?:al )?pendientes?|"
+    r"(?:solo )?(?:nos|me) falta(?:n)? (?:por )?(?:definir|confirmar|decidir)(?: \w+){0,4}|"
+    r"(?:aun|todavia) no (?:sabemos|se|decidimos|decido)(?: \w+){0,6}|"
+    r"a ver si (?:aun|todavia) (?:esta|estan|hay|tienen) (?:disponible|libre|lugar)|"
     r"ok\w*|oka+y|okey|oki|va|vale|sale|bueno|perfecto|excelente|ah|ya|claro|listo|"
-    r"entendido|enterado|de acuerdo|esta bien|muy bien|bien|gracias|si|pues|correcto|hola"
+    r"entendido|enterado|de acuerdo|esta bien|muy bien|bien|gracias|gracis|si|pues|correcto|hola"
     r")(?:\s+(?:muchas gracias|mil gracias|gracias|grax|muchas grax|saludos|porfa|por favor))*$")
+#: El cliente dice con todas sus letras que él vuelve (corrida GM, 2026-10-29): manda
+#: sobre el resto de la ráfaga si no hay pregunta ni número (*"Tenemos un familiar
+#: hospitalizado (...) Si después decidimos ir le avisamos"*).
+APLAZA_FUERTE = re.compile(
+    r"\bsi (?:despues|luego|mas adelante) (?:decidimos|decido|nos decidimos|nos animamos|confirmamos)\b.{0,40}"
+    r"\b(?:le|te|les) (?:aviso|avisamos|avisare|avisaremos|escribo|escribimos|confirmo|confirmamos)\b"
+    r"|\bme comunico con (?:usted|ustedes|ud)\b.{0,25}\b(?:mas adelante|despues|luego|la proxima|en la semana)\b"
+    r"|\bvoy a (?:comentar|platicar|consultar)(?:lo|la)?\b.{0,25}\b(?:le|te|les) (?:escribo|aviso|confirmo|marco)\b")
 _EMPIEZA_CON_SI = re.compile(r"^(?:ah |a |ok |pues )?si\b")
 _SOLO_SALUDO = re.compile(r"^(?:hola|ola|que tal|buen(?:os|as)?(?: (?:dia|dias|tarde|tardes|noche|noches))?)"
                           r"(?: (?:buen(?:os|as)? (?:dia|dias|tarde|tardes|noche|noches)|que tal))?$")
@@ -247,6 +272,8 @@ def nada_que_contestar(texto: str, con_si: bool = True) -> bool:
         return True  # 👍, 🙏 solos: un acuse
     if not con_si and _EMPIEZA_CON_SI.match(_solo_letras(crudo)):
         return False
+    if APLAZA_FUERTE.search(_solo_letras(crudo)):
+        return True
     clausulas = _clausulas(crudo)
     if not clausulas or all(_SOLO_SALUDO.match(c) for c in clausulas):
         return False  # un saludo solo sí pide respuesta: el saludo
@@ -259,7 +286,9 @@ def nada_que_contestar(texto: str, con_si: bool = True) -> bool:
 def es_cierre(texto: str) -> bool:
     """Termina la conversación: ya rentó en otro lado, ya no le interesa, está caro."""
     t = _solo_letras(texto)
-    return bool(t) and bool(CIERRE.search(t)) and not SIGUE_PIDIENDO.search(normalizar(texto))
+    # "ahora no" no es "ahora sí quiero": no cuenta como que sigue pidiendo.
+    return bool(t) and bool(CIERRE.search(t)) and not SIGUE_PIDIENDO.search(
+        re.sub(r"\bahora no\b", "", normalizar(texto)))
 
 
 def es_contestador(texto: str) -> bool:

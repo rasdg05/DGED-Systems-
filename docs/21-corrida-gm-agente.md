@@ -66,3 +66,21 @@
   de "a una persona" a "iría al modelo" (sin medir, 0.0); en los 98 que los dos deciden
   sin modelo el puntaje **sube** 0.30 → 0.374 (A_pol 100 → 60: la base "alinea"
   pasándolo todo); (3) la alarma se borraba en el despliegue siguiente.
+- **B1 · cerrado** · `a1cf7e5` en producción (`/health` ya dice el commit). Backtest: referencia que no
+  avanza con una regresión (`aceptar` para darla por buena), `sin_medir` para lo que pasa al modelo, y la
+  regresión se decide en los momentos que los dos deciden sin modelo. Re-medido en local (14 días, n = 349):
+  251 pasaron al modelo; en los 98 sin modelo, puntaje 0.30 → 0.374 (sin regresión con la regla nueva).
+- **B2 · primera parte** · `a1cf7e5`: estado `contesto_ronda` (primero en su color) y el reporte de la
+  mesa abre con "contestaron al seguimiento". En los datos: los 14 que contestaron y esperan quedan en
+  los lugares 1–14 (antes 170–192). Un seguimiento nuestro que pregunta ya no es "promesa" (3 de 4).
+- **B3 · cerrado** · doble etiquetado ciego de los 268 pendientes con 8 agentes (2 por lote): acuerdo
+  96.3%, **kappa 0.947**, oro 265. Clasificador contra el oro: **92.1% → 96.6%** (kappa 0.879 antes),
+  `espera` precisión 85.2% → 94.5%, recall 98.1% (in-sample: el corpus salió de esta muestra; la
+  prueba fuera de muestra es con los pendientes de los próximos días). Corpus
+  `tests/test_agente_lecturas_gm.py` (31 casos, 1 `xfail`). Prueba de propiedad sobre las 1,970
+  ráfagas del historial: 17 cambian de lectura, todas a "no pide", ninguna con la casa dando contenido
+  después (la única que sí pedía —"pero me podrías mandar la ubicación"— entró al corpus y se arregló).
+  **Hallazgo**: 3 clientes aceptaron una cotización prometida (*"Le envío una cotización"* → *"Sí por
+  favor"*) que nunca llegó (214–530 h) y estaban en gris como "cerrada"; ahora son `promesa` en rojo.
+  Quedan sin nombrar (n < 5): proveedores que ofrecen algo (3), fecha pedida ya pasada (2), "estamos
+  lejos" (1).
