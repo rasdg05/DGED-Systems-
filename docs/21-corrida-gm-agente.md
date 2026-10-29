@@ -151,3 +151,7 @@
   **0.336** (IC 0.315–0.362), DSR 1.0 con 2 intentos, PBO 0.0, placebo colapsa (93.3 → 87.1), caros 0,
   cobertura 13.2%, monto igual a la casa 15 de 34 (44.1%). **No se enciende nada**: la compuerta pide el
   holdout (y n ≥ 30 por jugada que se enciende) y el turno no tiene conector oficial.
+- **Listo el siguiente paso** · `python -m agente.etiquetado lotes|medir`: el doble etiquetado ciego como
+  comando (lotes sin teléfonos ni la lectura del clasificador, kappa, oro, precisión de `espera`).
+  Reproduce la medición a mano (kappa 0.947, clasificador 96.2%). La prueba **fuera de muestra** del
+  clasificador es correrlo con los pendientes de otro día.
