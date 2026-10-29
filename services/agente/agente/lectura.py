@@ -37,7 +37,11 @@ _PALABRA = {"una": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5}
 _MENORES = r"(\d{1,3}|un|una)\s*(?:nin[oa]s?|menor(?:es)?|jovenes|chicos|bebes?|adolescentes)"
 _ADULTOS_Y = re.compile(rf"(\d{{1,3}})\s*(?:adultos?|personas?|mayores)\b(?:[\s,y+]*{_MENORES})?(?:[\s,y+]*{_MENORES})?")
 _DE_A = re.compile(r"\b(?:de|entre)\s*(\d{1,3})\s*(?:a|y|-)\s*(\d{1,3})\s*(?:personas|pax|invitados|gente)?\b")
+#: Lo que viene después del número y no son personas: *"Son 3 años"* era la edad de un niño
+#: y se cotizaba para 3 (corrida GM, 2026-10-29).
+_NO_ES_CUENTA = r"(?!\s*(?:anos|meses|dias|horas|hrs?|noches|habitaciones|cuartos|recamaras|camas|min\w*|km|pm|am)\b)"
 _SOMOS = re.compile(r"\b(?:somos|seriamos|seremos|vamos|van|son)\s+(?:como\s+|alrededor de\s+|aprox\w*\s+)?(\d{1,3})\b"
+                    + _NO_ES_CUENTA +
                     r"|\b(?:para|cupo de|las|los)\s+(\d{1,3})\s*(?:personas|pax|invitados|huespedes|gente)?\s*(?:aprox\w*)?\s*[?.!]*$"
                     r"|\b(\d{1,3})\s*(?:pax|huespedes|invitados|gente)\b")
 _PELON = re.compile(r"^\s*(?:como\s+|aprox\w*\s+)?(\d{1,3})\s*(?:aprox\w*|personas?)?\s*[.!]*$")
@@ -145,7 +149,22 @@ def pide_precio(texto: str | None) -> bool:
     return bool(_PIDE_PRECIO.search(normalizar(texto or "")))
 
 
-_UNA_NOCHE = re.compile(r"\b(?:solo |nada mas |unicamente )?(?:1|una) noche\b")
+#: El precio de un cuarto, no de la casa (*"el costo de 1 y 2 habitaciones"*): la lista
+#: es por propiedad y grupo, así que eso lo contesta una persona (corrida GM, 2026-10-29).
+_POR_CUARTO = re.compile(
+    r"\b(?:costo|costos|precio|precios|cuanto\w*|tarifa)\b[^?]{0,20}\b(?:de|por|x)\s+"
+    r"(?:(?:\d|una|un|dos|tres)\s+(?:y\s+(?:\d|dos|tres)\s+)?)?(?:habitacion|habitaciones|cuarto|cuartos|recamara|recamaras)\b")
+
+
+def pide_por_cuarto(texto: str | None) -> bool:
+    t = normalizar(texto or "")
+    return bool(_POR_CUARTO.search(t)) and not re.search(r"\btoda la (?:finca|quinta|casa)\b|\bo toda\b", t)
+
+
+_UNA_NOCHE = re.compile(r"\b(?:solo |nada mas |unicamente )?(?:1|una) noche\b"
+                        # "Sábado y entregar la casa el domingo" (corrida GM, 2026-10-29): sin viernes, una noche.
+                        r"|^(?!.*\bviernes\b).*\bsabado\b.{0,40}\b(?:entreg\w*|salir|salimos|nos vamos|me voy|al|hasta el)\b"
+                        r".{0,25}\bdomingo\b")
 _FIN_O_DOS = re.compile(r"\b(?:2|dos) noches\b|\bfin de semana\b|\bviernes a domingo\b|\bdel viernes al domingo\b")
 _PREGUNTA_UNA = re.compile(r"\b(?:solo |nada mas )?(?:1|una) noche\s*\?|\b(?:solo |nada mas )?(?:1|una) noche$")
 _SI = re.compile(r"^(?:si+|asi es|correcto|exacto|claro|aja|sip)\b")

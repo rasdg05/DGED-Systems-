@@ -116,3 +116,40 @@ def test_gm_la_promesa_cumplida_no_es_promesa():
 def test_gm_la_promesa_sin_contestar_tambien_es_promesa():
     hilo = [_m("1", False, 0, "Cuánto sería con banquete?"), _m("2", True, 60, "Le hago una cotización")]
     assert semaforo.leer({"h": hilo}, 30 * H)[0].estado == "promesa"
+
+
+# --------------------------------------------------------------------------- #
+#  Lo que el cotizador leía mal (vara c1, desarrollo: el monto coincidía con la  #
+#  casa en 15 de 37). Cada cifra igual espera el sí de una persona (XXXIII),   #
+#  pero salía mal armada.                                                      #
+# --------------------------------------------------------------------------- #
+from agente import lectura  # noqa: E402
+
+
+@pytest.mark.parametrize("texto", ["Son 3 años\nCosto ???", "son 2 noches", "Son 5 habitaciones?", "van 4 meses"])
+def test_gm_una_edad_o_una_cuenta_de_noches_no_son_personas(texto):
+    assert lectura.personas_en(texto) is None
+
+
+@pytest.mark.parametrize("texto, n", [("Somos 20", 20), ("son 12 personas", 12), ("Para 15", 15),
+                                      ("Somos 8 adultos y 3 niños de 5 años", 11)])
+def test_gm_las_personas_se_siguen_leyendo(texto, n):
+    assert lectura.personas_en(texto) == n
+
+
+def test_gm_sabado_y_entregar_el_domingo_es_una_noche():
+    hilo = [_m("1", False, 0, "Qué costo tiene el fin de semana. Sábado y entregar la casa el domingo")]
+    assert lectura.noches(hilo) == 1
+    assert lectura.noches([_m("1", False, 0, "del viernes al domingo")]) == 2
+
+
+@pytest.mark.parametrize("texto", ["Me podrá dar el costo de 1 y 2 habitaciones por favor",
+                                   "Cuánto cuesta por habitación?", "precio de una recamara"])
+def test_gm_el_precio_de_un_cuarto_no_se_cotiza_como_la_casa(texto):
+    assert lectura.pide_por_cuarto(texto)
+
+
+@pytest.mark.parametrize("texto", ["Y de renta por habitación?\nComo hotel o toda la finca", "Precio para 20 personas",
+                                   "Cuántas habitaciones tiene"])
+def test_gm_no_todo_lo_que_dice_habitacion_pide_un_cuarto(texto):
+    assert not lectura.pide_por_cuarto(texto)

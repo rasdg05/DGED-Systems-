@@ -89,3 +89,18 @@
   reporte de las 9 y 19. Ronda del 27 (n = 128, concluye): **contestaron 26 (20.3%), cerraron 7, sin
   pedir nada 2, esperan respuesta 10, atendidos 7** (mediana 0.7 h, p90 3.0 h), con cifra después 1.
   Ronda del 28: 0 de 10 a las ~7 h (n < 30).
+- **B4 · cerrado** · universo nuevo `8c8c8b3f` (1,070 momentos; dev 554 en 235 pláticas; holdout 268 desde
+  2026-10-17, **sin abrir**: solo ~1.5 días son posteriores al 27-oct y el resto se encima con el holdout
+  ya abierto para grupo-5; Gestor C10-B0 pide ≥ 5 días nuevos). Intentos registrados (3 de 4):
+  · `c1-base` 0.300 (todo a una persona, A_pol 100 comprado con silencio, placebo no colapsa).
+  · `c1-v3-tope0` (el perfil v3 activo, lo que iría al modelo a una persona): **0.339** (IC 0.317–0.366),
+    +0.039 contra la base, DSR 1.0 (2 intentos), placebo colapsa, PBO 0.0, caros 0. **Monto igual a la
+    casa: 15 de 37 (40.5%)**.
+  · `c1-v3-lecturas` (arreglo de lectura): "Son 3 años" ya no son 3 personas, el precio de un cuarto va a
+    una persona, "sábado y entregar el domingo" es una noche. Puerta de lectura **pasa**: caros 0 → 0,
+    cobertura −0.5, monto igual 44.1% (15 de 34); puntaje −0.004 porque la vara paga "cifra contra cifra"
+    aunque el monto no coincida.
+  **Propuesta registrada para el siguiente universo** (no se aplica aquí: cambiar la tabla es otra
+  familia): costos v3 con "cifra con monto distinto" como `neutra`. Lo que queda de los montos distintos
+  es de la lista, no de la lectura: a grupos de 7–13 la casa cotizaba la noche (4,500–7,000) donde la
+  lista v3 da el fin de semana de la finca (12,000); a 20 personas, 25,000 cuatro veces y 22,000 tres.

@@ -205,7 +205,7 @@ def por_grupo(base: dict, hilo: list[Mensaje], dicho: str, activo: dict,
                       cotizacion={"modo": "extra", "concepto": "alberca", "propiedad": r["propiedad"],
                                   "monto_centavos": r["monto_centavos"], "unidad": r.get("unidad")},
                       requiere_aprobacion=True)
-    if _NO_ES_HOSPEDAJE.search(t):
+    if _NO_ES_HOSPEDAJE.search(t) or lectura.pide_por_cuarto(dicho):
         return None
     # Dar grupo o fechas porque el negocio los pidió NO dispara: la casa contesta
     # eso con fotos y presentación, no con precio (grupo-3 en la bitácora: 0.289).
