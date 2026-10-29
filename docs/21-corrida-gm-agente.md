@@ -179,7 +179,7 @@
   escribimos para apartar la fecha"* = pide, como dijo la primera revisión) y *"quedo pendiente de su
   respuesta"* pasa a pedido (antes acuse de Gestor). También: "de sábado a domingo, 2 noches" son dos,
   "sábado a domingo y lunes" no es una, "solo 2 recámaras tienen aire" no es precio por cuarto, y
-  "déjeme revisar y le hago saber" no lo cumple una foto. **Medido**: batería 47/47 pedidos y ≥ 44/48 no
+  "déjeme revisar y le hago saber" no lo cumple una foto. **Medido**: batería 47/47 pedidos y 46/47 no
   pide; prueba de propiedad contra `0fffaad`: 20 ráfagas reales cambian, todas a "no pide" y todas
   revisadas a mano; oro 96.2%; banco 1.0; vara −0.001 (un momento), caros 0: pasa la puerta de lectura.
   569 tests.

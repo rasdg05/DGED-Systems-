@@ -5,11 +5,12 @@
 ## Corre
 
 - **Corrida GM del agente, 2026-10-29** (`docs/21-corrida-gm-agente.md`, D-047 a D-052, LXXI–LXXVI; el
-  runbook de Gestor aplicado aquí). En producción hasta `904f07c`; 507 tests del agente en verde.
+  runbook de Gestor aplicado aquí). En producción hasta `f197f0f`; 569 tests del agente en verde.
   Dos revisiones adversariales con agentes; la primera cazó lecturas mías que callaban a quien pedía
   (17 casos) y que la referencia del backtest avanzaba sola; la segunda, que el arreglo convertía
   aplazamientos en pendientes (37 casos). Todo con corpus; oro ciego 96.6%. `python -m agente.etiquetado`
-  deja lista la prueba fuera de muestra.
+  deja lista la prueba fuera de muestra. La tercera revisión mostró que ajustar una lista oscilaba: "¿pide
+  algo?" se rediseñó en dos niveles (D-054) y su batería de 94 frases es test (LXXVII): 0 pedidos callados.
   - **Lo que más dinero mueve**: de 128 seguimientos del 27 contestaron 26; **10 esperan respuesta** desde
     hace ~31 h y estaban al fondo del semáforo (lugares 170–192 de 194). Hoy van primero
     (`contesto_ronda`) y el reporte de las 9 y 19 abre con ellos. 2 clientes aceptaron una cotización
