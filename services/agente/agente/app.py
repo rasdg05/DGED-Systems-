@@ -423,6 +423,14 @@ def subir_propuesta(cliente_id: str, cuerpo: dict,
     return {"version": n, "descartados": descartados, "revision": f"/espacios/{cliente_id}/revision"}
 
 
+@app.get("/espacios/{cliente_id}/rondas.json")
+def ver_rondas(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """Qué pasó con cada ronda enviada (`desenlace.py`): contestaron, cerraron, esperan respuesta."""
+    from . import desenlace
+
+    return {"rondas": desenlace.de_rondas(paginas.espacio_taller(cliente_id, x_tenant_key or llave))}
+
+
 @app.get("/espacios/{cliente_id}/backtest.json")
 def ver_backtest(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
     """El último backtest (el agente de hoy contra los últimos 14 días) y su historial."""

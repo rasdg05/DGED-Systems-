@@ -114,6 +114,9 @@ def reporte(espacio: Espacio) -> str:
         lineas.append(f"No salieron hoy: {len(no_salieron)} (el cliente escribió antes, fecha apartada o envío en pausa).")
     if not calendario.Ocupacion.de(espacio).configurada:
         lineas.append("Calendario: sin conectar. Las rondas no ofrecen fechas hasta que se conecte.")
+    from . import desenlace
+    semana = datetime.now(timezone.utc).timestamp() - 7 * 86400
+    lineas += [desenlace.linea(r) for r in desenlace.de_rondas(espacio, hilos)[:2] if (r["desde"] or 0) >= semana]
     calientes = [f for f in filas if f.estado == "contesto_ronda" and f.color in ("rojo", "ambar")]
     if calientes:
         lineas.append(f"Contestaron al seguimiento y esperan respuesta: {len(calientes)}. Van primero.")

@@ -84,3 +84,8 @@
   favor"*) que nunca llegó (214–530 h) y estaban en gris como "cerrada"; ahora son `promesa` en rojo.
   Quedan sin nombrar (n < 5): proveedores que ofrecen algo (3), fecha pedida ya pasada (2), "estamos
   lejos" (1).
+- **B2 · cerrado** · `agente/desenlace.py`: qué pasó con cada ronda, la métrica que manda (Gestor C7-B1).
+  `python -m agente.local desenlace <id>`, `GET /espacios/<id>/rondas.json` (taller) y dos líneas en el
+  reporte de las 9 y 19. Ronda del 27 (n = 128, concluye): **contestaron 26 (20.3%), cerraron 7, sin
+  pedir nada 2, esperan respuesta 10, atendidos 7** (mediana 0.7 h, p90 3.0 h), con cifra después 1.
+  Ronda del 28: 0 de 10 a las ~7 h (n < 30).

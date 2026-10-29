@@ -11,6 +11,7 @@
     python -m agente.local aprobar finca-quinta <ronda> "<persona del alta>"   # encola lo que pasa (D-037)
     python -m agente.local canal finca-quinta vinculado sin_cifra                  # enciende el envío (D-037)
     python -m agente.local servidor finca-quinta       # el panel en local, con la copia
+    python -m agente.local desenlace finca-quinta      # qué pasó con cada ronda enviada
 
 **La copia local nunca llama a la API**: `bajar` deja `tope_usd_mes` en 0 y el
 espacio en sombra; `gasto.exigir_saldo` corta antes de cualquier llamada. Lo
@@ -126,7 +127,7 @@ def _leer(ruta: str) -> dict:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="python -m agente.local", description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="orden", required=True)
-    for nombre in ("bajar", "pendientes", "servidor"):
+    for nombre in ("bajar", "pendientes", "servidor", "desenlace"):
         sub.add_parser(nombre).add_argument("cliente_id")
     sub.choices["pendientes"].add_argument("--por-lote", type=int, default=10)
     sub.choices["pendientes"].add_argument("--dias", type=int, default=None)
@@ -180,6 +181,10 @@ def main(argv: list[str] | None = None) -> int:
         destino.parent.mkdir(parents=True, exist_ok=True)
         destino.write_text(texto, encoding="utf-8")  # la copia local valida igual que producción
         print(_pedir("POST", f"/espacios/{a.cliente_id}/documentos", {"nombre": ruta.name, "texto": texto}).decode())
+    elif a.orden == "desenlace":  # qué pasó con cada ronda (corrida GM, 2026-10-29)
+        from . import desenlace
+        for fila in desenlace.de_rondas(_espacio(a.cliente_id)):
+            print(desenlace.linea(fila) + ("" if fila["concluye"] else " (n < 30, no concluye)"))
     elif a.orden == "servidor":
         print(f'AGENTE_DATOS={RAIZ_LOCAL} ANTHROPIC_API_KEY= uvicorn agente.app:app --port 8090\n'
               f"→ http://localhost:8090/espacios/{a.cliente_id}?llave=$TENANT_INTERNAL_TOKEN")
