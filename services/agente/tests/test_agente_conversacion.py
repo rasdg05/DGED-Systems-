@@ -179,7 +179,11 @@ def test_conv_el_redactor_sabe_lo_que_revisa_el_candado_de_voz(espacio):
 def test_conv_estoy_pendiente_de_mi_presupuesto_no_se_calla():
     """Finca Emiliano, 2026-10-27: el turno lo leía como "quedo pendiente" y callaba."""
     assert not conversacion.nada_que_contestar("Estoy pendiente de mi presupuesto por favor", con_si=False)
-    assert conversacion.nada_que_contestar("Quedo pendiente de su respuesta", con_si=False)
+    # Corrida GM, 2026-10-29: "quedo pendiente de SU respuesta" espera algo nuestro (las tres revisiones
+    # adversariales lo marcaron como pedido); la dirección segura es contestarle. "Quedo al pendiente" solo sigue
+    # siendo acuse.
+    assert not conversacion.nada_que_contestar("Quedo pendiente de su respuesta", con_si=False)
+    assert conversacion.nada_que_contestar("Quedo al pendiente", con_si=False)
 
 
 @pytest.mark.parametrize("texto", ["Deja le pregunto a mi marido", "Ok deja le comento a mi esposo entonces",

@@ -300,3 +300,54 @@ def test_adv2_sabado_a_domingo_dicho_de_otras_formas_es_una_noche(texto):
                                    "Costo de la casa de 3 habitaciones o solo 1 habitacion"])
 def test_adv2_la_casa_de_n_y_aparte_un_cuarto_sigue_siendo_por_cuarto(texto):
     assert lectura.pide_por_cuarto(texto)
+
+
+# --------------------------------------------------------------------------- #
+#  La batería de la tercera revisión: el candado de las dos direcciones        #
+# --------------------------------------------------------------------------- #
+from corpus_lecturas import BATERIA  # noqa: E402
+
+
+def _no_pide(texto: str) -> bool:
+    return conversacion.nada_que_contestar(texto) or conversacion.es_cierre(texto)
+
+
+@pytest.mark.parametrize("texto", [f for f, e in BATERIA if e == "P"])
+def test_bateria_lo_que_pide_nunca_se_calla(texto):
+    """La dirección grave: un cliente que pide y se queda sin respuesta. Cero tolerancia."""
+    assert not _no_pide(texto)
+
+
+def test_bateria_lo_que_no_pide_casi_nunca_queda_de_pendiente():
+    """La otra dirección (falsos pendientes) se tolera poco: piso de 90% en los N."""
+    n = [f for f, e in BATERIA if e == "N"]
+    malos = [f for f in n if not _no_pide(f)]
+    assert len(malos) <= len(n) // 10, malos
+
+
+# Tercera revisión: noches, cuartos y promesas.
+@pytest.mark.parametrize("texto, n", [
+    ("seria de sabado a domingo dos noches", 2), ("de sabado a domingo, somos 20, 2 noches", 2),
+    ("de sabado a domingo y lunes", None), ("de sabado a domingo y de domingo a lunes", None),
+    ("del viernes, de sabado a domingo", None),
+    ("llegamos el sabado y salimos el domingo pero tambien queremos el lunes", None),
+    ("Del sábado al domingo, el lunes le deposito", 1),
+])
+def test_adv3_noches(texto, n):
+    assert lectura.noches([_m("1", False, 0, texto)]) == n
+
+
+@pytest.mark.parametrize("texto", ["cuanto cuesta, solo 2 recamaras tiene aire", "precio solo 3 cuartos tienen bano"])
+def test_adv3_solo_n_recamaras_describe_la_casa(texto):
+    assert not lectura.pide_por_cuarto(texto)
+
+
+@pytest.mark.parametrize("promesa, adjunto", [
+    ("Dejeme verificar y le hago saber", "image"), ("Dejeme verificar y le hago saber", "contacts"),
+    ("Dejeme revisar y le hago llegar la info", "image"),
+    ("Dejeme consultar con el dueño y le preparo la cotizacion", "image"),
+    ("Le envio una cotizacion", "contacts"),
+])
+def test_adv3_revisar_y_avisar_no_lo_cumple_una_foto(promesa, adjunto):
+    hilo = [_m("1", False, 0, "Tienen libre el 14?"), _m("2", True, 60, promesa), _m("3", True, 70, None, tipo=adjunto)]
+    assert semaforo.leer({"h": hilo}, 30 * H)[0].estado == "promesa"

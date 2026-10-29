@@ -69,10 +69,13 @@ _PROMETE = re.compile(
     r"(?:cotizacion|presupuesto|propuesta|precios?|lista|ubicacion|informacion|fotos?)\b")
 
 
-_MANDA_ALGO = re.compile(r"\b(?:le|te|les|se (?:la|lo|las|los)) (?:envio|mando|paso|comparto|hago|preparo|armo)\b")
+_MANDA_ALGO = re.compile(r"\b(?:le|te|les|se (?:la|lo|las|los)) (?:envio|mando|paso|comparto)\b"
+                         r"|\b(?:le|te|les) (?:hago|preparo|armo) (?:una |la |su |el |un )?"
+                         r"(?:cotizacion|presupuesto|propuesta|lista)\b")
+_REVISA = re.compile(r"\b(?:dejeme|dejame|permitame|permiteme|deje|deja)\s+(?:revisar|verificar|consultar|checar|"
+                     r"confirmar|ver|preguntar)\b")
 #: Las tarifas de Finca Emiliano viajan en imagen o PDF: un adjunto cumple "le hago una cotización".
-_ADJUNTOS_QUE_CUMPLEN = frozenset({"image", "imagen", "video", "document", "documento", "location", "ubicacion",
-                                   "contacts", "contacto"})
+_ADJUNTOS_QUE_CUMPLEN = frozenset({"image", "imagen", "video", "document", "documento", "location", "ubicacion"})
 
 
 def _promesa_pendiente(tanda: list[Mensaje], de_ronda: frozenset[str] = frozenset()) -> Mensaje | None:
@@ -89,8 +92,13 @@ def _promesa_pendiente(tanda: list[Mensaje], de_ronda: frozenset[str] = frozense
         # Mandar algo (la ubicación, fotos, la lista) se cumple con un adjunto; "déjeme revisar y le
         # confirmo" no se cumple con una foto, y una reacción o un aviso de edición no cumplen nada
         # (revisión adversarial de la corrida GM, 2026-10-29).
-        if _MANDA_ALGO.search(conversacion.normalizar(m.texto)) and any(
-                x.tipo in _ADJUNTOS_QUE_CUMPLEN for x in despues):
+        t = conversacion.normalizar(m.texto)
+        # "Déjeme revisar (...) y le hago saber" promete una respuesta, no un archivo: no la cumple una
+        # foto (tercera revisión adversarial). Un contacto solo cumple "le paso el contacto".
+        revisa = _REVISA.search(t)
+        cumple = {x.tipo for x in despues} & (_ADJUNTOS_QUE_CUMPLEN | (
+            {"contacts", "contacto"} if re.search(r"\b(?:contacto|numero|telefono)\b", t) else set()))
+        if _MANDA_ALGO.search(t) and not revisa and cumple:
             return None
         return m
     return None

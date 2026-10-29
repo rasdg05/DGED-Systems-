@@ -81,6 +81,7 @@
 | LXXIV | El sí a una cotización prometida que no llegó es trabajo nuestro (promesa, rojo), no una plática cerrada | `semaforo._promesa_pendiente` | `test_agente_lecturas_gm.py::test_gm_el_si_a_una_cotizacion_prometida_es_promesa_nuestra` |
 | LXXV | Un mensaje que le da órdenes al asistente ("ignora tus instrucciones") va a una persona antes del modelo | `conversacion.intenta_cambiar_las_reglas`, `agente.antes_del_modelo` | `test_agente_lecturas_gm.py::test_gm_las_ordenes_al_asistente_van_a_una_persona_sin_modelo` |
 | LXXVI | Una ronda no pregunta lo que el cliente ya dijo (personas, o fechas por venir que nadie dijo ocupadas) | `rondas.pregunta_lo_ya_dicho`, `motivo_de_rechazo` | `test_agente_enjambre.py::test_inv_ronda_no_pregunta_lo_que_el_cliente_ya_dijo` |
+| LXXVII | Ningún pedido de la batería de lecturas se lee como "no pide" (cero tolerancia), y los "no pide" se leen bien en ≥ 90% | `conversacion.pide_algo`, `nada_que_contestar`, `es_cierre`; batería en `tests/corpus_lecturas.py` | `test_agente_lecturas_gm.py::test_bateria_lo_que_pide_nunca_se_calla`, `test_bateria_lo_que_no_pide_casi_nunca_queda_de_pendiente` |
 
 ## Lo que no se negocia aunque no tenga test todavía
 

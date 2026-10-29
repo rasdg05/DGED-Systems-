@@ -152,7 +152,7 @@ def pide_precio(texto: str | None) -> bool:
 #: El precio de un cuarto, no de la casa (*"el costo de 1 y 2 habitaciones"*): la lista
 #: es por propiedad y grupo, así que eso lo contesta una persona (corrida GM, 2026-10-29).
 _POR_CUARTO = re.compile(
-    r"\b(?:costo|costos|precio|precios|cuanto\w*|tarifa)\b[^?]{0,20}\b(?:de|por|x|o solo|solo)\s+"
+    r"\b(?:costo|costos|precio|precios|cuanto\w*|tarifa)\b[^?]{0,20}\b(?:de|por|x|o solo|o)\s+"
     r"(?:(?:\d|una|un|dos|tres)\s+(?:y\s+(?:\d|dos|tres)\s+)?)?(?:habitacion|habitaciones|cuarto|cuartos|recamara|recamaras)\b")
 
 
@@ -166,13 +166,17 @@ def pide_por_cuarto(texto: str | None) -> bool:
     return bool(_POR_CUARTO.search(t))
 
 
-_UNA_NOCHE = re.compile(r"\b(?:solo |nada mas |unicamente )?(?:1|una) noche\b|\bde sabado a domingo\b"
-                        # "Sábado y entregar la casa el domingo" (corrida GM, 2026-10-29): sin viernes ni
-                        # "al lunes", y el domingo justo después de la salida (con la casa, la quinta o la hora).
-                        r"|^(?!.*\bviernes\b)(?!.*\b(?:al|hasta el)\s+lunes\b).*\bsabado\b.{0,40}"
+#: Sábado a domingo sin viernes ni lunes (un "el lunes le deposito" no cuenta como noche).
+_SIN_VIERNES_NI_LUNES = r"^(?!.*\bviernes\b)(?!.*\blunes\b(?!\s+(?:le|les|te|se)\b))"
+_UNA_NOCHE = re.compile(r"\b(?:solo |nada mas |unicamente )?(?:1|una) noche\b"
+                        # "Sábado y entregar la casa el domingo" (corrida GM, 2026-10-29), con la casa, la quinta
+                        # o la hora, y "de sábado a domingo"; tres revisiones adversariales afinaron los vetos.
+                        rf"|{_SIN_VIERNES_NI_LUNES}.*\bde sabado a domingo\b"
+                        rf"|{_SIN_VIERNES_NI_LUNES}.*\bsabado\b.{{0,40}}"
                         r"\b(?:entreg\w*|salir|salimos|nos vamos|me voy|al|hasta el)"
                         r"(?:\s+(?:la|el)\s+(?:casa|quinta|finca|lugar))?"
                         r"(?:\s+(?:a mas tardar|como|el dia|el|a las \d{1,2} del|como a las \d{1,2} del))*\s+domingo\b")
+_DOS_NOCHES = re.compile(r"\b(?:2|dos) noches\b")
 _FIN_O_DOS = re.compile(r"\b(?:2|dos) noches\b|\bfin de semana\b|\bviernes a domingo\b|\bdel viernes al domingo\b")
 _PREGUNTA_UNA = re.compile(r"\b(?:solo |nada mas )?(?:1|una) noche\s*\?|\b(?:solo |nada mas )?(?:1|una) noche$")
 _SI = re.compile(r"^(?:si+|asi es|correcto|exacto|claro|aja|sip)\b")
@@ -191,7 +195,9 @@ def noches(hilo: list[Mensaje]) -> int | None:
             continue
         if not t:
             continue
-        if _UNA_NOCHE.search(t) or (pregunto_una and _SI.match(t)):
+        if _DOS_NOCHES.search(t):        # "de sábado a domingo, 2 noches": manda lo dicho con número
+            ultimo = 2
+        elif _UNA_NOCHE.search(t) or (pregunto_una and _SI.match(t)):
             ultimo = 1
         elif _FIN_O_DOS.search(t):
             ultimo = 2

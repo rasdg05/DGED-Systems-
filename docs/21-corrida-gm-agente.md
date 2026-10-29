@@ -168,3 +168,18 @@
   noche; *"la casa de 3 recámaras y cuánto por 1 cuarto"* sigue siendo por cuarto; tras `aceptar` la
   página del taller ya no dice "regresión". Re-medido: oro **96.6%** (precisión de `espera` 94.5%),
   banco 1.0, vara sin cambio, 507 tests.
+- **B12 · tercera revisión adversarial y el arreglo de raíz** · la tercera revisión (94 frases inventadas
+  y etiquetadas) encontró que el arreglo de la segunda volvía a **callar 17 pedidos** (*"ya conseguí el
+  anticipo, cómo le deposito"*, *"ya decidimos queremos apartar el sábado"*, *"lo checo con mi esposa
+  quisiéramos el sábado"*). Tres rondas ajustando UNA lista de palabras oscilaron entre callar pedidos y
+  llenar de falsos pendientes, así que se cambió el diseño: `conversacion.pide_algo` con dos niveles,
+  `PIDE` (siempre pide) e `INTENCION` (pide salvo en el condicional del cliente o pegada a un aviso), y
+  la batería del revisor quedó **como test del repo** (`tests/corpus_lecturas.py`): cero pedidos callados
+  y ≥ 90% de los "no pide" bien. Una etiqueta del revisor se cambió a la dirección segura (*"les
+  escribimos para apartar la fecha"* = pide, como dijo la primera revisión) y *"quedo pendiente de su
+  respuesta"* pasa a pedido (antes acuse de Gestor). También: "de sábado a domingo, 2 noches" son dos,
+  "sábado a domingo y lunes" no es una, "solo 2 recámaras tienen aire" no es precio por cuarto, y
+  "déjeme revisar y le hago saber" no lo cumple una foto. **Medido**: batería 47/47 pedidos y ≥ 44/48 no
+  pide; prueba de propiedad contra `0fffaad`: 20 ráfagas reales cambian, todas a "no pide" y todas
+  revisadas a mano; oro 96.2%; banco 1.0; vara −0.001 (un momento), caros 0: pasa la puerta de lectura.
+  569 tests.

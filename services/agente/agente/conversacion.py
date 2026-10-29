@@ -187,17 +187,48 @@ LA_PELOTA_ES_SUYA = re.compile(
     r"|voy a (?:comentar|platicar|consultar)(?:lo|la)?)\b")
 # "Estoy pendiente de mi presupuesto" NO es "quedo pendiente": espera algo que le
 # debemos (Finca Emiliano, 2026-10-27: el turno callaba).
-SIGUE_PIDIENDO = re.compile(r"\?|\b(?:quiero|necesito|cuanto|cotiza\w*|ahora|precio|precios|disponib\w*|presupuesto|"
-                            r"estimado|podria|podrias|me (?:puede|pueden|puedes|manda|mandas|pasa|pasas|envia|envias)|"
-                            # Revisión adversarial de la corrida GM: "...y le aviso pero mándeme la ubicación".
-                            r"mande\w*|mand[ae](?:me|nos)|manden\w*|pasa(?:me|nos)|pase(?:me|nos)|envia(?:me|nos)|"
-                            r"envie(?:me|nos)|enviame|me confirma\w*|ubicacion|(?<!en )(?<!por su )(?<!por mi )cuenta|"
-                            # Segunda revisión: la intención en condicional ("si nos interesa le aviso",
-                            # "cuando queramos reservar") no pide; lo que pide es el verbo o el "para".
-                            r"(?<!si )(?<!no )(?:me|nos) interesa (?:la|el|su|saber|ver|conocer|apartar|reservar)|"
-                            r"nos gustaria (?:ver|conocer|saber|visitar|ir|apartar|reservar)|"
-                            r"quisiera (?:saber|ver|preguntar|apartar|reservar|conocer|informacion)|"
-                            r"(?:tienen|teniendo|tendran|hay) (?:libre|disponible)|para (?:apartar|reservar)|informes)\b")
+#
+# Corrida GM, 2026-10-29: tres rondas de arreglos con UNA lista oscilaron entre callar
+# pedidos y llenar de falsos pendientes (`tests/corpus_lecturas.py` es el candado). Ahora
+# son dos niveles: PIDE siempre pide; INTENCION pide salvo en el condicional del cliente
+# ("si nos interesa le aviso", "cuando tenga la lana") o pegada a un aviso ("le aviso
+# para reservar"). `pide_algo` es la única vara.
+PIDE = re.compile(
+    r"\?|\b(?:quiero|queremos|necesito|necesitamos|(?<!en )cuanto|cotiza\w*|precio|precios|disponib\w*|presupuesto|"
+    r"estimado|podria|podrias|informes|"
+    r"(?:me|nos) (?:puede|pueden|puedes|manda|mandas|pasa|pasas|envia|envias|dice|dices|aparta|apartas|"
+    r"confirma|confirmas)|me (?:la|lo) aparta\w*|me aparte|"
+    r"mande\w*|mand[ae](?:me|nos)|manden\w*|pasa(?:me|nos)|pase(?:me|nos)|envia(?:me|nos)|envie(?:me|nos)|"
+    r"a que hora|que hora|aceptan|incluye|es climatizada|"
+    r"tienen (?:algo|otra|otro|mas|lugar|libre|disponible|cupo)|hay (?:lugar|libre|cupo)|"
+    r"como (?:le|les|se) (?:deposito|pago|hago|aparto)|como es|numero de cuenta|"
+    r"(?:pendiente|esperar?|espero) (?:de )?(?:la |su |sus |tu |el |los )?"
+    r"(?:respuesta|informacion|info|cotizacion|costos?|precios?|confirmacion|datos|ubicacion|fotos?))\b")
+INTENCION = re.compile(
+    r"\b(?:quisier\w* (?!pero)\w+|nos gustaria (?!pero)\w+|(?:me|nos) interesa\w* (?:la|el|para|mucho la|reservar|"
+    r"apartar|rentar)|apartar|reservar|rentar\w*|(?:esta|estan|tienen|hay|sigue|siguen|teniendo) libre)\b")
+#: Lo que el cliente pone en condicional sobre sí mismo, o pega a un aviso, no pide hoy.
+_CONDICIONAL = re.compile(
+    r"\b(?:si|cuando|en cuanto)\s+(?:(?:despues|luego|ya|todo)\s+)?(?:(?:me|nos|se|lo|la)\s+)?"
+    r"(?:interesa\w*|tenga\w*|tengamos|junte\w*|juntemos|decid\w*|quer\w*|anim\w*|sale\w*|arma|pued\w*|"
+    r"podamos|sep\w*|confirm\w*|digan|paguen|regres\w*|lleg\w*|apart\w*|reserv\w*)\b"
+    r"(?:\s+(?!(?:le|te|les|me|nos|pero|y)\b)\w+){0,4}"
+    r"|\b(?:aviso|avisamos|avisare|avisaremos)\s+para\s+\w+|\bpara ver si\s+\w+"
+    r"|\b(?:manana|luego|despues|mas adelante)\s+para\s+\w+"
+    r"|\ba ver si (?:aun|todavia) (?:esta|estan|hay|tienen) (?:disponible|libre|lugar)\b")
+
+
+def pide_algo(texto: str, intencion: bool = True) -> bool:
+    """¿Pide algo hoy? `intencion=False`: solo el pedido directo (la rama de la promesa:
+    "ahorita le paso los datos para reservar" no pide)."""
+    t = normalizar(texto)
+    # "a ver si aún está disponible" dentro de un aplazamiento es condicional, no un pedido.
+    t = re.sub(r"\ba ver si (?:aun|todavia) (?:esta|estan|hay|tienen) (?:disponible|libre|lugar)\b", " ", t)
+    if PIDE.search(t):
+        return True
+    return intencion and bool(INTENCION.search(_CONDICIONAL.sub(" ", t)))
+
+
 PROMESA = re.compile(
     r"\b(?:ma[nñ]ana|al rato|luego|ahorita|hoy|en un momento)\b[^.]{0,40}"
     r"\b(?:le mando|le env[ií]o|te mando|te env[ií]o|se lo mando|le paso|paso|los mando)\b"
@@ -228,7 +259,9 @@ CLAUSULA_SIN_PEDIDO = re.compile(
     r"espero (?:su|sus|tu|tus) (?:mensaje|respuesta|indicaciones|llamada|informacion|confirmacion)|"
     r"(?:si |ya )*(?:vi|lo vi|lo lei|lei|entendi|anotado)|"
     r"buen(?:a|o)s? (?:dia|tarde|noche)s?|que (?:tenga|tengan|este) (?:un )?"
-    r"(?:buen|bonito|excelente|lindo)? ?(?:dia|tarde|noche|fin)(?: de semana)?|saludos|igualmente|"
+    r"(?:buen|bonito|bonita|excelente|lindo|linda|feliz)? ?(?:dia|tarde|noche|fin)(?: de semana)?|saludos|igualmente|"
+    # Un deseo sin objeto no es un pedido ("me interesa, le aviso"; "nos gustaria pero lo platico").
+    r"(?:si )?(?:me|nos) interesa(?: mucho)?|nos gustaria|quisier\w*|"
     r"ahi (?:le|te) (?:aviso|digo|confirmo)|"
     r"(?:y )?(?:disculpe|disculpa|perdon|perdone)(?: (?:las|la|por las|por la) molestias?)?|"
     r"(?:me|nos) (?:avisa|avisas|avisan|confirma|confirmas)(?: (?:porfa|por favor|cualquier cosa))?|"
@@ -274,11 +307,12 @@ def _clausulas(texto: str) -> list[str]:
 
 def _sin_pedido(clausulas: list[str]) -> bool:
     for c in clausulas:
-        if ACUSE.match(c) or (CLAUSULA_SIN_PEDIDO.match(c) and not SIGUE_PIDIENDO.search(c)):
+        if ACUSE.match(c) or (CLAUSULA_SIN_PEDIDO.match(c) and not pide_algo(c)):
             continue
-        if PROMESA.search(c) and not re.search(r"\b(?:cuanto|precio|costo)\b", c) and not SIGUE_PIDIENDO.search(c):
+        if PROMESA.search(c) and not re.search(r"\b(?:cuanto|precio|costo)\b", c) and not pide_algo(c, False):
             continue
-        if LA_PELOTA_ES_SUYA.search(c) and len(c.split()) <= 8 and not SIGUE_PIDIENDO.search(c):
+        # Hasta 12 palabras: el candado de lo que pide ya es `pide_algo`, no el largo.
+        if LA_PELOTA_ES_SUYA.search(c) and len(c.split()) <= 12 and not pide_algo(c):
             continue
         return False
     return True
@@ -296,11 +330,7 @@ def nada_que_contestar(texto: str, con_si: bool = True) -> bool:
         return True  # 👍, 🙏 solos: un acuse
     if not con_si and _EMPIEZA_CON_SI.match(_solo_letras(crudo)):
         return False
-    letras = _solo_letras(crudo)
-    # "a ver si aún está disponible" dentro de un aplazamiento es condicional, no un pedido.
-    sin_condicional = re.sub(r"\ba ver si (?:aun|todavia) (?:esta|estan|hay|tienen) (?:disponible|libre|lugar)\b", "",
-                             letras)
-    if APLAZA_FUERTE.search(letras) and not SIGUE_PIDIENDO.search(sin_condicional):
+    if APLAZA_FUERTE.search(_solo_letras(crudo)) and not pide_algo(crudo):
         return True
     clausulas = _clausulas(crudo)
     if not clausulas or all(_SOLO_SALUDO.match(c) for c in clausulas):
@@ -315,8 +345,7 @@ def es_cierre(texto: str) -> bool:
     """Termina la conversación: ya rentó en otro lado, ya no le interesa, está caro."""
     t = _solo_letras(texto)
     # "ahora no" no es "ahora sí quiero": no cuenta como que sigue pidiendo.
-    return bool(t) and bool(CIERRE.search(t)) and not SIGUE_PIDIENDO.search(
-        re.sub(r"\bahora no\b", "", normalizar(texto)))
+    return bool(t) and bool(CIERRE.search(t)) and not pide_algo(re.sub(r"\bahora no\b", "", normalizar(texto)))
 
 
 def es_contestador(texto: str) -> bool:
@@ -331,7 +360,7 @@ def es_acuse(texto: str) -> bool:
     if not letras:
         return True  # 👍 solo
     return bool(ACUSE.match(letras) or es_contestador(crudo)
-                or ("?" not in crudo and LA_PELOTA_ES_SUYA.search(letras) and not SIGUE_PIDIENDO.search(letras)))
+                or ("?" not in crudo and LA_PELOTA_ES_SUYA.search(letras) and not pide_algo(letras)))
 
 
 # --------------------------------------------------------------------------- #
