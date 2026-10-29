@@ -247,3 +247,56 @@ def test_adv_son_3_anos_el_cotizador_pregunta_las_personas():
     m = _m("1", False, 0, "Son 3 años\nCosto ???")
     s = agente.por_grupo({"cliente_id": "x", "hilo": "h", "responde_a": "1"}, [m], m.texto, {"reglas": [{"tipo": "grupo"}]})
     assert s is not None and s.texto == agente.PIDE_PERSONAS and not s.cotizacion
+
+
+# --------------------------------------------------------------------------- #
+#  Segunda revisión adversarial (sobre los arreglos de la primera): lo que el  #
+#  arreglo dejó de callar sin razón, y lo que todavía callaba pidiendo.        #
+# --------------------------------------------------------------------------- #
+NO_PIDE_DE_NUEVO = [
+    "Le escribimos después", "Le confirmamos en la semana", "Les escribimos más adelante, gracias",
+    "Le confirmamos después, gracias", "Lo tendré en cuenta, gracias", "Gracias, lo tendré en cuenta",
+    "Nos gustaría pero está muy caro, gracias", "Gracias, nos gustaría pero está muy caro",
+    "Ya encontramos otro lugar libre, gracias", "Ok gracias, si nos interesa le aviso",
+    "Si nos interesa le avisamos", "Gracias, cuando queramos reservar le aviso",
+    "Ok le aviso cuando tenga el anticipo", "Muchas gracias, le aviso cuando junte el anticipo",
+    "Ok, cuando tenga un fin libre le aviso",
+]
+SIGUE_PIDIENDO_2 = [
+    "Aun no sabemos mandame precios", "Me falta confirmar mándame fotos",
+    "Mañana le mando el anticipo y me pasa la ubicación", "Al rato le paso los datos y me manda la cuenta",
+    "Hoy le mando el comprobante y me confirma la reservación",
+    "Voy a esperar la ubicación", "Voy a esperar las fotos", "Voy a esperar su respuesta sobre la fecha",
+]
+
+
+@pytest.mark.parametrize("texto", NO_PIDE_DE_NUEVO)
+def test_adv2_aplazar_o_cerrar_no_es_esperar(texto):
+    assert conversacion.nada_que_contestar(texto) or conversacion.es_cierre(texto)
+
+
+@pytest.mark.parametrize("texto", SIGUE_PIDIENDO_2)
+def test_adv2_lo_que_pide_no_se_calla(texto):
+    assert not conversacion.nada_que_contestar(texto) and not conversacion.es_cierre(texto)
+
+
+@pytest.mark.parametrize("promesa, adjunto", [("Le preparo su cotización", "document"), ("Le hago una cotización", "image"),
+                                              ("Le armo un presupuesto", "document"), ("Te paso el contacto", "contacts")])
+def test_adv2_la_cotizacion_en_foto_o_pdf_cumple_la_promesa(promesa, adjunto):
+    hilo = [_m("1", False, 0, "Cuánto sería?"), _m("2", True, 60, promesa), _m("3", True, 70, None, tipo=adjunto)]
+    assert semaforo.leer({"h": hilo}, 30 * H)[0].estado != "promesa"
+
+
+@pytest.mark.parametrize("texto", ["El sábado y entregamos la quinta el domingo", "Sábado y entregar la finca el domingo",
+                                   "El sábado, entregamos el día domingo", "Sábado y salimos a más tardar el domingo",
+                                   "Llegamos el sábado y nos vamos como a las 12 del domingo",
+                                   "Del sábado al domingo, el lunes le deposito", "de sábado a domingo"])
+def test_adv2_sabado_a_domingo_dicho_de_otras_formas_es_una_noche(texto):
+    assert lectura.noches([_m("1", False, 0, texto)]) == 1
+
+
+@pytest.mark.parametrize("texto", ["Cuánto cuesta la casa de 3 recámaras y cuánto por 1 cuarto",
+                                   "Precio de la casa de 2 habitaciones y de 1 habitación",
+                                   "Costo de la casa de 3 habitaciones o solo 1 habitacion"])
+def test_adv2_la_casa_de_n_y_aparte_un_cuarto_sigue_siendo_por_cuarto(texto):
+    assert lectura.pide_por_cuarto(texto)

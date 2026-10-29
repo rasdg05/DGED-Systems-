@@ -129,7 +129,8 @@ def correr(espacio: Espacio, motivo: str = "a mano") -> dict:
     # La alarma es pegajosa (revisión adversarial de la corrida GM): una regresión, o un agente
     # que manda al modelo lo que antes no (sin medir), solo la cierra una comparación que
     # concluye sin regresión o una persona con `aceptar`. Si la ventana ya no se encima con la
-    # referencia, o quedan < 30 momentos medidos, NO cuenta como "sin regresión".
+    # referencia, o quedan < 30 momentos medidos, NO cuenta como "sin regresión". Pasados 14 días la
+    # ventana ya no se encima con la referencia: una alarma abierta entonces solo la cierra `aceptar`.
     alarma = estado.get("alarma")
     if c.get("regresion"):
         alarma = "regresion"
@@ -139,10 +140,12 @@ def correr(espacio: Espacio, motivo: str = "a mano") -> dict:
         alarma = None
     estado["alarma"] = alarma
     regresion = alarma == "regresion"
-    if not estado.get("referencia") or (alarma is None and (concluye or not c or not c.get("n"))):
+    primera = not estado.get("referencia")
+    if primera or (alarma is None and (concluye or not c)):
         espacio.escribir_json(PREDICCIONES, hoy)
         estado["referencia"] = {k: informe.get(k) for k in ("fecha", "commit", "agente")} | {
-            "por": "sin regresión" if concluye else "sin comparar (la ventana ya no se encima o n < 30)"}
+            "por": "primera referencia" if primera else "sin regresión" if concluye
+            else "sin comparar (la ventana ya no se encima con la referencia)"}
     informe["referencia"], informe["alarma"] = estado.get("referencia"), alarma
     estado["ultimo"] = informe
     estado["historial"] = (estado.get("historial", []) + [{

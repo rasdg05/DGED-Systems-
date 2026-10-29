@@ -152,24 +152,27 @@ def pide_precio(texto: str | None) -> bool:
 #: El precio de un cuarto, no de la casa (*"el costo de 1 y 2 habitaciones"*): la lista
 #: es por propiedad y grupo, así que eso lo contesta una persona (corrida GM, 2026-10-29).
 _POR_CUARTO = re.compile(
-    r"\b(?:costo|costos|precio|precios|cuanto\w*|tarifa)\b[^?]{0,20}\b(?:de|por|x)\s+"
+    r"\b(?:costo|costos|precio|precios|cuanto\w*|tarifa)\b[^?]{0,20}\b(?:de|por|x|o solo|solo)\s+"
     r"(?:(?:\d|una|un|dos|tres)\s+(?:y\s+(?:\d|dos|tres)\s+)?)?(?:habitacion|habitaciones|cuarto|cuartos|recamara|recamaras)\b")
 
 
 def pide_por_cuarto(texto: str | None) -> bool:
     t = normalizar(texto or "")
-    return bool(_POR_CUARTO.search(t)) and not re.search(
-        r"\btoda la (?:finca|quinta|casa)\b|\bo toda\b"
-        r"|\b(?:la |el )?(?:finca|quinta|casa|lugar)\s+(?:de|con)\s+(?:\d|una|dos|tres|cuatro|cinco|seis)\s+"
-        r"(?:habitaciones|cuartos|recamaras)\b", t)
+    if re.search(r"\btoda la (?:finca|quinta|casa)\b|\bo toda\b", t):
+        return False
+    # "la casa de 4 habitaciones" describe la casa; se quita y se mira si aparte pide un cuarto.
+    t = re.sub(r"\b(?:la |el )?(?:finca|quinta|casa|lugar)\s+(?:de|con)\s+(?:\d|una|dos|tres|cuatro|cinco|seis)\s+"
+               r"(?:habitaciones|cuartos|recamaras)\b", "", t)
+    return bool(_POR_CUARTO.search(t))
 
 
-_UNA_NOCHE = re.compile(r"\b(?:solo |nada mas |unicamente )?(?:1|una) noche\b"
-                        # "Sábado y entregar la casa el domingo" (corrida GM, 2026-10-29): sin viernes, una noche.
-                        # Sin viernes ni lunes, y el domingo justo después de la salida.
-                        r"|^(?!.*\b(?:viernes|lunes)\b).*\bsabado\b.{0,40}"
-                        r"\b(?:entreg\w*(?: la casa)?(?: el)?|salir(?: el)?|salimos(?: el)?|nos vamos(?: el)?|"
-                        r"me voy(?: el)?|al|hasta el)\s+domingo\b")
+_UNA_NOCHE = re.compile(r"\b(?:solo |nada mas |unicamente )?(?:1|una) noche\b|\bde sabado a domingo\b"
+                        # "Sábado y entregar la casa el domingo" (corrida GM, 2026-10-29): sin viernes ni
+                        # "al lunes", y el domingo justo después de la salida (con la casa, la quinta o la hora).
+                        r"|^(?!.*\bviernes\b)(?!.*\b(?:al|hasta el)\s+lunes\b).*\bsabado\b.{0,40}"
+                        r"\b(?:entreg\w*|salir|salimos|nos vamos|me voy|al|hasta el)"
+                        r"(?:\s+(?:la|el)\s+(?:casa|quinta|finca|lugar))?"
+                        r"(?:\s+(?:a mas tardar|como|el dia|el|a las \d{1,2} del|como a las \d{1,2} del))*\s+domingo\b")
 _FIN_O_DOS = re.compile(r"\b(?:2|dos) noches\b|\bfin de semana\b|\bviernes a domingo\b|\bdel viernes al domingo\b")
 _PREGUNTA_UNA = re.compile(r"\b(?:solo |nada mas )?(?:1|una) noche\s*\?|\b(?:solo |nada mas )?(?:1|una) noche$")
 _SI = re.compile(r"^(?:si+|asi es|correcto|exacto|claro|aja|sip)\b")

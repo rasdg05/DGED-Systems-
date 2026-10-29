@@ -183,7 +183,7 @@ LA_PELOTA_ES_SUYA = re.compile(
     r"|(?:le|les) (?:comento|pregunto|paso los datos) a mi (?:familia|esposo|esposa|marido|novio|novia|jefe|jefa)"
     r"|espero tener(?:le|te)? (?:la|una) (?:confirmacion|respuesta)"
     # Corrida GM, 2026-10-29.
-    r"|(?:le|te|les) (?:avisamos|avisaremos)"
+    r"|(?:le|te|les) (?:avisamos|avisaremos|escribimos|confirmamos)|me comunico con (?:usted|ustedes|ud)"
     r"|voy a (?:comentar|platicar|consultar)(?:lo|la)?)\b")
 # "Estoy pendiente de mi presupuesto" NO es "quedo pendiente": espera algo que le
 # debemos (Finca Emiliano, 2026-10-27: el turno callaba).
@@ -191,8 +191,13 @@ SIGUE_PIDIENDO = re.compile(r"\?|\b(?:quiero|necesito|cuanto|cotiza\w*|ahora|pre
                             r"estimado|podria|podrias|me (?:puede|pueden|puedes|manda|mandas|pasa|pasas|envia|envias)|"
                             # Revisión adversarial de la corrida GM: "...y le aviso pero mándeme la ubicación".
                             r"mande\w*|mand[ae](?:me|nos)|manden\w*|pasa(?:me|nos)|pase(?:me|nos)|envia(?:me|nos)|"
-                            r"envie(?:me|nos)|enviame|ubicacion|(?<!por su )(?<!por mi )cuenta|anticipo|(?<!no )(?:me|nos) interesa|nos gustaria|"
-                            r"quisiera\w*|libre|reservar|apartar|informes)\b")
+                            r"envie(?:me|nos)|enviame|me confirma\w*|ubicacion|(?<!en )(?<!por su )(?<!por mi )cuenta|"
+                            # Segunda revisión: la intención en condicional ("si nos interesa le aviso",
+                            # "cuando queramos reservar") no pide; lo que pide es el verbo o el "para".
+                            r"(?<!si )(?<!no )(?:me|nos) interesa (?:la|el|su|saber|ver|conocer|apartar|reservar)|"
+                            r"nos gustaria (?:ver|conocer|saber|visitar|ir|apartar|reservar)|"
+                            r"quisiera (?:saber|ver|preguntar|apartar|reservar|conocer|informacion)|"
+                            r"(?:tienen|teniendo|tendran|hay) (?:libre|disponible)|para (?:apartar|reservar)|informes)\b")
 PROMESA = re.compile(
     r"\b(?:ma[nñ]ana|al rato|luego|ahorita|hoy|en un momento)\b[^.]{0,40}"
     r"\b(?:le mando|le env[ií]o|te mando|te env[ií]o|se lo mando|le paso|paso|los mando)\b"
@@ -230,7 +235,8 @@ CLAUSULA_SIN_PEDIDO = re.compile(
     r"(?:lo que (?:se ofrezca|necesite|ocupe)|cualquier (?:cosa|duda))(?: (?:me|nos) (?:avisa|avisas|dice|dices|escribe))?|"
     r"a (?:ti|usted|ustedes)|para servirle|(?:con )?mucho gusto|"
     r"(?:entonces )?ya (?:esta|quedo) (?:aclarado|claro)|porfa|por favor|confirmo|confirmado|"
-    r"voy a esperar(?: \w+){0,8}|"
+    r"voy a esperar(?! (?:la|las|los|el|su|sus|tu|tus) (?:ubicacion|fotos?|respuesta|informacion|cotizacion|precio|"
+    r"cuenta|datos|lista))(?: \w+){0,8}|"
     # Corrida GM, 2026-10-29 (pendientes etiquetados a ciegas):
     r"(?:linda|lindo|bonita|bonito|feliz) (?:tard\w*|dia|noche|fin)(?: de semana)?(?: \w{1,2})?|"
     r"gracias (?:de|por) todas (?:maneras|formas)|de todas (?:maneras|formas)(?: gracias)?|"
@@ -268,9 +274,9 @@ def _clausulas(texto: str) -> list[str]:
 
 def _sin_pedido(clausulas: list[str]) -> bool:
     for c in clausulas:
-        if ACUSE.match(c) or (CLAUSULA_SIN_PEDIDO.match(c) and (len(c.split()) <= 5 or not SIGUE_PIDIENDO.search(c))):
+        if ACUSE.match(c) or (CLAUSULA_SIN_PEDIDO.match(c) and not SIGUE_PIDIENDO.search(c)):
             continue
-        if PROMESA.search(c) and not re.search(r"\b(?:cuanto|precio|costo)\b", c):
+        if PROMESA.search(c) and not re.search(r"\b(?:cuanto|precio|costo)\b", c) and not SIGUE_PIDIENDO.search(c):
             continue
         if LA_PELOTA_ES_SUYA.search(c) and len(c.split()) <= 8 and not SIGUE_PIDIENDO.search(c):
             continue

@@ -69,8 +69,10 @@ _PROMETE = re.compile(
     r"(?:cotizacion|presupuesto|propuesta|precios?|lista|ubicacion|informacion|fotos?)\b")
 
 
-_MANDA_ALGO = re.compile(r"\b(?:le|te|les|se (?:la|lo|las|los)) (?:envio|mando|paso|comparto)\b")
-_ADJUNTOS_QUE_CUMPLEN = frozenset({"image", "imagen", "video", "document", "documento", "location", "ubicacion"})
+_MANDA_ALGO = re.compile(r"\b(?:le|te|les|se (?:la|lo|las|los)) (?:envio|mando|paso|comparto|hago|preparo|armo)\b")
+#: Las tarifas de Finca Emiliano viajan en imagen o PDF: un adjunto cumple "le hago una cotización".
+_ADJUNTOS_QUE_CUMPLEN = frozenset({"image", "imagen", "video", "document", "documento", "location", "ubicacion",
+                                   "contacts", "contacto"})
 
 
 def _promesa_pendiente(tanda: list[Mensaje], de_ronda: frozenset[str] = frozenset()) -> Mensaje | None:

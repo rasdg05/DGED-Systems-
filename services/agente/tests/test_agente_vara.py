@@ -301,8 +301,11 @@ def test_backtest_la_alarma_no_se_cierra_sola_cuando_la_ventana_se_corre(tmp_pat
     tercero = backtest.correr_si_toca(espacio)
     assert tercero["alarma"] == "regresion" and backtest.leer(espacio)["referencia"] == referencia
     assert backtest.leer(espacio)["historial"][-1]["regresion"]
+    from agente import paginas
+    assert "regresión</span>" in paginas._backtest_html(espacio)
     backtest.aceptar(espacio, "Mariana")
     assert backtest.leer(espacio)["alarma"] is None
+    assert "sin regresión</span>" in paginas._backtest_html(espacio)   # la página ya no dice regresión
 
 
 def test_backtest_lo_que_se_va_al_modelo_tampoco_avanza_la_referencia_solo():

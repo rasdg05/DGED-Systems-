@@ -155,3 +155,16 @@
   comando (lotes sin teléfonos ni la lectura del clasificador, kappa, oro, precisión de `espera`).
   Reproduce la medición a mano (kappa 0.947, clasificador 96.2%). La prueba **fuera de muestra** del
   clasificador es correrlo con los pendientes de otro día.
+- **B11 · segunda revisión adversarial** (sobre los arreglos de B7). **Confirmó que el arreglo se pasó de
+  la raya**: 19 aplazamientos y cierres comunes se leían como "espera" (*"Le escribimos después"*, *"Lo
+  tendré en cuenta, gracias"*, *"Si nos interesa le aviso"*, *"Ok le aviso cuando tenga el anticipo"*) y
+  ponían falsos calientes en rojo; y 8 pedidos se seguían callando (*"Aun no sabemos mandame precios"*,
+  *"Mañana le mando el anticipo y me pasa la ubicación"*, *"Voy a esperar la ubicación"*). Corpus (`adv2`,
+  37 casos) antes del arreglo: las intenciones solo cuentan como pedido sin condicional (*"si nos
+  interesa"*, *"cuando queramos reservar"* no piden; *"para apartar"*, *"nos gustaría ver"* sí), *"en
+  cuenta"* no es "la cuenta", "le escribimos/confirmamos" vuelven a aplazar (el pedido lo caza
+  `SIGUE_PIDIENDO`), la promesa y la cláusula larga miran `SIGUE_PIDIENDO`. Una cotización en foto o PDF
+  cumple *"le hago una cotización"*; *"sábado y entregamos la quinta el domingo"* y variantes son una
+  noche; *"la casa de 3 recámaras y cuánto por 1 cuarto"* sigue siendo por cuarto; tras `aceptar` la
+  página del taller ya no dice "regresión". Re-medido: oro **96.6%** (precisión de `espera` 94.5%),
+  banco 1.0, vara sin cambio, 507 tests.
