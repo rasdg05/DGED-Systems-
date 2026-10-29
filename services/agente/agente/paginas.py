@@ -1166,9 +1166,12 @@ def _backtest_html(espacio: Espacio) -> str:
     if not b.get("n"):
         return ""
     m, c = b.get("metricas") or {}, b.get("contra_el_anterior") or {}
-    regresion, ref = c.get("regresion"), b.get("referencia") or {}
+    regresion, ref = c.get("regresion") or b.get("alarma") == "regresion", b.get("referencia") or {}
     sin_medir = (f' {c.get("pasaron_al_modelo")} momentos que antes iban a una persona hoy irían al modelo: '
                  'no están medidos (la vara no llama a nada).') if c.get("sin_medir") else ""
+    if b.get("alarma"):
+        sin_medir += (" La alarma sigue abierta hasta que una persona acepte este backtest"
+                      " (POST /backtest?aceptar=1).")
     return (f'<h2 class="sec">Backtest</h2><div class="bloque"><span class="estado {"bad" if regresion else "ok"}">'
             f'{"regresión" if regresion else "sin regresión"}</span><p class="lede" style="margin:8px 0 0">'
             f'El agente del commit {esc(b.get("commit") or "?")} contra los momentos del {esc(b.get("desde", ""))} '

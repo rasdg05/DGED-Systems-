@@ -12,6 +12,7 @@
     python -m agente.local canal finca-quinta vinculado sin_cifra                  # enciende el envío (D-037)
     python -m agente.local servidor finca-quinta       # el panel en local, con la copia
     python -m agente.local desenlace finca-quinta      # qué pasó con cada ronda enviada
+    python -m agente.local tiempos finca-quinta        # el tiempo al número por semana
 
 **La copia local nunca llama a la API**: `bajar` deja `tope_usd_mes` en 0 y el
 espacio en sombra; `gasto.exigir_saldo` corta antes de cualquier llamada. Lo
@@ -127,7 +128,7 @@ def _leer(ruta: str) -> dict:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="python -m agente.local", description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="orden", required=True)
-    for nombre in ("bajar", "pendientes", "servidor", "desenlace"):
+    for nombre in ("bajar", "pendientes", "servidor", "desenlace", "tiempos"):
         sub.add_parser(nombre).add_argument("cliente_id")
     sub.choices["pendientes"].add_argument("--por-lote", type=int, default=10)
     sub.choices["pendientes"].add_argument("--dias", type=int, default=None)
@@ -185,6 +186,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import desenlace
         for fila in desenlace.de_rondas(_espacio(a.cliente_id)):
             print(desenlace.linea(fila) + ("" if fila["concluye"] else " (n < 30, no concluye)"))
+    elif a.orden == "tiempos":  # el tiempo al número por semana (corrida GM, 2026-10-29)
+        from . import mesa, tiempos
+        espacio = _espacio(a.cliente_id)
+        print(json.dumps(tiempos.al_numero(mesa.clientes(espacio, historial.hilos(espacio))), ensure_ascii=False, indent=1))
     elif a.orden == "servidor":
         print(f'AGENTE_DATOS={RAIZ_LOCAL} ANTHROPIC_API_KEY= uvicorn agente.app:app --port 8090\n'
               f"→ http://localhost:8090/espacios/{a.cliente_id}?llave=$TENANT_INTERNAL_TOKEN")

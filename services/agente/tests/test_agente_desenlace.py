@@ -42,6 +42,7 @@ def test_desenlace_cuenta_lo_que_paso_despues_del_envio(espacio):
     assert fila["atendidos"] == 1 and fila["con_cifra"] == 1 and fila["horas_a_persona"]["mediana"] == 2.0
     assert not fila["concluye"]                                            # n < 30
     assert "esperan respuesta 1" in desenlace.linea(fila) and "5210" not in desenlace.linea(fila)
+    assert desenlace.linea(dict(fila, contestaron=0)).endswith("5 enviados, nadie ha contestado todavía.")
 
 
 def test_desenlace_no_cuenta_lo_que_no_salio_ni_lo_que_no_es_ronda(espacio):
@@ -65,3 +66,9 @@ def test_el_reporte_de_la_mesa_dice_que_paso_con_la_ronda(espacio):
     texto = mesa.reporte(espacio)
     assert "Ronda 2026-10-27-seguimiento: contestaron 1 de 1" in texto
     assert texto.index("Contestaron al seguimiento") < texto.index("Lo más urgente")
+
+
+def test_el_reporte_dice_el_texto_del_cliente_en_una_linea():
+    assert mesa._dicho("Es en marzo el 26 al 28\nPara 120 personas") == "Es en marzo el 26 al 28 / Para 120 personas"
+    assert mesa._dicho("") == "(foto o audio)" and mesa._dicho(None) == "(foto o audio)"
+    assert mesa._dicho("x" * 80).endswith("…")

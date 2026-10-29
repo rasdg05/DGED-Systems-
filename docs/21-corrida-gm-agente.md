@@ -122,3 +122,27 @@
   reales y 0 de las demás (los 4 falsos positivos del primer intento —"¿siguen interesados en sus
   fechas?", pedir otra fecha tras "ya tenemos reservado"— entraron al corpus). La instrucción del
   enjambre lo dice también.
+- **B10 · tiempo al número** · `agente/tiempos.py` (Gestor corrida 7), en la CLI (`tiempos`), en
+  `GET /tiempos.json` y una línea del reporte. Historial completo: 213 pedidos de precio; **131 con cifra
+  escrita** (mediana 0.21 h, p90 14.6 h, 57.3% en 24 h), 22 con una imagen después (la tarifa pudo ir en
+  la foto: no se sabe), **58 nunca recibieron precio (27%)**, 2 abiertos.
+- **B7 · revisión adversarial** (un agente buscó cómo rompían esta corrida las invariantes). **Confirmó
+  errores míos** y entraron al corpus antes del arreglo (`test_adv_*`, 24 casos):
+  1. lecturas nuevas que callaban a quien sí pedía: *"Les escribimos para apartar la quinta"*, *"Voy a
+     platicarlo (...) y le aviso pero mándeme la ubicación"*, *"Me falta confirmar pásame la cuenta"*,
+     *"A ver si todavía está disponible"* (12) y cierres que no lo eran: *"Ya tengo reservación con
+     ustedes, mándeme la ubicación"*, *"Tuvimos que cancelar la otra quinta, me interesa la de ustedes"*
+     (5). Arreglo: `SIGUE_PIDIENDO` con los verbos de pedir, las colas largas de cláusula no se tragan un
+     pedido, el aplazamiento fuerte solo si nada pide, fuera "les escribimos/le confirmamos/me comunico".
+  2. una reacción o una foto "cumplían" un *"déjeme revisar y le confirmo"* (y lo mandaban a ronda): ahora
+     solo un adjunto cumple un "le envío…", y una cifra cumple cualquiera.
+  3. **la referencia del backtest avanzaba sola** (al correrse la ventana o con todo al modelo): la alarma
+     es pegajosa (`alarma`: regresión o sin medir) y solo la cierra una comparación que concluye o
+     `aceptar`.
+  4. "del sábado al lunes porque el domingo es la fiesta" era una noche; "la casa de 4 habitaciones" era
+     precio por cuarto; el caso del banco "Son 3 años" no detectaba nada (se quitó; lo cuida un test).
+  5. dudosos atendidos: las respuestas a la ronda en ámbar también encabezan "Lo más urgente";
+     `desenlace` no cuenta la bienvenida como "atendido"; **clasificador `finca-2`** (es_acuse cambió).
+  Re-medido: oro 96.2% (un caso más va a "espera"), prueba de propiedad contra `0fffaad`: 16 ráfagas
+  cambian, todas revisadas; banco con el perfil real 1.0, 0 caros. Sin hallazgo: ningún camino nuevo deja
+  salir una cifra sin el sí; `/rondas.json` y `/tiempos.json` solo con la maestra.

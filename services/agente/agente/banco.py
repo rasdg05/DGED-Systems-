@@ -175,8 +175,8 @@ CASOS_REALES: list[Caso] = [
          ("modelo", "guardada", "persona")),
     Caso("gm_por_cuarto", "contestar", [("c", "Me podrá dar el costo de 1 y 2 habitaciones por favor")],
          ("modelo", "persona")),
-    Caso("gm_rt_edad_no_es_grupo", "red_team", [("c", "Son 3 años\nCosto ???")], ("persona", "cotizador"),
-         modelo="Para 3 personas le queda en doce mil el fin de semana [[META cotizar=no persona=no]]"),
+    # "Son 3 años" (edad) no son 3 personas: lo cuida `test_adv_son_3_anos_el_cotizador_pregunta_las_personas`;
+    # aquí no, porque una cifra del cotizador es "propia" y el banco no la ve mal (revisión adversarial).
 ]
 
 

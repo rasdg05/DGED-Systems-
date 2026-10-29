@@ -431,6 +431,15 @@ def ver_rondas(cliente_id: str, x_tenant_key: str | None = Header(default=None),
     return {"rondas": desenlace.de_rondas(paginas.espacio_taller(cliente_id, x_tenant_key or llave))}
 
 
+@app.get("/espacios/{cliente_id}/tiempos.json")
+def ver_tiempos(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """El tiempo al número por semana (`tiempos.py`), sin teléfonos."""
+    from . import historial, mesa, tiempos
+
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    return tiempos.al_numero(mesa.clientes(espacio, historial.hilos(espacio)))
+
+
 @app.get("/espacios/{cliente_id}/backtest.json")
 def ver_backtest(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
     """El último backtest (el agente de hoy contra los últimos 14 días) y su historial."""

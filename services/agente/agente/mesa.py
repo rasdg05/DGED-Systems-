@@ -96,6 +96,12 @@ def _rondas_cargadas(espacio: Espacio) -> list[dict]:
     return sorted((r for r in rondas_ if r.get("nombre")), key=lambda r: r.get("cargada", ""))
 
 
+def _dicho(texto: str | None) -> str:
+    """Lo que dijo el cliente en una línea de WhatsApp: sin saltos, y el medio dicho como medio."""
+    t = " / ".join(r.strip() for r in (texto or "").splitlines() if r.strip())
+    return (t[:60] + ("…" if len(t) > 60 else "")) if t else "(foto o audio)"
+
+
 def reporte(espacio: Espacio) -> str:
     from . import agente, calendario, enviador, historial, operacion, semaforo
 
@@ -114,18 +120,20 @@ def reporte(espacio: Espacio) -> str:
         lineas.append(f"No salieron hoy: {len(no_salieron)} (el cliente escribió antes, fecha apartada o envío en pausa).")
     if not calendario.Ocupacion.de(espacio).configurada:
         lineas.append("Calendario: sin conectar. Las rondas no ofrecen fechas hasta que se conecte.")
-    from . import desenlace
+    from . import desenlace, tiempos
+    if (al_numero := tiempos.linea(tiempos.al_numero(hilos, semanas=1))):
+        lineas.append(al_numero)
     semana = datetime.now(timezone.utc).timestamp() - 7 * 86400
     lineas += [desenlace.linea(r) for r in desenlace.de_rondas(espacio, hilos)[:2] if (r["desde"] or 0) >= semana]
     calientes = [f for f in filas if f.estado == "contesto_ronda" and f.color in ("rojo", "ambar")]
     if calientes:
         lineas.append(f"Contestaron al seguimiento y esperan respuesta: {len(calientes)}. Van primero.")
-    urgentes = [f for f in filas if f.estado == "contesto_ronda" and f.color in ("rojo", "ambar")
-                or f.color == "rojo" and f.estado in ("nos_toca", "sin_atender", "promesa")][:5]
+    # Las respuestas a la ronda primero aunque sean ámbar (< 2 h): son las más calientes.
+    urgentes = (calientes + [f for f in filas if f.color == "rojo" and f.estado in ("nos_toca", "sin_atender", "promesa")])[:5]
     if urgentes:
         lineas.append("Lo más urgente:")
         lineas += [f"· …{f.hilo[-4:]} {semaforo.ETIQUETA[f.estado].lower()}, {operacion._horas_txt(f.horas)}: "
-                   f"{(f.dicho or '')[:60]}" for f in urgentes]
+                   f"{_dicho(f.dicho)}" for f in urgentes]
     if por_aprobar:
         ultima = next((r for r in reversed(_rondas_cargadas(espacio))), None)
         if ultima:
@@ -141,7 +149,7 @@ def _pendientes(espacio: Espacio) -> str:
     if not filas:
         return "No hay pendientes urgentes."
     return "Pendientes, el más urgente primero:\n" + "\n".join(
-        f"· …{f.hilo[-4:]} {semaforo.ETIQUETA[f.estado].lower()}, {operacion._horas_txt(f.horas)}: {(f.dicho or '')[:60]}"
+        f"· …{f.hilo[-4:]} {semaforo.ETIQUETA[f.estado].lower()}, {operacion._horas_txt(f.horas)}: {_dicho(f.dicho)}"
         for f in filas[:12]) + (f"\n…y {len(filas) - 12} más en la app." if len(filas) > 12 else "")
 
 

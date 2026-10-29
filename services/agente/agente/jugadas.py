@@ -50,7 +50,11 @@ from .historial import Mensaje
 
 #: Cambia cuando cambia lo que una jugada significa: intentos con otro
 #: clasificador no se comparan (ni DSR ni PBO).
-CLASIFICADOR_VERSION = "finca-1"
+#: finca-2 (2026-10-29, corrida GM): `es_acuse` lee "entiendo", "le agradezco mucho", "qué
+#: lástima" y los aplazamientos nuevos, así que esas frases del negocio pasan de `otra` a
+#: `acuse`. Los intentos c1-* del universo 8c8c8b3f se midieron ya con estas lecturas
+#: (las de B3) bajo el nombre finca-1: no se comparan con los de finca-2.
+CLASIFICADOR_VERSION = "finca-2"
 
 USOS_DE_PLANTILLA = 20
 PALABRAS_DE_PLANTILLA = 4

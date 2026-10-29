@@ -158,13 +158,18 @@ _POR_CUARTO = re.compile(
 
 def pide_por_cuarto(texto: str | None) -> bool:
     t = normalizar(texto or "")
-    return bool(_POR_CUARTO.search(t)) and not re.search(r"\btoda la (?:finca|quinta|casa)\b|\bo toda\b", t)
+    return bool(_POR_CUARTO.search(t)) and not re.search(
+        r"\btoda la (?:finca|quinta|casa)\b|\bo toda\b"
+        r"|\b(?:la |el )?(?:finca|quinta|casa|lugar)\s+(?:de|con)\s+(?:\d|una|dos|tres|cuatro|cinco|seis)\s+"
+        r"(?:habitaciones|cuartos|recamaras)\b", t)
 
 
 _UNA_NOCHE = re.compile(r"\b(?:solo |nada mas |unicamente )?(?:1|una) noche\b"
                         # "Sábado y entregar la casa el domingo" (corrida GM, 2026-10-29): sin viernes, una noche.
-                        r"|^(?!.*\bviernes\b).*\bsabado\b.{0,40}\b(?:entreg\w*|salir|salimos|nos vamos|me voy|al|hasta el)\b"
-                        r".{0,25}\bdomingo\b")
+                        # Sin viernes ni lunes, y el domingo justo después de la salida.
+                        r"|^(?!.*\b(?:viernes|lunes)\b).*\bsabado\b.{0,40}"
+                        r"\b(?:entreg\w*(?: la casa)?(?: el)?|salir(?: el)?|salimos(?: el)?|nos vamos(?: el)?|"
+                        r"me voy(?: el)?|al|hasta el)\s+domingo\b")
 _FIN_O_DOS = re.compile(r"\b(?:2|dos) noches\b|\bfin de semana\b|\bviernes a domingo\b|\bdel viernes al domingo\b")
 _PREGUNTA_UNA = re.compile(r"\b(?:solo |nada mas )?(?:1|una) noche\s*\?|\b(?:solo |nada mas )?(?:1|una) noche$")
 _SI = re.compile(r"^(?:si+|asi es|correcto|exacto|claro|aja|sip)\b")

@@ -56,12 +56,14 @@ def de_rondas(espacio: Espacio, hilos: dict | None = None) -> list[dict]:
         if s.via == "ronda" and s.aprobada_por and s.texto:
             por_ronda[nombre_de_ronda(s.motivo)].append(s)
     filas = []
+    fijas = jugadas.plantillas(hilos)
     for nombre, salidas in por_ronda.items():
         c = defaultdict(int)
         horas: list[float] = []
         primero = None
         for s in salidas:
             ms = hilos.get(s.hilo, [])
+            auto = jugadas.automaticas(ms, fijas)
             enviado = next((m for m in ms if m.del_negocio and (m.texto or "").strip() == s.texto.strip()), None)
             if enviado is None:
                 continue
@@ -74,7 +76,8 @@ def de_rondas(espacio: Espacio, hilos: dict | None = None) -> list[dict]:
             r = del_cliente[0]
             c["contestaron"] += 1
             c["en_24h"] += r.ts - enviado.ts <= 86400
-            negocio = [m for m in despues if m.del_negocio and m.ts >= r.ts]
+            # La bienvenida o un mensaje de ausencia no es "una persona contestó" (revisión adversarial).
+            negocio = [m for m in despues if m.del_negocio and m.ts >= r.ts and m.id not in auto]
             if negocio:   # lo primero que contestó, antes de que el negocio volviera a escribir
                 k = despues.index(r)
                 seguidos = []
@@ -113,6 +116,8 @@ def de_rondas(espacio: Espacio, hilos: dict | None = None) -> list[dict]:
 
 def linea(fila: dict) -> str:
     """Para el reporte de la mesa, sin teléfonos."""
+    if not fila["contestaron"]:
+        return f"Ronda {fila['ronda']}: {fila['enviados']} enviados, nadie ha contestado todavía."
     txt = (f"Ronda {fila['ronda']}: contestaron {fila['contestaron']} de {fila['enviados']}"
            f" (cerraron {fila['cerraron']}, sin pedir nada {fila['no_piden']}), esperan respuesta {fila['esperan_respuesta']}")
     if fila["horas_a_persona"]["n"]:

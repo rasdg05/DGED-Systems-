@@ -124,16 +124,31 @@ def correr(espacio: Espacio, motivo: str = "a mano") -> dict:
     informe, hoy = backtest(espacio)
     informe.update(fecha=datetime.now(timezone.utc).isoformat(timespec="seconds"), commit=commit(), motivo=motivo)
     estado = leer(espacio)
-    regresion = (informe.get("contra_el_anterior") or {}).get("regresion", False)
-    if not regresion:  # la referencia solo avanza sin regresión (o con `aceptar`)
+    c = informe.get("contra_el_anterior") or {}
+    concluye = bool(c) and (c.get("sin_modelo") or {}).get("n", 0) >= N_MINIMA
+    # La alarma es pegajosa (revisión adversarial de la corrida GM): una regresión, o un agente
+    # que manda al modelo lo que antes no (sin medir), solo la cierra una comparación que
+    # concluye sin regresión o una persona con `aceptar`. Si la ventana ya no se encima con la
+    # referencia, o quedan < 30 momentos medidos, NO cuenta como "sin regresión".
+    alarma = estado.get("alarma")
+    if c.get("regresion"):
+        alarma = "regresion"
+    elif c.get("sin_medir"):
+        alarma = alarma or "sin_medir"
+    elif concluye:
+        alarma = None
+    estado["alarma"] = alarma
+    regresion = alarma == "regresion"
+    if not estado.get("referencia") or (alarma is None and (concluye or not c or not c.get("n"))):
         espacio.escribir_json(PREDICCIONES, hoy)
-        estado["referencia"] = {k: informe.get(k) for k in ("fecha", "commit", "agente")} | {"por": "sin regresión"}
-    informe["referencia"] = estado.get("referencia")
+        estado["referencia"] = {k: informe.get(k) for k in ("fecha", "commit", "agente")} | {
+            "por": "sin regresión" if concluye else "sin comparar (la ventana ya no se encima o n < 30)"}
+    informe["referencia"], informe["alarma"] = estado.get("referencia"), alarma
     estado["ultimo"] = informe
     estado["historial"] = (estado.get("historial", []) + [{
         k: informe.get(k) for k in ("fecha", "commit", "motivo", "n", "agente")} | {
         "puntaje": (informe.get("metricas") or {}).get("puntaje"), "regresion": regresion,
-        "sin_medir": (informe.get("contra_el_anterior") or {}).get("sin_medir", False)}])[-30:]
+        "sin_medir": c.get("sin_medir", False), "alarma": alarma}])[-30:]
     espacio.escribir_json(ESTADO, estado)
     espacio.escribir_json(ULTIMAS, hoy)
     return informe
@@ -149,6 +164,8 @@ def aceptar(espacio: Espacio, quien: str = "") -> dict:
     if not ultimas or not ultimo:
         raise ValueError("no hay backtest que aceptar")
     espacio.escribir_json(PREDICCIONES, ultimas)
+    estado["alarma"] = None
+    ultimo["alarma"] = None
     estado["referencia"] = {k: ultimo.get(k) for k in ("fecha", "commit", "agente")} | {
         "por": f"aceptado{(' por ' + quien) if quien else ''}",
         "aceptado": datetime.now(timezone.utc).isoformat(timespec="seconds")}

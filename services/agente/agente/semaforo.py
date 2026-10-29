@@ -69,6 +69,10 @@ _PROMETE = re.compile(
     r"(?:cotizacion|presupuesto|propuesta|precios?|lista|ubicacion|informacion|fotos?)\b")
 
 
+_MANDA_ALGO = re.compile(r"\b(?:le|te|les|se (?:la|lo|las|los)) (?:envio|mando|paso|comparto)\b")
+_ADJUNTOS_QUE_CUMPLEN = frozenset({"image", "imagen", "video", "document", "documento", "location", "ubicacion"})
+
+
 def _promesa_pendiente(tanda: list[Mensaje], de_ronda: frozenset[str] = frozenset()) -> Mensaje | None:
     """El mensaje de la casa que prometió algo y no se cumplió en la misma tanda: ni un
     adjunto ni una cifra después (*"Le envío la ubicación"* + el pin sí se cumplió).
@@ -78,7 +82,13 @@ def _promesa_pendiente(tanda: list[Mensaje], de_ronda: frozenset[str] = frozense
         if m.id in de_ronda or not m.texto or not _PROMETE.search(conversacion.normalizar(m.texto)):
             continue
         despues = tanda[i + 1:]
-        if any(x.tipo != "text" or not x.texto or jugadas.es_monto(x.texto) for x in despues):
+        if any(x.texto and jugadas.es_monto(x.texto) for x in despues):
+            return None  # la cifra cumple cualquier promesa
+        # Mandar algo (la ubicación, fotos, la lista) se cumple con un adjunto; "déjeme revisar y le
+        # confirmo" no se cumple con una foto, y una reacción o un aviso de edición no cumplen nada
+        # (revisión adversarial de la corrida GM, 2026-10-29).
+        if _MANDA_ALGO.search(conversacion.normalizar(m.texto)) and any(
+                x.tipo in _ADJUNTOS_QUE_CUMPLEN for x in despues):
             return None
         return m
     return None

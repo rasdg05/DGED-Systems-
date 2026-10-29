@@ -157,9 +157,9 @@ CIERRE = re.compile(
     r"|^(?:esta|estas|se)\s+equivocad[oa]\b|\bnumero\s+equivocado\b"
     # Corrida GM, 2026-10-29 (respuestas a la ronda): "ya tenemos opción", "ya tengo
     # un lugar tratado", "será próxima vez, ahora no", "tuve que cancelar".
-    r"|\bya\s+(?:tenemos|tengo)\s+(?:otra\s+|una\s+|un\s+)?(?:opcion|lugar|reservacion)\b"
+    r"|\bya\s+(?:tenemos|tengo)\s+(?:otra\s+|una\s+|un\s+)?(?:opcion|lugar|reservacion)\b(?!\s+con\s+(?:ustedes|usted|uds))"
     r"|\b(?:sera|seria)\s+(?:la\s+)?proxima\s+vez\b|\bahora\s+no[\s,.!]*$"
-    r"|\b(?:tuve|tuvimos)\s+que\s+cancelar\b|\bya\s+tienen\s+(?:una\s+)?reservacion\b")
+    r"|\b(?:tuve|tuvimos)\s+que\s+cancelar\b(?!\s+(?:el|la|los|las)\s+otr)")
 LA_PELOTA_ES_SUYA = re.compile(
     r"\b(?:lo pienso|lo voy a pensar|(?:te|le|les) aviso|(?:te|le) confirmo|"
     r"quedo (?:al )?pendiente|estoy (?:al )?pendiente|"
@@ -183,12 +183,16 @@ LA_PELOTA_ES_SUYA = re.compile(
     r"|(?:le|les) (?:comento|pregunto|paso los datos) a mi (?:familia|esposo|esposa|marido|novio|novia|jefe|jefa)"
     r"|espero tener(?:le|te)? (?:la|una) (?:confirmacion|respuesta)"
     # Corrida GM, 2026-10-29.
-    r"|(?:le|te|les) (?:avisamos|avisaremos|escribimos|confirmamos)|me comunico con (?:usted|ustedes|ud)"
+    r"|(?:le|te|les) (?:avisamos|avisaremos)"
     r"|voy a (?:comentar|platicar|consultar)(?:lo|la)?)\b")
 # "Estoy pendiente de mi presupuesto" NO es "quedo pendiente": espera algo que le
 # debemos (Finca Emiliano, 2026-10-27: el turno callaba).
-SIGUE_PIDIENDO = re.compile(r"\?|\b(?:quiero|necesito|cuanto|cotiza\w*|ahora|precio|disponib\w*|presupuesto|estimado|"
-                            r"podria|podrias|me (?:puede|pueden|puedes|manda|mandas|pasa|pasas|envia|envias))\b")
+SIGUE_PIDIENDO = re.compile(r"\?|\b(?:quiero|necesito|cuanto|cotiza\w*|ahora|precio|precios|disponib\w*|presupuesto|"
+                            r"estimado|podria|podrias|me (?:puede|pueden|puedes|manda|mandas|pasa|pasas|envia|envias)|"
+                            # Revisión adversarial de la corrida GM: "...y le aviso pero mándeme la ubicación".
+                            r"mande\w*|mand[ae](?:me|nos)|manden\w*|pasa(?:me|nos)|pase(?:me|nos)|envia(?:me|nos)|"
+                            r"envie(?:me|nos)|enviame|ubicacion|(?<!por su )(?<!por mi )cuenta|anticipo|(?<!no )(?:me|nos) interesa|nos gustaria|"
+                            r"quisiera\w*|libre|reservar|apartar|informes)\b")
 PROMESA = re.compile(
     r"\b(?:ma[nñ]ana|al rato|luego|ahorita|hoy|en un momento)\b[^.]{0,40}"
     r"\b(?:le mando|le env[ií]o|te mando|te env[ií]o|se lo mando|le paso|paso|los mando)\b"
@@ -233,7 +237,6 @@ CLAUSULA_SIN_PEDIDO = re.compile(
     r"(?:nunca|no) me fije(?: en eso)?|gracias por estar (?:al )?pendientes?|"
     r"(?:solo )?(?:nos|me) falta(?:n)? (?:por )?(?:definir|confirmar|decidir)(?: \w+){0,4}|"
     r"(?:aun|todavia) no (?:sabemos|se|decidimos|decido)(?: \w+){0,6}|"
-    r"a ver si (?:aun|todavia) (?:esta|estan|hay|tienen) (?:disponible|libre|lugar)|"
     r"ok\w*|oka+y|okey|oki|va|vale|sale|bueno|perfecto|excelente|ah|ya|claro|listo|"
     r"entendido|enterado|de acuerdo|esta bien|muy bien|bien|gracias|gracis|si|pues|correcto|hola"
     r")(?:\s+(?:muchas gracias|mil gracias|gracias|grax|muchas grax|saludos|porfa|por favor))*$")
@@ -265,7 +268,7 @@ def _clausulas(texto: str) -> list[str]:
 
 def _sin_pedido(clausulas: list[str]) -> bool:
     for c in clausulas:
-        if ACUSE.match(c) or CLAUSULA_SIN_PEDIDO.match(c):
+        if ACUSE.match(c) or (CLAUSULA_SIN_PEDIDO.match(c) and (len(c.split()) <= 5 or not SIGUE_PIDIENDO.search(c))):
             continue
         if PROMESA.search(c) and not re.search(r"\b(?:cuanto|precio|costo)\b", c):
             continue
@@ -287,7 +290,11 @@ def nada_que_contestar(texto: str, con_si: bool = True) -> bool:
         return True  # 👍, 🙏 solos: un acuse
     if not con_si and _EMPIEZA_CON_SI.match(_solo_letras(crudo)):
         return False
-    if APLAZA_FUERTE.search(_solo_letras(crudo)):
+    letras = _solo_letras(crudo)
+    # "a ver si aún está disponible" dentro de un aplazamiento es condicional, no un pedido.
+    sin_condicional = re.sub(r"\ba ver si (?:aun|todavia) (?:esta|estan|hay|tienen) (?:disponible|libre|lugar)\b", "",
+                             letras)
+    if APLAZA_FUERTE.search(letras) and not SIGUE_PIDIENDO.search(sin_condicional):
         return True
     clausulas = _clausulas(crudo)
     if not clausulas or all(_SOLO_SALUDO.match(c) for c in clausulas):

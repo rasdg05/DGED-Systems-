@@ -173,7 +173,7 @@ def test_pag_marca_se_guarda_aparte(http, espacio):
     assert http.post(base, params=LLAVE, json={"color": "#ABCDEF"}).json() == {"marca_color": "#abcdef"}
 
 
-@pytest.mark.parametrize("ruta", ["/banco", "/historial.jsonl", "/backtest.json", "/rondas.json"])
+@pytest.mark.parametrize("ruta", ["/banco", "/historial.jsonl", "/backtest.json", "/rondas.json", "/tiempos.json"])
 def test_pag_el_taller_no_existe_para_el_cliente(http, espacio, ruta):
     """Banco, sombra e historial crudo son de DGED: con la llave del cliente, 404, aunque sepa la URL (D-022)."""
     from agente.espacio import llave_de

@@ -281,6 +281,41 @@ def test_backtest_lo_que_pasa_al_modelo_no_cuenta_como_regresion_sino_como_sin_m
     assert not c["regresion"]
 
 
+def test_backtest_la_alarma_no_se_cierra_sola_cuando_la_ventana_se_corre(tmp_path, monkeypatch):
+    """Revisión adversarial: con la regresión marcada, si la ventana de 14 días ya no se encima
+    con la referencia, el backtest siguiente decía "sin regresión" y la referencia avanzaba."""
+    from agente import backtest
+
+    espacio = _universo(tmp_path, hilos=80, dias=10)
+    monkeypatch.setenv("RAILWAY_GIT_COMMIT_SHA", "aaaaaaa1")
+    backtest.correr(espacio)
+    casa = {m["id"]: m["casa"] for m in vara.universo(espacio)[1]}
+    buena = {i: {"bot": casa[i], "via": "guardada", "texto": ""} for i in espacio.leer_json(backtest.PREDICCIONES)}
+    espacio.escribir_json(backtest.PREDICCIONES, buena)
+    monkeypatch.setenv("RAILWAY_GIT_COMMIT_SHA", "bbbbbbb2")
+    assert backtest.correr_si_toca(espacio)["alarma"] == "regresion"
+    # La ventana se corre: ningún momento de la referencia queda en los 14 días.
+    espacio.escribir_json(backtest.PREDICCIONES, {f"otro{i}": v for i, v in enumerate(buena.values())})
+    referencia = backtest.leer(espacio)["referencia"]
+    monkeypatch.setenv("RAILWAY_GIT_COMMIT_SHA", "ccccccc3")
+    tercero = backtest.correr_si_toca(espacio)
+    assert tercero["alarma"] == "regresion" and backtest.leer(espacio)["referencia"] == referencia
+    assert backtest.leer(espacio)["historial"][-1]["regresion"]
+    backtest.aceptar(espacio, "Mariana")
+    assert backtest.leer(espacio)["alarma"] is None
+
+
+def test_backtest_lo_que_se_va_al_modelo_tampoco_avanza_la_referencia_solo():
+    """Un cambio que manda casi todo al modelo deja 0 momentos medidos: no es "sin regresión"."""
+    from agente import backtest
+
+    comunes = [{"id": f"m{i}", "hilo": f"h{i}", "ts": T0 + i, "casa": "cifra", "cliente": "precio?",
+                "bot": "ia", "via": "ia", "texto": ""} for i in range(40)]
+    vara.calificar(comunes)
+    c = backtest.comparar(comunes, {m["id"]: {"bot": "persona", "via": "persona", "texto": ""} for m in comunes})
+    assert c["sin_medir"] and not c["regresion"] and c["sin_modelo"]["n"] == 0
+
+
 def test_backtest_jugar_activo_contra_una_base_que_todo_lo_pasa_no_es_regresion():
     """Medido en Finca Emiliano (2026-10-29, n = 98 sin modelo): con la lista de precios
     el puntaje sube 0.30 → 0.37 y A_pol cae 100 → 60, porque la base "alinea" pasándolo
