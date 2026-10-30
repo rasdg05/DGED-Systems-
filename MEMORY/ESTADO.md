@@ -1,8 +1,14 @@
-# Estado — 2026-10-21
+# Estado — 2026-10-30
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
 ## Corre
+
+- **Plan del ecosistema** (2026-10-30): `docs/16-plan-ecosistema.md` revisa los 18
+  repos de `rasdg05` y el zip `rasdg-field-detector`. Propuesta, sin decisión: mejoras
+  A1–A9 de Atlas, P6 (clima espacial) y P7 (Taller-OS como perfil de Producto 4), y
+  objetivos O1–O13. El detector de campo va al cementerio como producto. Desde esa
+  sesión el proxy dio 403 a NOAA SWPC, INTERMAGNET y USGS: **no concluye**.
 
 - **Presentación del negocio** (2026-10-21): `docs/presentacion/DGED-presentacion.pdf`,
   14 láminas con lo que ya existe y sus precios aprobados. Versión web privada en
@@ -96,6 +102,8 @@
 "No medido" no es "medido y no funcionó".
 
 ## Sigue
+
+Los objetivos con fecha están en `docs/16-plan-ecosistema.md` §5; esta lista es el orden inmediato.
 
 0. **Producto 4** en una sesión nueva: seguir el orden de `docs/15-agente-a-la-medida.md`
    (agregar Gestor-Morelos y fq-bot, medir la coexistencia de Meta antes del conector).

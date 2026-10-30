@@ -90,3 +90,26 @@
   **403** con captcha ("verificar que eres humano"). La portada responde 200 con un
   User-Agent y 403 de Cloudflare con el de curl. La portada no es dato.
 - Revivir si la consulta o una descarga masiva responde sin captcha desde un servidor.
+
+## Ideas — revisión del ecosistema, 2026-10-30 (`docs/16-plan-ecosistema.md`)
+
+### Detector de excitación de campo (`rasdg-field-detector`) como producto de DGED — 2026-10-30
+- Score Ξ que fusiona geomagnetismo, Schumann, radón y sismicidad, con factores de
+  Fibonacci Cuántico v4.1. En simulación, sin hardware.
+- Muere como producto: con ruido puro Ξ₀ ronda 6–8 y la alerta es Ξ ≥ 7 (su propio
+  `docs/04_decisiones.md`); la precisión a 72 h no se compara contra alertas al azar
+  (en el eje neovolcánico casi cualquier alerta "acierta"); φ y el umbral 7/10 son
+  constantes de un bot sin edge demostrado; |Ψ|² es una coherencia clásica de fasores;
+  la predicción de sismos a corto plazo no tiene método validado. La capa de portales y
+  conciencia queda fuera de DGED.
+- Se rescata: la capa de clima espacial (Kp, Teoloyucan) como propuesta P6, por medir;
+  la confirmación entre fuentes para el ojo satelital; la regla "una fuente > 70% del
+  score = revisar el sensor".
+- Revivir solo con hipótesis pre-registrada, n ≥ 30 eventos fuera de muestra y una
+  precisión que gane a alertas al azar con la misma frecuencia.
+
+### SaluChain (`CRM-Whitelabel`) y afiliados de suplementos (`PEOPLES_CHOICE`) bajo la marca DGED — 2026-10-30
+- SaluChain junta datos de salud, software que apoya diagnóstico y un token: tres frentes
+  regulatorios sin socio. Los afiliados de suplementos viven de afirmaciones de salud que
+  no aguantan revisión externa (principio 3 de `VISION.md`).
+- Revivir SaluChain solo con un socio regulatorio y un cliente hospitalario que lo pida.

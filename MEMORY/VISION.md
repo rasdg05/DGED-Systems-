@@ -29,6 +29,11 @@ desde México. El camino empieza por lo que se puede cobrar desde el día uno.
 - Cargas útiles y CubeSats con socios. Después, misiones más allá de la órbita.
 - **No entra al presupuesto** hasta que la fase 1 tenga clientes que paguen.
 
+## Objetivos
+
+Los objetivos con fecha y definición de "terminado", y qué repo alimenta a cada
+producto, viven en `docs/16-plan-ecosistema.md` §5. Se revisan al cerrar cada trimestre.
+
 ## Principios
 
 1. Todo proyecto tiene hitos medibles y una definición de "terminado".

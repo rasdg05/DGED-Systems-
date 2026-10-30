@@ -24,6 +24,7 @@ anterior.
 | `../docs/` | Arquitectura, MVP, fuentes, ontología, precios, riesgos, stack, plan 12 semanas |
 | `../docs/15-agente-a-la-medida.md` | Producto 4 (D-016): especificación y orden de trabajo para la siguiente sesión |
 | `../docs/presentacion/` | Presentación del negocio en PDF |
+| `../docs/16-plan-ecosistema.md` | Qué se toma de cada repo de `rasdg05`, mejoras de Atlas, productos nuevos y objetivos con fecha |
 
 ## Tres reglas de oro
 
