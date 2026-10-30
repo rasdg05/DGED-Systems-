@@ -1,0 +1,557 @@
+{
+ "object": "whatsapp_business_account",
+ "entry": [
+  {
+   "id": "000000000000000",
+   "changes": [
+    {
+     "field": "history",
+     "value": {
+      "messaging_product": "whatsapp",
+      "metadata": {
+       "display_phone_number": "5210000000100",
+       "phone_number_id": "100000000000101"
+      },
+      "history": [
+       {
+        "metadata": {
+         "phase": 1,
+         "chunk_order": 1,
+         "progress": 100
+        },
+        "threads": [
+         {
+          "id": "5210000000101",
+          "messages": [
+           {
+            "from": "5210000000101",
+            "id": "wamid.CLINICA0100",
+            "timestamp": "1788250200",
+            "type": "text",
+            "text": {
+             "body": "Hola buenas tardes, cuánto cuesta la limpieza facial?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0101",
+            "timestamp": "1788250860",
+            "type": "text",
+            "text": {
+             "body": "Buenas tardes, con gusto. La limpieza facial profunda tiene un costo de $850 por sesión e incluye extracción, mascarilla y protector solar."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000101",
+            "id": "wamid.CLINICA0102",
+            "timestamp": "1788251580",
+            "type": "text",
+            "text": {
+             "body": "Y cada cuánto se hace?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0103",
+            "timestamp": "1788252360",
+            "type": "text",
+            "text": {
+             "body": "Se recomienda una vez al mes. Si gusta llevar 4 sesiones, el paquete queda en $3,000."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000101",
+            "id": "wamid.CLINICA0104",
+            "timestamp": "1788253200",
+            "type": "text",
+            "text": {
+             "body": "Ok lo pienso, gracias"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000102",
+          "messages": [
+           {
+            "from": "5210000000102",
+            "id": "wamid.CLINICA0200",
+            "timestamp": "1788340200",
+            "type": "text",
+            "text": {
+             "body": "Hola! Precio del botox?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0201",
+            "timestamp": "1788340860",
+            "type": "text",
+            "text": {
+             "body": "Hola, buen día. El Botox tiene un costo de $3,500 por zona (frente, entrecejo o patas de gallo)."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000102",
+            "id": "wamid.CLINICA0202",
+            "timestamp": "1788341580",
+            "type": "text",
+            "text": {
+             "body": "Y si son las 3 zonas?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0203",
+            "timestamp": "1788342360",
+            "type": "text",
+            "text": {
+             "body": "Las 3 zonas quedan en $8,500. Antes del tratamiento se hace una valoración con la doctora."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000102",
+            "id": "wamid.CLINICA0204",
+            "timestamp": "1788343200",
+            "type": "text",
+            "text": {
+             "body": "Va, gracias"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000103",
+          "messages": [
+           {
+            "from": "5210000000103",
+            "id": "wamid.CLINICA0300",
+            "timestamp": "1788430200",
+            "type": "text",
+            "text": {
+             "body": "Buenas, la valoración tiene costo?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0301",
+            "timestamp": "1788430860",
+            "type": "text",
+            "text": {
+             "body": "La valoración tiene un costo de $300 y se abona a su tratamiento si lo realiza el mismo día."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000103",
+            "id": "wamid.CLINICA0302",
+            "timestamp": "1788431580",
+            "type": "text",
+            "text": {
+             "body": "Perfecto"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000104",
+          "messages": [
+           {
+            "from": "5210000000104",
+            "id": "wamid.CLINICA0400",
+            "timestamp": "1788518580",
+            "type": "text",
+            "text": {
+             "body": "Cuánto la depilación láser de axila?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0401",
+            "timestamp": "1788519240",
+            "type": "text",
+            "text": {
+             "body": "La depilación láser de axila es de $450 por sesión. El paquete de 6 sesiones queda en $2,400."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000104",
+            "id": "wamid.CLINICA0402",
+            "timestamp": "1788519960",
+            "type": "text",
+            "text": {
+             "body": "Y piernas completas?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0403",
+            "timestamp": "1788520740",
+            "type": "text",
+            "text": {
+             "body": "Piernas completas es de $1,800 por sesión."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000104",
+            "id": "wamid.CLINICA0404",
+            "timestamp": "1788521580",
+            "type": "text",
+            "text": {
+             "body": "Gracias"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000105",
+          "messages": [
+           {
+            "from": "5210000000105",
+            "id": "wamid.CLINICA0500",
+            "timestamp": "1788608580",
+            "type": "text",
+            "text": {
+             "body": "Hola, estoy embarazada, me puedo aplicar botox?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0501",
+            "timestamp": "1788609240",
+            "type": "text",
+            "text": {
+             "body": "Felicidades. Eso se lo tiene que valorar la doctora, ahorita le pido que le escriba."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000106",
+          "messages": [
+           {
+            "from": "5210000000106",
+            "id": "wamid.CLINICA0600",
+            "timestamp": "1788696240",
+            "type": "text",
+            "text": {
+             "body": "Qué horario tienen?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0601",
+            "timestamp": "1788696900",
+            "type": "text",
+            "text": {
+             "body": "Atendemos de lunes a viernes de 10 a 8 y sábados de 10 a 3."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000106",
+            "id": "wamid.CLINICA0602",
+            "timestamp": "1788697620",
+            "type": "text",
+            "text": {
+             "body": "Ok gracias"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000107",
+          "messages": [
+           {
+            "from": "5210000000107",
+            "id": "wamid.CLINICA0700",
+            "timestamp": "1788784620",
+            "type": "text",
+            "text": {
+             "body": "Cómo aparto mi cita?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0701",
+            "timestamp": "1788785280",
+            "type": "text",
+            "text": {
+             "body": "Su cita se aparta con un anticipo de $200, que se descuenta del tratamiento."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000107",
+            "id": "wamid.CLINICA0702",
+            "timestamp": "1788786000",
+            "type": "text",
+            "text": {
+             "body": "Ok"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000108",
+          "messages": [
+           {
+            "from": "5210000000108",
+            "id": "wamid.CLINICA0800",
+            "timestamp": "1788873000",
+            "type": "text",
+            "text": {
+             "body": "Oiga me hice el peeling y me quedó la cara muy roja y me arde"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0801",
+            "timestamp": "1788873660",
+            "type": "text",
+            "text": {
+             "body": "Una disculpa, ahorita la doctora le marca para revisarla."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000109",
+          "messages": [
+           {
+            "from": "5210000000109",
+            "id": "wamid.CLINICA0900",
+            "timestamp": "1788960660",
+            "type": "text",
+            "text": {
+             "body": "Dónde están ubicados?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA0901",
+            "timestamp": "1788961320",
+            "type": "text",
+            "text": {
+             "body": "Estamos en Av. de Muestra 123, local 4, a un costado de la farmacia."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000109",
+            "id": "wamid.CLINICA0902",
+            "timestamp": "1788962040",
+            "type": "text",
+            "text": {
+             "body": "Gracias"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000110",
+          "messages": [
+           {
+            "from": "5210000000110",
+            "id": "wamid.CLINICA1000",
+            "timestamp": "1789049040",
+            "type": "text",
+            "text": {
+             "body": "Buen día, el hidrofacial cuánto sale?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000100",
+            "id": "wamid.CLINICA1001",
+            "timestamp": "1789049700",
+            "type": "text",
+            "text": {
+             "body": "Buen día. El hidrofacial tiene un costo de $1,200 por sesión."
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           },
+           {
+            "from": "5210000000110",
+            "id": "wamid.CLINICA1002",
+            "timestamp": "1789050420",
+            "type": "text",
+            "text": {
+             "body": "Gracias, luego le aviso"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000111",
+          "messages": [
+           {
+            "from": "5210000000111",
+            "id": "wamid.CLINICA1100",
+            "timestamp": "1789137420",
+            "type": "text",
+            "text": {
+             "body": "Hola, precio de la limpieza facial por favor"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000112",
+          "messages": [
+           {
+            "from": "5210000000112",
+            "id": "wamid.CLINICA1200",
+            "timestamp": "1789224420",
+            "type": "text",
+            "text": {
+             "body": "Buenas noches, cuánto cuesta el botox de frente?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000113",
+          "messages": [
+           {
+            "from": "5210000000113",
+            "id": "wamid.CLINICA1300",
+            "timestamp": "1789311420",
+            "type": "text",
+            "text": {
+             "body": "Hola, tomo anticoagulantes, puedo hacerme el láser?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         },
+         {
+          "id": "5210000000114",
+          "messages": [
+           {
+            "from": "5210000000114",
+            "id": "wamid.CLINICA1400",
+            "timestamp": "1789398420",
+            "type": "text",
+            "text": {
+             "body": "Hola, me pasa sus precios?"
+            },
+            "history_context": {
+             "status": "READ"
+            }
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

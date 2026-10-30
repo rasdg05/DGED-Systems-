@@ -16,6 +16,14 @@ un espacio por cliente, con su nombre, su color y su foto.
 
 Nace **aprendiendo** (`encendido: sombra`): no le contesta a nadie hasta que su dueño aprueba a su asistente.
 
+## Una demo para un prospecto (D-055)
+
+Un servicio de Railway aparte, sobre su propia rama, con volumen en `/data` y las variables
+`TENANT_INTERNAL_TOKEN`, `AGENTE_MUESTRA=<carpeta de muestra/>` (hoy `clinica`) y
+`AGENTE_ESPACIO_MUESTRA=<id>`. El primer arranque siembra el espacio con la muestra ficticia, el perfil
+aprobado y la Cola con lo que haría el agente; los siguientes no lo tocan. Si el prospecto se queda,
+vincula su WhatsApp con `AGENTE_ESPACIO_VINCULADO` y su historial real reemplaza la muestra en un espacio nuevo.
+
 ## Lo que hacemos nosotros (taller, sin pestaña)
 
 `/espacios/<id>/banco?llave=<maestra>`: proponer perfil (una pasada del modelo grande sobre el historial),
@@ -24,7 +32,7 @@ banco pass^k, sombra, descargar historial. El cliente no lo ve ni por URL (D-022
 ## Lo que todavía depende del giro
 
 - El cotizador entiende reglas de renta (noche, fin de semana, temporada, evento, persona extra, mínimo,
-  anticipo, depósito). Otro giro cotiza con reglas genéricas que se enseñan tal cual; reglas propias de un
+  anticipo, depósito). Los servicios por sesión, zona o paquete (clínica, spa) cotizan con `servicios.py` (D-055). Otro giro cotiza con reglas genéricas que se enseñan tal cual; reglas propias de un
   giro nuevo se agregan en `cotizador.py` y en `_regla()` de `paginas.py` **después** de medir su sombra.
 - Un lector vinculado por servicio (`AGENTE_ESPACIO_VINCULADO`): un segundo negocio que conecte su WhatsApp
   necesita su propio servicio de Railway hasta que haya coexistencia oficial (D-016) o un lector multi-espacio.

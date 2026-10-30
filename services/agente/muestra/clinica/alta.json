@@ -1,0 +1,17 @@
+{
+ "giro": "clínica estética (MUESTRA FICTICIA)",
+ "nombre_comercial": "Clínica Estética de Muestra",
+ "que_vende": "Faciales, Botox y rellenos, depilación láser y peelings, con valoración de la doctora",
+ "como_cobra": "Por sesión o por zona, con paquetes de varias sesiones; la cita se aparta con anticipo",
+ "horario": "Lunes a viernes de 10 a 20 h y sábados de 10 a 15 h",
+ "aprobador": "Doctora de muestra",
+ "aprobador_telefono": "5210000000100",
+ "asesores": [
+  "Recepción de muestra"
+ ],
+ "propiedades": [
+  "faciales",
+  "inyectables",
+  "laser"
+ ]
+}

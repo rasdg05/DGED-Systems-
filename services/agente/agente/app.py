@@ -27,8 +27,9 @@ from .espacio import Espacio, EspacioInvalido, llave_valida, raiz_por_defecto
 async def _arranque(_app):
     """Cada despliegue corre el backtest de cada espacio, en un hilo aparte: el
     servicio contesta mientras tanto, y si falla no se cae (`backtest.py`)."""
-    from . import backtest
+    from . import backtest, muestra
 
+    muestra.sembrar_si_toca()  # solo en un servicio de demo (`AGENTE_MUESTRA`); no tumba el arranque
     threading.Thread(target=backtest.correr_todos, name="backtest", daemon=True).start()
     threading.Thread(target=_calendarios, name="calendario", daemon=True).start()
     yield

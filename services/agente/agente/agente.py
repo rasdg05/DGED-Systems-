@@ -32,6 +32,7 @@ from . import (
     modelo,
     perfil,
     respuestas,
+    servicios,
     voz,
 )
 from .espacio import Espacio
@@ -159,6 +160,9 @@ def antes_del_modelo(base: dict, entrante: Mensaje, hilo: list[Mensaje], activo:
     dicho = conversacion.rafaga(hilo) or entrante.texto
     if conversacion.es_reclamo(dicho):
         return _a_persona(base, "reclamo o molestia: lo atiende una persona")
+    if servicios.es_giro_de_servicios(activo) and servicios.pregunta_de_salud(dicho):
+        # Ni respuesta guardada ni modelo: un consejo de salud lo da la especialista.
+        return _a_persona(base, "pregunta de salud: la contesta la especialista")
     if conversacion.intenta_cambiar_las_reglas(dicho):
         return _a_persona(base, "el mensaje le da órdenes al asistente: lo ve una persona")
     if conversacion.pregunta_si_es_bot(dicho):
@@ -176,7 +180,36 @@ def antes_del_modelo(base: dict, entrante: Mensaje, hilo: list[Mensaje], activo:
     guardada = respuestas.buscar(activo, dicho)
     if guardada:
         return Salida(**base, via="guardada", texto=guardada["respuesta"])
+    if servicios.es_giro_de_servicios(activo):
+        return por_servicio(base, hilo, dicho, activo)
     return por_grupo(base, hilo, dicho, activo, ocupacion)
+
+
+#: Lo que pregunta la casa cuando piden precios sin decir de qué (muestra de la clínica).
+PIDE_SERVICIO = "Con gusto. Qué tratamiento le interesa?"
+
+
+def por_servicio(base: dict, hilo: list[Mensaje], dicho: str, activo: dict) -> Salida | None:
+    """El precio de un tratamiento (giro de servicios: clínica, spa), sin modelo.
+
+    Entra si la clienta pide precio. Con el tratamiento nombrado (en este mensaje
+    o antes en la plática), el precio de la lista con sus paquetes; sin nombrarlo,
+    se le pregunta cuál. La cifra espera el sí de una persona (invariante XXXIII);
+    incompleta, va a la persona con lo que falta. Agendar una cita lo confirma una
+    persona: el agente no ve la agenda."""
+    if servicios.quiere_agendar(dicho) and not lectura.pide_precio(dicho):
+        return _a_persona(base, "quiere agendar: la cita la confirma una persona")
+    if not lectura.pide_precio(dicho):
+        return None
+    claves = servicios.servicios_en(activo, dicho) or servicios.servicio_en_platica(
+        activo, [m.texto or "" for m in hilo if not m.del_negocio])
+    if not claves:
+        return Salida(**base, via="cotizador", texto=PIDE_SERVICIO, motivo="cotizar servicio: falta cuál")
+    cot = servicios.cotizar(activo, claves)
+    if not cot.completa:
+        return Salida(**base, via="persona", texto=LO_CONFIRMO, borrador=cot.texto(),
+                      motivo="cotización incompleta: " + "; ".join(cot.faltan), cotizacion=cot.a_dict())
+    return Salida(**base, via="cotizador", texto=cot.texto(), cotizacion=cot.a_dict(), requiere_aprobacion=True)
 
 
 def por_grupo(base: dict, hilo: list[Mensaje], dicho: str, activo: dict,

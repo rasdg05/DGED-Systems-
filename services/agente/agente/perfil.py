@@ -39,7 +39,7 @@ CONTRATO = "agente-perfil-0.1"
 SECCIONES = ("datos", "temporadas", "voz", "reglas", "faq", "escala")
 # Secciones cuyo origen puede ser un mensaje del cliente final.
 ORIGEN_CLIENTE_PERMITIDO = {"escala"}
-CAMPOS_NUMERICOS = ("monto_centavos", "pct", "noches", "personas", "habitaciones")
+CAMPOS_NUMERICOS = ("monto_centavos", "pct", "noches", "personas", "habitaciones", "sesiones", "zonas")
 
 
 class VersionInmutable(RuntimeError):

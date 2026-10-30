@@ -1,0 +1,279 @@
+{
+ "trato": "usted",
+ "datos": [
+  {
+   "objeto": "Servicio",
+   "id": "limpieza_facial",
+   "campo": "incluye",
+   "valor": "extracción, mascarilla y protector solar",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0101",
+    "cita": "incluye extracción, mascarilla y protector solar"
+   }
+  },
+  {
+   "objeto": "Negocio",
+   "id": "ubicacion",
+   "campo": "direccion",
+   "valor": "Av. de Muestra, local 4",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0901",
+    "cita": "Estamos en Av. de Muestra 123, local 4"
+   }
+  }
+ ],
+ "temporadas": [],
+ "voz": [
+  {
+   "frase": "Buenas tardes, con gusto.",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0101",
+    "cita": "Buenas tardes, con gusto."
+   }
+  },
+  {
+   "frase": "Eso se lo tiene que valorar la doctora, ahorita le pido que le escriba.",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0501",
+    "cita": "Eso se lo tiene que valorar la doctora, ahorita le pido que le escriba."
+   }
+  },
+  {
+   "frase": "Perfecto",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0302",
+    "cita": "Perfecto"
+   }
+  }
+ ],
+ "reglas": [
+  {
+   "propiedad": "faciales",
+   "tipo": "servicio",
+   "servicio": "limpieza_facial",
+   "nombre": "Limpieza facial profunda",
+   "unidad": "sesion",
+   "alias": [
+    "limpieza facial",
+    "limpieza profunda",
+    "limpieza de cara",
+    "facial"
+   ],
+   "monto_centavos": 85000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0101",
+    "cita": "La limpieza facial profunda tiene un costo de $850 por sesión"
+   }
+  },
+  {
+   "propiedad": "faciales",
+   "tipo": "servicio",
+   "servicio": "limpieza_facial",
+   "nombre": "Limpieza facial profunda",
+   "unidad": "paquete",
+   "alias": [
+    "limpieza facial",
+    "limpieza profunda",
+    "limpieza de cara",
+    "facial"
+   ],
+   "sesiones": 4,
+   "monto_centavos": 300000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0103",
+    "cita": "Si gusta llevar 4 sesiones, el paquete queda en $3,000"
+   }
+  },
+  {
+   "propiedad": "faciales",
+   "tipo": "servicio",
+   "servicio": "hidrofacial",
+   "nombre": "Hidrofacial",
+   "unidad": "sesion",
+   "alias": [
+    "hidrofacial",
+    "hydrafacial",
+    "hidro facial"
+   ],
+   "monto_centavos": 120000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA1001",
+    "cita": "El hidrofacial tiene un costo de $1,200 por sesión"
+   }
+  },
+  {
+   "propiedad": "inyectables",
+   "tipo": "servicio",
+   "servicio": "botox",
+   "nombre": "Botox",
+   "unidad": "zona",
+   "alias": [
+    "botox",
+    "toxina",
+    "botulinica",
+    "baby botox"
+   ],
+   "monto_centavos": 350000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0201",
+    "cita": "El Botox tiene un costo de $3,500 por zona"
+   }
+  },
+  {
+   "propiedad": "inyectables",
+   "tipo": "servicio",
+   "servicio": "botox",
+   "nombre": "Botox",
+   "unidad": "paquete",
+   "alias": [
+    "botox",
+    "toxina",
+    "botulinica",
+    "baby botox"
+   ],
+   "zonas": 3,
+   "monto_centavos": 850000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0203",
+    "cita": "Las 3 zonas quedan en $8,500"
+   }
+  },
+  {
+   "propiedad": "laser",
+   "tipo": "servicio",
+   "servicio": "laser_axila",
+   "nombre": "Depilación láser de axila",
+   "unidad": "sesion",
+   "alias": [
+    "axila",
+    "axilas"
+   ],
+   "monto_centavos": 45000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0401",
+    "cita": "La depilación láser de axila es de $450 por sesión"
+   }
+  },
+  {
+   "propiedad": "laser",
+   "tipo": "servicio",
+   "servicio": "laser_axila",
+   "nombre": "Depilación láser de axila",
+   "unidad": "paquete",
+   "alias": [
+    "axila",
+    "axilas"
+   ],
+   "sesiones": 6,
+   "monto_centavos": 240000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0401",
+    "cita": "El paquete de 6 sesiones queda en $2,400"
+   }
+  },
+  {
+   "propiedad": "laser",
+   "tipo": "servicio",
+   "servicio": "laser_piernas",
+   "nombre": "Depilación láser de piernas completas",
+   "unidad": "sesion",
+   "alias": [
+    "piernas completas",
+    "piernas"
+   ],
+   "monto_centavos": 180000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0403",
+    "cita": "Piernas completas es de $1,800 por sesión"
+   }
+  },
+  {
+   "tipo": "valoracion",
+   "propiedad": "inyectables",
+   "monto_centavos": 30000,
+   "abona": true,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0301",
+    "cita": "La valoración tiene un costo de $300 y se abona a su tratamiento"
+   }
+  },
+  {
+   "tipo": "anticipo_cita",
+   "propiedad": null,
+   "monto_centavos": 20000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0701",
+    "cita": "Su cita se aparta con un anticipo de $200"
+   }
+  },
+  {
+   "propiedad": "faciales",
+   "tipo": "servicio",
+   "servicio": "peeling",
+   "nombre": "Peeling químico",
+   "unidad": "sesion",
+   "alias": [
+    "peeling"
+   ],
+   "monto_centavos": 95000,
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA1001",
+    "cita": "El hidrofacial tiene un costo de $1,200 por sesión"
+   }
+  }
+ ],
+ "faq": [
+  {
+   "pregunta": "Qué horario tienen?",
+   "respuesta": "Atendemos de lunes a viernes de 10 a 8 y sábados de 10 a 3.",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0601",
+    "cita": "Atendemos de lunes a viernes de 10 a 8 y sábados de 10 a 3."
+   }
+  },
+  {
+   "pregunta": "Dónde están ubicados?",
+   "respuesta": "Estamos en Av. de Muestra 123, local 4, a un costado de la farmacia.",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0901",
+    "cita": "Estamos en Av. de Muestra 123, local 4, a un costado de la farmacia."
+   }
+  }
+ ],
+ "escala": [
+  {
+   "caso": "pregunta de salud o contraindicación",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0500",
+    "cita": "estoy embarazada"
+   }
+  },
+  {
+   "caso": "reacción después de un tratamiento",
+   "origen": {
+    "tipo": "mensaje",
+    "id": "wamid.CLINICA0800",
+    "cita": "me quedó la cara muy roja y me arde"
+   }
+  }
+ ]
+}

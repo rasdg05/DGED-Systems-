@@ -753,6 +753,8 @@ def _origen_html(renglon: dict, mensajes: dict) -> str:
 
 
 def _nombre_propiedad(pid: str, alta: dict) -> str:
+    if not str(pid or "").strip():
+        return "General"  # una regla de todo el negocio (el anticipo de la cita)
     for nombre in alta.get("propiedades", []) or []:
         if str(pid).casefold() in str(nombre).casefold():
             return str(nombre)[:1].upper() + str(nombre)[1:]
@@ -786,6 +788,18 @@ def _regla(r: dict) -> tuple[str, str]:
     if tipo == "extra":
         unidad = {"dia": "el día", "persona": "por persona", "noche": "la noche"}.get(r.get("unidad") or "", "")
         return f"{str(r.get('concepto', '')).capitalize()} {unidad}".strip(), monto
+    if tipo == "servicio":
+        nombre = r.get("nombre") or str(r.get("servicio", "")).replace("_", " ").capitalize()
+        if r.get("unidad") == "paquete":
+            nombre += (f" · paquete de {r['sesiones']} sesiones" if r.get("sesiones")
+                       else f" · {r['zonas']} zonas" if r.get("zonas") else " · paquete")
+        else:
+            nombre += {"sesion": " · por sesión", "zona": " · por zona"}.get(r.get("unidad") or "", "")
+        return nombre, monto
+    if tipo == "valoracion":
+        return "Valoración" + (" · se abona al tratamiento" if r.get("abona") else ""), monto
+    if tipo == "anticipo_cita":
+        return "Anticipo para apartar la cita", monto
     nombres = {"evento": "Evento", "deposito": "Depósito"}
     resto = ", ".join(f"{k.replace('_', ' ')} {v}" for k, v in r.items()
                       if k not in ("origen", "tipo", "propiedad", "monto_centavos"))
@@ -799,7 +813,7 @@ def _seccion_html(seccion: str, filas: list[dict], mensajes: dict, alta: dict) -
     if seccion == "reglas":
         grupos: dict[str, list] = {}
         for r in filas:
-            grupos.setdefault(str(r.get("propiedad", "")), []).append(r)
+            grupos.setdefault(str(r.get("propiedad") or ""), []).append(r)
         salida = ""
         for pid, rs in grupos.items():
             renglones = "".join(fila(esc(q), "", r, f"<b>{esc(c)}</b>") for r in rs for q, c in [_regla(r)])
