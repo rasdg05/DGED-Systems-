@@ -106,24 +106,28 @@ TABLA: tuple[Orden, ...] = (
     _o("nota", rf"(?:nota|anota|apunta|apuntale|anotale){_REF_OBL}\s+(?P<texto>.+)", "clientes",
        "nota …1234 paga el viernes: queda en la ficha", cambia=True),
     _o("no_escribir", rf"(?:no le escribas|no le escriban|no escribirle|no contactar|no le mandes nada"
-                      rf"|sacalo de las rondas|saca|quita de las rondas|no molestar|no le mandes){_REF_OBL}",
+                      rf"|sacalo de las rondas|sacala de las rondas|quita de las rondas|no molestar|no le mandes){_REF_OBL}",
        "clientes", "no le escribas …1234: ninguna ronda ni envío le llega", QUIEN_APRUEBA, cambia=True),
     _o("si_escribir", rf"(?:ya puedes escribirle|ya le pueden escribir|vuelve a escribirle|si le puedes escribir"
-                      rf"|regresalo a las rondas|regresa){_REF_OBL}", "clientes",
+                      rf"|regresalo a las rondas|regresala a las rondas){_REF_OBL}", "clientes",
        "ya puedes escribirle …1234: deshace el no le escribas", QUIEN_APRUEBA, cambia=True),
     _o("lo_llevo", rf"(?:(?:yo\s+)?lo\s+(?:llevo|tomo|agarro|atiendo)|me lo quedo|(?:yo\s+)?la\s+(?:llevo|tomo|atiendo)"
-                   rf"|me la quedo|yo le contesto){_REF_OBL}", "clientes",
+                   rf"|me la quedo){_REF_OBL}", "clientes",
        "lo llevo …1234: usted lo atiende; el equipo no le escribe", QUIEN_APRUEBA, cambia=True),
     _o("suelta", rf"(?:suelta|sueltalo|sueltala|ya no lo llevo|ya no la llevo|liberalo|liberala){_REF_OBL}",
        "clientes", "suelta …1234: el equipo vuelve a darle seguimiento", QUIEN_APRUEBA, cambia=True),
-    _o("atendido", rf"(?:atendido|atendida|ya le conteste|ya le respondi|ya quedo|listo con|ya lo atendi"
-                   rf"|ya la atendi|ya le escribi){_REF_OBL}", "clientes",
+    _o("atendido", rf"(?:atendido|atendida|ya le conteste|ya le respondi|ya lo atendi|ya la atendi){_REF_OBL}", "clientes",
        "ya le contesté …1234: sale de pendientes hasta que vuelva a escribir", QUIEN_APRUEBA, cambia=True),
-    _o("cerro", rf"(?:cerro|cerramos|rento|rentaron|reservo|reservaron|aparto|apartaron|confirmo|pago){_REF_OBL}"
+    _o("cerro", rf"(?:cerro|cerramos|rentaron|reservaron|apartaron){_REF_OBL}"
                 r"(?:\s+(?:en|por|con)?\s*\$?\s*(?P<monto>\d[\d,.]*(?:\s*mil)?))?", "clientes",
        "cerró …1234 15000: la renta queda asentada (sin monto también)", QUIEN_APRUEBA, cambia=True),
-    _o("dile", rf"(?:dile|digale|escribele|mandale|contestale|respondele){_REF_OBL}\s+(?:que\s+)?(?P<texto>.+)",
-       "clientes", "dile …1234 que ya está apartado: sale con sus palabras, a su nombre", QUIEN_APRUEBA, cambia=True),
+    _o("dile", rf"(?:dile|digale|escribele|mandale|contestale|respondele){_REF_OBL}(?![\s-]*\d)\s+que\s+(?P<texto>.+)",
+       "clientes", "dile …1234 que ya está apartado: le enseño lo que saldría y sale cuando conteste sí, mándalo",
+       QUIEN_APRUEBA, cambia=True),
+    _o("confirma", r"(?:si|va|ok|dale|sale)?\s*(?:mandalo|mandala|envialo|enviala|si mandalo|si envialo|si|va|dale)",
+       "clientes", "sí, mándalo: manda lo que me dictó (vale 10 minutos)", QUIEN_APRUEBA, cambia=True),
+    _o("cancela", r"(?:no|no lo mandes|no la mandes|cancela|cancelalo|mejor no|no mandes eso)", "clientes",
+       "no lo mandes: cancela lo que me dictó", QUIEN_APRUEBA, cambia=True),
     # ------------------------------------------------------- rondas y borradores
     _o("aprueba_borradores", rf"(?:aprueba|apruebo|manda|mandalo|mandalos|envia|si a|aprobar)\s+(?:los\s+|el\s+)?"
                              rf"(?:borradores?\s+|mensajes?\s+)?{_LISTA}", "rondas",
@@ -180,7 +184,7 @@ TABLA: tuple[Orden, ...] = (
        "aprueba la versión 4: esa lista y esas respuestas quedan activas", QUIEN_APRUEBA, cambia=True),
     _o("faq", r"(?:faq|preguntas frecuentes|respuestas|respuestas guardadas|que contestas solo)", "precios",
        "faq: las respuestas guardadas que el agente cita"),
-    _o("recuerda", r"(?:recuerda|aprende|regla|ojo|toma en cuenta|para la proxima)\s*(?P<texto>.+)", "precios",
+    _o("recuerda", r"(?:recuerda|aprende|toma en cuenta|para la proxima)\s*(?P<texto>.+)", "precios",
        "recuerda: la alberca se calienta con 24 h de aviso. Queda para la próxima versión, no se activa sola",
        cambia=True),
     _o("gasto", r"(?:gasto|cuanto llevamos|gasto de api|cuanto gastamos|consumo|costo)", "precios",
@@ -215,8 +219,8 @@ TABLA: tuple[Orden, ...] = (
        "silencia los reportes: ya no le llegan los de las 9 y las 19", cambia=True),
     _o("activa_reportes", r"(?:activa|prende|enciende|manda|reanuda)\s+(?:los\s+|el\s+|mis\s+)?reportes?", "mesa",
        "activa los reportes: vuelven los de las 9 y las 19", cambia=True),
-    _o("deshaz", r"(?:deshaz|deshacer|deshazlo|revierte|revertir|regresalo|me equivoque|cancela eso|eso no"
-                 r"|deshaz lo ultimo)", "mesa", "deshaz: revierte su última orden que se pueda revertir",
+    _o("deshaz", r"(?:deshaz|deshacer|deshazlo|revierte|revertir|deshaz lo ultimo|deshaz eso)", "mesa",
+       "deshaz: revierte su última orden, si fue hace menos de 30 minutos",
        cambia=True),
 )
 
@@ -311,23 +315,26 @@ def _crudo(texto: str) -> str:
     return _EMOJI.sub("", _FORMATO.sub("", texto or "")).strip().lstrip("/").strip()
 
 
-_PALABRA_LIBRE = re.compile(r"\b(?:recuerda|aprende|regla|ojo|toma en cuenta|para la pr[oó]xima)\b[:,-]?\s*", re.I)
+_PALABRA_LIBRE = re.compile(r"\b(?:recuerda|aprende|toma en cuenta|para la pr[oó]xima)\b[:,-]?\s*", re.I)
+#: *recuerda* enseña una regla solo con dos puntos: *"Recuerda que mañana voy"* es plática.
+_RECUERDA_CON_DOS_PUNTOS = re.compile(r"^\W*(?:recuerda|aprende|toma en cuenta|para la pr[oó]xima)\s*:", re.I)
 
 
 def texto_propio(texto: str, ref: str | None) -> str:
     """Lo que viene después del cliente (o de *recuerda*), con los acentos y mayúsculas de quien lo escribió."""
     crudo = _crudo(texto)
     if ref:
-        i = crudo.find(ref)
-        if i < 0:
+        digitos = re.sub(r"\D", "", ref)
+        m = re.search(r"\D{0,3}".join(digitos) + r"(?!\d)", crudo)
+        if not m:
             return ""
-        resto = crudo[i + len(ref):]
+        resto = crudo[m.end():]
     else:
         m = _PALABRA_LIBRE.search(crudo)
         if not m:
             return ""
         resto = crudo[m.end():]
-    return re.sub(r"^[\s:,.-]*(?:que\s+)?", "", resto, flags=re.I).strip()
+    return re.sub(r"^[\s:,.-]*(?:que\b)?[\s:,.…-]*", "", resto, flags=re.I).strip()
 
 
 def _con_datos(o: Orden, m: re.Match, texto: str) -> dict:
@@ -359,6 +366,8 @@ def leer(texto: str | None) -> dict | None:
         return {"orden": "ficha", "ref": _limpiar_ref(t)} if len(_limpiar_ref(t)) >= 4 else None
     for o in TABLA:
         if (m := o.patron.match(t)):
+            if o.id == "recuerda" and not _RECUERDA_CON_DOS_PUNTOS.match(_crudo(texto or "")):
+                return None
             return _con_datos(o, m, texto or "")
     corregido = _corregir(t)
     if corregido != t:

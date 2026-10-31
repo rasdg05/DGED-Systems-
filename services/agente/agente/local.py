@@ -102,8 +102,10 @@ def lotes(cliente_id: str, por_lote: int = 10, dias: int | None = None) -> tuple
     # enjambre, y lo que ya contestó tampoco (2026-10-31). Sus notas van con la plática.
     fuera = {h for h in hilos if capacidades.no_escribir(espacio, h)} | capacidades.atendidos(espacio, hilos)
     notas = {}
+    duena = ((espacio.leer_json("alta.json", {}) or {}).get("aprobador") or "").strip()
     for n in capacidades._notas_de(espacio):
-        notas.setdefault(n["hilo"], []).append(n["texto"])
+        if duena and n.get("por") == duena:  # solo las de quien aprueba: la nota de otra no es orden de la dueña
+            notas.setdefault(n["hilo"], []).append(n["texto"])
     lista = pendientes.leer(hilos)
     espera = {p.hilo: p for p in lista if p.estado == "espera"}
     limite = (dias if dias is not None else semaforo.DIAS_VIGENCIA) * 24

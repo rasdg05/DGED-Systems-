@@ -176,19 +176,22 @@ def encolar_aprobadas(espacio: Espacio) -> int:
     return n
 
 
-def ejecutar(espacio: Espacio, hilo: str, orden: dict) -> str:
+def ejecutar(espacio: Espacio, hilo: str, orden: dict, via: str = "") -> str:
     """Quién puede, y luego lo que hace (`capacidades.MANEJADORES`). Lo que cambia algo
     y se leyó corrigiendo una errata no se hace: se pregunta."""
     from . import capacidades, ordenes
 
     spec = ordenes.POR_ID[orden["orden"]]
+    de = f"{via}:{_diez(hilo)}" if via else _diez(hilo)
+    if spec.id in ("confirma", "cancela") and not capacidades.hay_dictado(espacio, de):
+        return ""  # "sí" o "no" sin un dictado enfrente es plática: no se contesta
     if spec.quien == ordenes.QUIEN_APRUEBA and not es_quien_aprueba(espacio, hilo):
         return "Eso solo lo puede ordenar quien aprueba las cotizaciones del negocio."
     if orden.get("corregida") and spec.cambia:
         return f"¿Quiso decir «{orden.get('como', spec.id)}»? Escríbalo así y lo hago."
     alta = espacio.leer_json("alta.json", {}) or {}
     nombre = (alta.get("aprobador") or "").strip() if es_quien_aprueba(espacio, hilo) else ""
-    return capacidades.MANEJADORES[spec.id](capacidades.Pedido(espacio, hilo, orden, nombre))
+    return capacidades.MANEJADORES[spec.id](capacidades.Pedido(espacio, hilo, orden, nombre, via))
 
 
 def por_fuera(espacio: Espacio, texto: str, *, solo_lectura: bool, via: str) -> dict:
@@ -210,7 +213,7 @@ def por_fuera(espacio: Espacio, texto: str, *, solo_lectura: bool, via: str) -> 
     hilo = _hilo_de(espacio, _diez(alta.get("aprobador_telefono"))) if _diez(alta.get("aprobador_telefono")) else ""
     if not hilo:
         return {"orden": spec.id, "respuesta": "El alta no tiene el teléfono de quien aprueba."}
-    respuesta = ejecutar(espacio, hilo, orden)
+    respuesta = ejecutar(espacio, hilo, orden, via=via)
     _anotar(espacio, hilo, f"{spec.id} ({via})", respuesta)
     return {"orden": spec.id, "respuesta": respuesta}
 
@@ -234,6 +237,8 @@ def atender(espacio: Espacio, m: Mensaje) -> str | None:
         return respuesta
     try:
         respuesta = ejecutar(espacio, m.hilo, orden)
+        if not respuesta:
+            return None
     except Exception as error:  # noqa: BLE001 - una orden que truena no tumba al lector
         respuesta = f"No pude con esa orden ({type(error).__name__}). Quedó escrito para revisarlo."
         _anotar(espacio, m.hilo, f"error:{orden['orden']}", repr(error))

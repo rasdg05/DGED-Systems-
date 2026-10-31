@@ -86,7 +86,7 @@ def test_la_ayuda_sale_de_la_tabla_por_tema():
     ("reservas", "reservas"), ("bitácora", "bitacora"), ("administradoras", "administradoras"),
     ("agrega administradora 777 123 4567", "agrega_admin"), ("quita administradora 777 123 4567", "quita_admin"),
     ("silencia los reportes", "silencia"), ("pausa los reportes", "silencia"), ("activa los reportes", "activa_reportes"),
-    ("deshaz", "deshaz"), ("me equivoqué", "deshaz"),
+    ("deshaz", "deshaz"), ("deshaz eso", "deshaz"),
     # erratas: se corrigen
     ("pendietes", "pendientes"), ("estdo", "estado"), ("/calendaro", "calendario"),
     # plática normal con la dueña: nada
@@ -203,7 +203,8 @@ def test_lo_llevo_yo_calla_al_equipo_pero_no_a_ella(con_mesa):
     _orden(con_mesa, f"lo llevo {HILO[-4:]}")
     s = agente.Salida(cliente_id=con_mesa.cliente_id, hilo=HILO, responde_a="wamid.E3", via="ronda", texto="Hola")
     assert canal.motivo_para_no_enviar(con_mesa, s) == capacidades.LO_LLEVA
-    r = _orden(con_mesa, f"dile a {HILO[-4:]} que el 9 sí está libre, son $5,000")
+    _orden(con_mesa, f"dile a {HILO[-4:]} que el 9 sí está libre, son $5,000")
+    r = _orden(con_mesa, "sí, mándalo")
     assert "Va en la cola" in r  # sus palabras, con cifra: la puso una persona
     dictada = [x for x in agente.salidas(con_mesa) if x.via == "mesa"][-1]
     assert dictada.texto == "el 9 sí está libre, son $5,000" and dictada.aprobada_por == "Dueña de muestra"
@@ -215,7 +216,8 @@ def test_lo_llevo_yo_calla_al_equipo_pero_no_a_ella(con_mesa):
 
 def test_dile_en_pausa_queda_aprobado_y_sale_al_encender(con_mesa):
     vinculado.publicar(con_mesa, "conectado")
-    r = _orden(con_mesa, f"dile a {HILO[-4:]} que con gusto")
+    _orden(con_mesa, f"dile a {HILO[-4:]} que con gusto")
+    r = _orden(con_mesa, "sí, mándalo")
     assert "no sale por ahora" in r and "enciende el envío" in r
     assert not enviador.pendientes(con_mesa)
     assert "Ya van a la cola 1" in _orden(con_mesa, "enciende el envío")
@@ -324,14 +326,14 @@ def test_tope_no_pasa_el_techo_y_se_deshace(con_mesa):
     assert enviador.Ritmo.de(con_mesa).tope_dia == 50
 
 
-def test_pausa_se_deshace_y_lo_aprobado_vuelve_a_la_cola(con_mesa):
+def test_una_pausa_no_se_levanta_con_deshaz(con_mesa):
     vinculado.publicar(con_mesa, "conectado")
     rondas.cargar(con_mesa, _ronda())
     _orden(con_mesa, "enciende el envío")
     _orden(con_mesa, "pausa")
     assert con_mesa.config()["encendido"] == "sombra"
-    _orden(con_mesa, "deshaz")
-    assert con_mesa.config()["encendido"] == "sin_cifra"
+    assert "enciende el envío" in _orden(con_mesa, "deshaz")
+    assert con_mesa.config()["encendido"] == "sombra"
 
 
 def test_administradoras_y_reportes(con_mesa):

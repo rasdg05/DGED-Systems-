@@ -28,6 +28,7 @@ dueña o lo que ella aprueba.
 """
 from __future__ import annotations
 
+import re
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -45,7 +46,11 @@ ACCIONES = "mesa/acciones.jsonl"
 LISTAS = "mesa/listas.json"
 DESCARTES = "descartes_salida.jsonl"
 MANUAL = "calendario/manual.jsonl"
+DICTADOS = "mesa/dictados.json"
 POR_PAGINA = 10
+MINUTOS_LISTA = 30      # "ficha 2", "aprueba 1 3": una lista más vieja ya no es la que ella tiene enfrente
+MINUTOS_DICTADO = 10    # "sí, mándalo" vale para lo que se le enseñó hace poco
+MINUTOS_DESHAZ = 30
 SEMANAS_HUECOS = 8
 
 NO_SE_LE_ESCRIBE = "la dueña pidió no escribirle a este cliente"
@@ -59,11 +64,14 @@ class Pedido:
     hilo: str              # de quien escribe (una administradora)
     orden: dict
     nombre: str = ""       # quien aprueba según el alta, si es ella
+    via: str = ""          # "" = su WhatsApp; http, taller, mcp: otra vía con sus propias listas
 
     @property
     def de(self) -> str:
+        """De quién son las listas, las acciones y el deshaz. Otra vía (el MCP, el panel)
+        no le cambia a la dueña a quién se refiere "1" en su WhatsApp (revisión adversarial)."""
         from .mesa import _diez
-        return _diez(self.hilo)
+        return f"{self.via}:{_diez(self.hilo)}" if self.via else _diez(self.hilo)
 
 
 def _ahora() -> str:
@@ -165,7 +173,7 @@ def apartados_a_mano(espacio: Espacio) -> list[dict]:
 # --------------------------------------------------------------------------- #
 def _accion(p: Pedido, deshacer: dict | None) -> None:
     p.espacio.agregar_linea(ACCIONES, {"id": _id(), "de": p.de, "orden": p.orden["orden"], "deshacer": deshacer,
-                                       "en": _ahora()})
+                                       "de_quien_aprueba": bool(p.nombre), "en": _ahora()})
 
 
 def _deshacer(p: Pedido, d: dict) -> str:
@@ -194,6 +202,8 @@ def _deshacer(p: Pedido, d: dict) -> str:
         return f"Regresé {_plural(len(d['ids']), 'mensaje')} a los borradores."
     if tipo == "config":
         config = e.config()
+        if "despues" in d and any(config.get(k) != v for k, v in d["despues"].items()):
+            return "No lo deshice: alguien lo cambió después desde otro lado. Dígame cómo lo quiere."
         for k, v in d["antes"].items():
             if v is None:
                 config.pop(k, None)
@@ -204,11 +214,20 @@ def _deshacer(p: Pedido, d: dict) -> str:
             from . import mesa
             mesa.encolar_aprobadas(e)
         return "Listo: quedó como estaba."
+    if tipo == "reportes":
+        actuales = list(e.config().get("reportes_silenciados", []) or [])
+        nuevos = sorted(set(actuales) | {d["admin"]}) if d["antes"] else [x for x in actuales if x != d["admin"]]
+        config = e.config()
+        config["reportes_silenciados"] = nuevos
+        e.escribir_json("config.json", config)
+        return "Listo: sus reportes quedaron como estaban."
     if tipo == "recuerda":
         e.agregar_linea(RECUERDA, {"id": d["id"], "retirada": True, "en": _ahora()})
         return "Quité esa regla de la lista para la próxima versión."
     if tipo == "perfil":
         from . import perfil
+        if perfil.version_activa(e) != d.get("puso"):
+            return "No lo deshice: después se activó otra versión. Escriba propuestas o perfil."
         if d.get("antes") is None:
             return "No había versión activa antes; esa no se puede regresar."
         perfil.aprobar(e, d["antes"], aprobador=p.nombre)
@@ -217,18 +236,29 @@ def _deshacer(p: Pedido, d: dict) -> str:
 
 
 def deshaz(p: Pedido) -> str:
+    """Solo su ÚLTIMA orden, de hace menos de `MINUTOS_DESHAZ`, y solo si ella todavía puede
+    darla. No camina hacia atrás: un segundo *deshaz* no revierte la orden anterior
+    (revisión adversarial: así una pausa de días atrás se volvía a encender)."""
     acciones = p.espacio.leer_lineas(ACCIONES)
     hechas = {a.get("deshace") for a in acciones if a.get("deshace")}
-    for a in reversed(acciones):
-        if a.get("de") != p.de or a.get("deshace") or a["id"] in hechas:
-            continue
-        if not a.get("deshacer"):
-            return ("Su última orden no se puede deshacer: lo que ya salió por WhatsApp no se regresa. "
-                    "Para detener lo que sigue en cola: pausa el envío.")
-        respuesta = _deshacer(p, a["deshacer"])
-        p.espacio.agregar_linea(ACCIONES, {"id": _id(), "de": p.de, "orden": "deshaz", "deshace": a["id"], "en": _ahora()})
+    suyas = [a for a in acciones if a.get("de") == p.de]
+    if not suyas:
+        return "No encontré una orden suya que deshacer."
+    a = suyas[-1]
+    if a.get("deshace") or a["id"] in hechas:
+        return "Su última orden ya la deshice. Lo de antes se cambia con su propia orden."
+    if datetime.now(timezone.utc) - datetime.fromisoformat(a["en"]) > timedelta(minutes=MINUTOS_DESHAZ):
+        return f"Su última orden fue hace más de {MINUTOS_DESHAZ} minutos: ya no la deshago sola. Dígame qué cambio quiere."
+    if a.get("de_quien_aprueba") and not p.nombre:
+        return "Esa orden la dio quien aprueba; solo ella la puede deshacer."
+    if not a.get("deshacer"):
+        return ("Su última orden no se puede deshacer: lo que ya salió por WhatsApp no se regresa, y una pausa se "
+                "levanta con: enciende el envío.")
+    respuesta = _deshacer(p, a["deshacer"])
+    if respuesta.startswith("No lo deshice"):
         return respuesta
-    return "No encontré una orden suya que deshacer."
+    p.espacio.agregar_linea(ACCIONES, {"id": _id(), "de": p.de, "orden": "deshaz", "deshace": a["id"], "en": _ahora()})
+    return respuesta
 
 
 # --------------------------------------------------------------------------- #
@@ -241,7 +271,12 @@ def _guardar_lista(p: Pedido, tipo: str, items: list[str]) -> None:
 
 
 def _lista_guardada(p: Pedido, tipo: str) -> list[str]:
-    return ((p.espacio.leer_json(LISTAS, {}) or {}).get(p.de, {}).get(tipo) or {}).get("items", [])
+    """La última lista de ese tipo que se le mandó, si tiene menos de `MINUTOS_LISTA`."""
+    guardada = (p.espacio.leer_json(LISTAS, {}) or {}).get(p.de, {}).get(tipo) or {}
+    if not guardada.get("en") or datetime.now(timezone.utc) - datetime.fromisoformat(guardada["en"]) \
+            > timedelta(minutes=MINUTOS_LISTA):
+        return []
+    return guardada.get("items", [])
 
 
 def _hilos(espacio: Espacio) -> dict:
@@ -261,7 +296,8 @@ def resolver(p: Pedido, ref: str | None, hilos: dict | None = None) -> tuple[str
         lista = _lista_guardada(p, "clientes")
         n = int(ref)
         if not lista:
-            return None, "Primero pídame una lista (pendientes, contestaron…) y luego use su número."
+            return None, (f"No tengo una lista suya de los últimos {MINUTOS_LISTA} minutos. Pídame una (pendientes, "
+                          "contestaron…) o use los últimos 4 dígitos.")
         if not 1 <= n <= len(lista):
             return None, f"La última lista tiene {len(lista)}; no hay un {n}."
         return lista[n - 1], ""
@@ -596,16 +632,52 @@ def reservas(p: Pedido) -> str:
     return "\n".join(lineas)
 
 
+_OTRO_CLIENTE = re.compile(r"\b(?:a|al|a la|al de|para)\s+(?:…|\.\.\.)?\s*\d{4,}\b")
+
+
 def dile(p: Pedido) -> str:
-    """Lo que la dueña le dicta a un cliente sale con sus palabras y a su nombre, por los
-    candados del canal (se revisa otra vez justo antes de mandar)."""
-    from . import agente, canal, historial
+    """Lo que la dueña le dicta a un cliente. Primero se le enseña tal cual saldría; sale
+    cuando contesta *sí, mándalo* (Gestor: *contesta 3* enseña, *contesta 3 ya* manda)."""
     hilo, error = resolver(p, p.orden.get("ref"))
     if not hilo:
         return error
     texto = (p.orden.get("texto") or "").strip()
-    if len(texto) < 2:
+    if len(re.findall(r"\w", texto)) < 2 or texto.endswith(("...", "…")):
         return "¿Qué le digo? dile …1234 que ya quedó apartado"
+    if _OTRO_CLIENTE.search(texto):
+        return "Ahí veo a otro cliente. Una orden por cliente: dile …1234 que … y luego dile …5678 que …"
+    dictados = p.espacio.leer_json(DICTADOS, {}) or {}
+    dictados[p.de] = {"hilo": hilo, "texto": texto, "en": _ahora()}
+    p.espacio.escribir_json(DICTADOS, dictados)
+    return f"Le mando a …{hilo[-4:]}:\n«{texto}»\n¿Lo mando? Conteste: sí, mándalo (o: no lo mandes)"
+
+
+def hay_dictado(espacio: Espacio, de: str) -> bool:
+    d = (espacio.leer_json(DICTADOS, {}) or {}).get(de)
+    return bool(d) and datetime.now(timezone.utc) - datetime.fromisoformat(d["en"]) <= timedelta(minutes=MINUTOS_DICTADO)
+
+
+def _tomar_dictado(p: Pedido) -> dict | None:
+    dictados = p.espacio.leer_json(DICTADOS, {}) or {}
+    d = dictados.pop(p.de, None)
+    p.espacio.escribir_json(DICTADOS, dictados)
+    if d and datetime.now(timezone.utc) - datetime.fromisoformat(d["en"]) <= timedelta(minutes=MINUTOS_DICTADO):
+        return d
+    return None
+
+
+def cancela(p: Pedido) -> str:
+    return "Listo, no lo mando." if _tomar_dictado(p) else ""
+
+
+def confirma(p: Pedido) -> str:
+    """Sale con SUS palabras y a su nombre, por los candados del canal (se revisa otra vez
+    justo antes de mandar). Sin dictado reciente no contesta nada: "sí" es plática."""
+    from . import agente, canal, historial
+    d = _tomar_dictado(p)
+    if not d:
+        return ""
+    hilo, texto = d["hilo"], d["texto"]
     ms = historial.hilos(p.espacio).get(hilo, [])
     salida = agente.Salida(cliente_id=p.espacio.cliente_id, hilo=hilo, responde_a=ms[-1].id if ms else "",
                            via="mesa", texto=texto, motivo=f"dictado por {p.nombre} en la mesa",
@@ -652,12 +724,10 @@ def borradores(p: Pedido) -> str:
 def _elegidos(p: Pedido) -> tuple[list[str], str]:
     lista = _lista_guardada(p, "borradores")
     pedidos = p.orden.get("lista")
-    if pedidos == "todos":
-        if not lista:
-            return [s.id for s in _por_aprobar(p.espacio)], ""
-        return lista, ""
-    if not lista:
+    if not lista:  # también "todos": nada se aprueba sin que ella haya visto la lista (revisión adversarial)
         return [], "Primero escriba borradores para ver la lista numerada."
+    if pedidos == "todos":
+        return lista, ""
     fuera = [n for n in pedidos if not 1 <= n <= len(lista)]
     if fuera:
         return [], f"La lista tiene {len(lista)}; no hay {', '.join(map(str, fuera))}."
@@ -855,12 +925,13 @@ def canal_(p: Pedido) -> str:
             f"{'Listo para mandar' if canal.configurado(p.espacio) else 'No puede mandar todavía'}.\n{titulo}. {texto}")
 
 
-def _cambiar_config(p: Pedido, cambios: dict, encolar: bool = False) -> None:
+def _cambiar_config(p: Pedido, cambios: dict, encolar: bool = False, deshacer: bool = True) -> None:
     config = p.espacio.config()
     antes = {k: config.get(k) for k in cambios}
     config.update(cambios)
     p.espacio.escribir_json("config.json", config)
-    _accion(p, {"tipo": "config", "antes": antes, "encolar": encolar})
+    # "despues": si alguien lo cambia por otro lado, el deshaz no le pisa ese cambio.
+    _accion(p, {"tipo": "config", "antes": antes, "despues": dict(cambios), "encolar": encolar} if deshacer else None)
 
 
 def enciende(p: Pedido) -> str:
@@ -878,7 +949,7 @@ def enciende(p: Pedido) -> str:
 def pausa(p: Pedido) -> str:
     config = p.espacio.config()
     antes = {"canal": config.get("canal", "oficial"), "encendido": config.get("encendido", "sombra")}
-    _cambiar_config(p, {"encendido": "sombra"}, encolar=True)
+    _cambiar_config(p, {"encendido": "sombra"}, deshacer=False)  # una pausa se levanta con "enciende", no con "deshaz"
     p.espacio.agregar_linea("cambios_canal.jsonl", {"antes": antes, "ahora": {"canal": antes["canal"], "encendido": "sombra"},
                                                     "por": p.nombre, "via": "mesa", "en": _ahora()})
     return "Envío en pausa. No sale nada hasta que escriba: enciende el envío"
@@ -1033,7 +1104,7 @@ def aprueba_perfil(p: Pedido) -> str:
         perfil.aprobar(p.espacio, n, aprobador=p.nombre)
     except (perfil.AprobacionInvalida, ValueError) as err:
         return f"No se pudo: {err}"
-    _accion(p, {"tipo": "perfil", "antes": v})
+    _accion(p, {"tipo": "perfil", "antes": v, "puso": n})
     return f"Versión {n} activa. El agente cotiza con esa lista desde ahora. Para regresar: deshaz"
 
 
@@ -1211,10 +1282,16 @@ def quita_admin(p: Pedido) -> str:
 
 
 def _reportes(p: Pedido, silenciar: bool) -> str:
+    from .mesa import _diez
+    yo = _diez(p.hilo)
     actuales = list(p.espacio.config().get("reportes_silenciados", []) or [])
-    nuevos = sorted(set(actuales) | {p.de}) if silenciar else [x for x in actuales if x != p.de]
+    nuevos = sorted(set(actuales) | {yo}) if silenciar else [x for x in actuales if x != yo]
     if nuevos != actuales:
-        _cambiar_config(p, {"reportes_silenciados": nuevos})
+        config = p.espacio.config()
+        config["reportes_silenciados"] = nuevos
+        p.espacio.escribir_json("config.json", config)
+        # Se deshace solo SU renglón: el de las demás administradoras no se toca.
+        _accion(p, {"tipo": "reportes", "admin": yo, "antes": yo in actuales})
     return ("Listo: ya no le mando los reportes de las 9 y las 19. Para volver: activa los reportes" if silenciar
             else "Listo: le vuelvo a mandar los reportes de las 9 y las 19.")
 
@@ -1233,7 +1310,7 @@ MANEJADORES = {
     "reclamos": reclamos, "nuevos": nuevos, "medios": medios, "seguimiento": seguimiento, "ficha": ficha,
     "historial": historial_, "busca": busca, "notas": notas, "marcados": marcados, "nota": nota,
     "no_escribir": no_escribir_, "si_escribir": si_escribir, "lo_llevo": lo_llevo, "suelta": suelta,
-    "atendido": atendido, "cerro": cerro, "dile": dile, "aprueba_borradores": aprueba_borradores,
+    "atendido": atendido, "cerro": cerro, "dile": dile, "confirma": confirma, "cancela": cancela, "aprueba_borradores": aprueba_borradores,
     "descarta": descarta, "aprueba": aprueba, "descarta_ronda": descarta_ronda, "borradores": borradores,
     "rondas": rondas_, "ronda": ronda, "desenlace": desenlace_, "cola": cola, "enviados": enviados,
     "fallidos": fallidos, "canal": canal_, "enciende": enciende, "pausa": pausa, "ritmo": ritmo, "tope": tope,
