@@ -64,9 +64,19 @@ class Ritmo:
         return r
 
 
+#: Lo que no salió solo porque el envío estaba en pausa o sin WhatsApp vuelve a la cola al encender;
+#: lo que salió, o no salió por otra razón (el cliente escribió, fecha apartada…), no (tercera revisión).
+REENCOLABLE = ("espacio en sombra", "sin conector")
+
+
+def reencolable(espacio: Espacio, salida_id: str) -> bool:
+    ultimo = _hechos(espacio).get(salida_id)
+    return bool(ultimo) and not ultimo.get("enviado") and str(ultimo.get("motivo", "")).startswith(REENCOLABLE)
+
+
 def encolar(espacio: Espacio, salida_id: str, ahora: datetime | None = None) -> None:
     ya = {e["salida"] for e in espacio.leer_lineas(COLA)}
-    if salida_id in ya:
+    if salida_id in ya and (salida_id in pendientes(espacio) or not reencolable(espacio, salida_id)):
         return
     espacio.agregar_linea(COLA, {"salida": salida_id,
                                  "encolada": (ahora or datetime.now(timezone.utc)).isoformat(timespec="seconds")})
@@ -78,8 +88,15 @@ def _hechos(espacio: Espacio) -> dict[str, dict]:
 
 
 def pendientes(espacio: Espacio) -> list[str]:
-    hechos = _hechos(espacio)
-    return [e["salida"] for e in espacio.leer_lineas(COLA) if e["salida"] not in hechos]
+    """Lo encolado más veces de las que se resolvió (una salida reencolada al encender cuenta otra vez)."""
+    from collections import Counter
+    resueltas = Counter(e["salida"] for e in espacio.leer_lineas(ENVIADOS) if e.get("salida"))
+    vistas, salida = Counter(), []
+    for e in espacio.leer_lineas(COLA):
+        vistas[e["salida"]] += 1
+        if vistas[e["salida"]] > resueltas[e["salida"]] and e["salida"] not in salida:
+            salida.append(e["salida"])
+    return salida
 
 
 def _enviados_hoy(espacio: Espacio, ahora: datetime) -> list[dict]:

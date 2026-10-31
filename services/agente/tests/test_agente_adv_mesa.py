@@ -8,6 +8,8 @@ son los que tienen prueba. Las frases de la plática normal que se leían como
 orden que cambia algo están en `test_adv_mesa_platica_no_cambia_nada`."""
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import pytest
 from agente import agente, capacidades, enviador, mesa, ordenes, perfil, rondas, vinculado
 from tests.test_agente_enjambre import HILO, _ronda
@@ -251,10 +253,12 @@ def test_adv2_precios_de_ambas(con_mesa):
     assert "Lista activa" in _orden(con_mesa, "precios las dos")
 
 
-def test_adv2_una_orden_vacia_no_gasta_el_deshaz(con_mesa):
+def test_adv2_una_orden_vacia_tampoco_deja_deshacer_la_de_antes(con_mesa):
+    """La segunda revisión pedía que una orden vacía no gastara el deshaz; la tercera mostró que entonces
+    "deshaz" revertía la orden ANTERIOR sin que ella lo supiera. Gana lo seguro: la última es la vacía."""
     _orden(con_mesa, f"nota {HILO[-4:]} paga el viernes")
     _orden(con_mesa, "descarta la ronda")  # no hay ronda: no cambia nada
-    assert "Borré la nota" in _orden(con_mesa, "deshaz")
+    assert "no se puede deshacer" in _orden(con_mesa, "deshaz") and capacidades._notas_de(con_mesa)
 
 
 def test_adv2_aprobar_una_ronda_grande_no_detiene_al_lector(con_mesa):
@@ -279,3 +283,95 @@ def test_adv2_aprobar_una_ronda_grande_no_detiene_al_lector(con_mesa):
     inicio = time.perf_counter()
     r = _orden(con_mesa, "aprueba la ronda")
     assert "Aprobé 120" in r and time.perf_counter() - inicio < 3, (r, time.perf_counter() - inicio)
+
+
+# ------------------------------------- tercera revisión: lo que los arreglos dejaron abierto
+def _on(e):
+    vinculado.publicar(e, "conectado")
+    _orden(e, "enciende el envío")
+
+
+def _ap(e):
+    return sorted((r["desde"], r["hasta"]) for r in capacidades.apartados_a_mano(e))
+
+
+def test_adv3_h1_si_a_quiso_decir_no_manda_dictado(con_mesa):
+    _on(con_mesa)
+    _orden(con_mesa, "dile a 7777 que ya está apartado")
+    assert "Quiso decir" in _orden(con_mesa, "¿cerró el 7777?")
+    _orden(con_mesa, "sí")
+    assert not _dictadas(con_mesa)
+
+def test_adv3_h1b_ahora_si_no_es_mandalo(con_mesa):
+    _on(con_mesa)
+    _orden(con_mesa, "dile a 7777 que ya está apartado")
+    _orden(con_mesa, "Ahora sí")
+    assert not _dictadas(con_mesa)
+
+def test_adv3_h2_deshaz_tras_dile(con_mesa):
+    _on(con_mesa)
+    _orden(con_mesa, "nota 7777 paga el viernes")
+    _orden(con_mesa, "dile a 7777 que ya está apartado")
+    _orden(con_mesa, "deshaz")
+    assert capacidades._notas_de(con_mesa)   # la nota no se toca
+    _orden(con_mesa, "va")
+    assert not _dictadas(con_mesa)           # y el dictado ya no sale
+
+def test_adv3_h2b_deshaz_tras_orden_fallida(con_mesa):
+    _orden(con_mesa, "no le escribas a 7777")
+    _orden(con_mesa, "cerró 9999 15000")
+    _orden(con_mesa, "deshaz")
+    assert capacidades.no_escribir(con_mesa, HILO)
+
+def test_adv3_h3_aprueba_la_lista_no_activa_precios(con_mesa):
+    _on(con_mesa)
+    rondas.cargar(con_mesa, _ronda())
+    v0 = perfil.version_activa(con_mesa)
+    perfil.proponer(con_mesa, perfil.activo(con_mesa), autor="enjambre", nombre="v2")
+    _orden(con_mesa, "borradores")
+    _orden(con_mesa, "aprueba la lista")
+    assert perfil.version_activa(con_mesa) == v0
+
+def test_adv3_h4_dictado_aprobado_en_pausa_se_puede_cancelar(con_mesa):
+    vinculado.publicar(con_mesa, "conectado")
+    _orden(con_mesa, "dile a 7777 que ya está apartado")
+    assert "No lo mandé" in _orden(con_mesa, "sí, mándalo")  # en pausa no se aprueba para "más tarde"
+    _orden(con_mesa, "no lo mandes")
+    _orden(con_mesa, "enciende el envío")
+    assert not enviador.pendientes(con_mesa)
+
+def test_adv3_h5_dictado_con_pregunta_al_cliente(con_mesa):
+    _on(con_mesa)
+    assert "¿Lo mando?" in _orden(con_mesa, "dile a 7777 que ¿a qué hora llegan?")
+
+def test_adv3_h6_anota_cantidades_no_va_a_un_cliente(con_mesa):
+    _orden(con_mesa, "pendientes")
+    _orden(con_mesa, "Anota 2 kilos de carne")
+    assert not capacidades._notas_de(con_mesa)
+
+def test_adv3_h7_maximo_a_secas_no_baja_el_tope(con_mesa):
+    _orden(con_mesa, "Máximo 8")
+    assert "tope_dia" not in (con_mesa.config().get("envio") or {})
+
+def test_adv3_h9_manda_el_reporte_es_el_reporte(con_mesa):
+    assert ordenes.leer("Manda el reporte")["orden"] == "estado"
+
+def test_adv3_h10_deshaz_aparta_tras_libera_por_http(con_mesa):
+    _orden(con_mesa, "aparta finca del 1 al 15 de noviembre de 2027")
+    mesa.por_fuera(con_mesa, "libera finca del 9 al 11 de noviembre de 2027", solo_lectura=False, via="http")
+    r = _orden(con_mesa, "deshaz")
+    assert not _ap(con_mesa) or r.startswith("No lo deshice")
+
+def test_adv3_h11_deshaz_enciende_no_pierde_aprobadas(con_mesa):
+    rondas.cargar(con_mesa, _ronda())
+    vinculado.publicar(con_mesa, "conectado")
+    _orden(con_mesa, "borradores")
+    _orden(con_mesa, "aprueba todos")
+    _orden(con_mesa, "enciende el envío")
+    _orden(con_mesa, "deshaz")
+    enviador.turno(con_mesa, lambda h, t: "wamid.x", datetime(2026, 11, 2, 17, 0, tzinfo=timezone.utc))
+    _orden(con_mesa, "enciende el envío")
+    assert enviador.pendientes(con_mesa)
+
+def test_adv3_h12_signo_de_apertura_es_pregunta():
+    assert ordenes.leer("¿Cerró el 4521").get("pregunta")

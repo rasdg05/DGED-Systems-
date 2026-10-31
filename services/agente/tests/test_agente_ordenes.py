@@ -214,14 +214,12 @@ def test_lo_llevo_yo_calla_al_equipo_pero_no_a_ella(con_mesa):
     assert canal.motivo_para_no_enviar(con_mesa, s) == ""
 
 
-def test_dile_en_pausa_queda_aprobado_y_sale_al_encender(con_mesa):
+def test_dile_en_pausa_no_se_aprueba_para_mas_tarde(con_mesa):
     vinculado.publicar(con_mesa, "conectado")
     _orden(con_mesa, f"dile a {HILO[-4:]} que con gusto")
-    r = _orden(con_mesa, "sí, mándalo")
-    assert "no sale por ahora" in r and "enciende el envío" in r
-    assert not enviador.pendientes(con_mesa)
-    assert "Ya van a la cola 1" in _orden(con_mesa, "enciende el envío")
-
+    assert "No lo mandé" in _orden(con_mesa, "sí, mándalo")
+    assert not [s for s in agente.salidas(con_mesa) if s.via == "mesa"]
+    assert "Ya van a la cola" not in _orden(con_mesa, "enciende el envío")
 
 def test_atendido_sale_de_pendientes_hasta_que_vuelva_a_escribir(con_mesa):
     _orden(con_mesa, f"ya le contesté a {HILO[-4:]}")

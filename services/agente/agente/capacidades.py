@@ -196,7 +196,13 @@ def _deshacer(p: Pedido, d: dict) -> str:
     if tipo == "reserva":
         e.agregar_linea(RESERVAS, {"id": d["id"], "borrada": True, "en": _ahora()})
         return "Quité esa renta de las asentadas."
+    if tipo == "dictado":
+        _tomar_dictado(p)
+        return "Listo: no lo mando."
     if tipo == "manual":
+        vivos = {r["id"] for r in apartados_a_mano(e)}
+        if d.get("activo") is False and not set(d["ids"]) <= vivos:
+            return "No lo deshice: después se liberó una parte por otro lado. Escriba calendario para ver cómo quedó."
         for i in d["ids"]:
             e.agregar_linea(MANUAL, {"id": i, "activo": d["activo"], "en": _ahora()})
         return "Listo: el calendario quedó como estaba."
@@ -668,7 +674,16 @@ def dile(p: Pedido) -> str:
     dictados = p.espacio.leer_json(DICTADOS, {}) or {}
     dictados[p.de] = {"hilo": hilo, "texto": texto, "en": _ahora()}
     p.espacio.escribir_json(DICTADOS, dictados)
-    return f"Le mando a …{hilo[-4:]}:\n«{texto}»\n¿Lo mando? Conteste: sí, mándalo (o: no lo mandes)"
+    _accion(p, {"tipo": "dictado"})  # "deshaz" justo después lo cancela, no deshace la orden de antes
+    return f"Le mando a …{hilo[-4:]}:\n«{texto}»\n¿Lo mando? Conteste: mándalo (o: no lo mandes)"
+
+
+def olvidar_dictado(espacio: Espacio, de: str) -> None:
+    """Cualquier otra orden deja sin efecto lo dictado: el "mándalo" vale para lo último que se le enseñó."""
+    dictados = espacio.leer_json(DICTADOS, {}) or {}
+    if de in dictados:
+        dictados.pop(de)
+        espacio.escribir_json(DICTADOS, dictados)
 
 
 def hay_dictado(espacio: Espacio, de: str) -> bool:
@@ -697,6 +712,11 @@ def confirma(p: Pedido) -> str:
     if not d:
         return ""
     hilo, texto = d["hilo"], d["texto"]
+    c = p.espacio.config()
+    if c.get("encendido") != "sin_cifra" or not canal.configurado(p.espacio):
+        # No se aprueba para "más tarde": saldría días después, al encender, sin que nadie lo recuerde (tercera revisión).
+        return ("No lo mandé: el envío está en pausa o el WhatsApp no está conectado. Cuando escriba "
+                "enciende el envío, díctemelo otra vez.")
     ms = historial.hilos(p.espacio).get(hilo, [])
     salida = agente.Salida(cliente_id=p.espacio.cliente_id, hilo=hilo, responde_a=ms[-1].id if ms else "",
                            via="mesa", texto=texto, motivo=f"dictado por {p.nombre} en la mesa",

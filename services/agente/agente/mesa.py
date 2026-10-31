@@ -166,7 +166,9 @@ def encolar_aprobadas(espacio: Espacio) -> int:
     from . import agente, canal, enviador
     ya = agente.aprobadas(espacio)
     vistas = {e["salida"] for e in espacio.leer_lineas(enviador.COLA)}
-    candidatas = [s for s in agente.salidas(espacio) if s.id in ya and s.id not in vistas and s.requiere_aprobacion]
+    en_cola = set(enviador.pendientes(espacio))
+    candidatas = [s for s in agente.salidas(espacio) if s.id in ya and s.requiere_aprobacion and s.id not in en_cola
+                  and (s.id not in vistas or enviador.reencolable(espacio, s.id))]
     if not candidatas:
         return 0
     ctx = canal.contexto(espacio)
@@ -187,14 +189,24 @@ def ejecutar(espacio: Espacio, hilo: str, orden: dict, via: str = "") -> str:
     spec = ordenes.POR_ID[orden["orden"]]
     de = f"{via}:{_diez(hilo)}" if via else _diez(hilo)
     if spec.id in ("confirma", "cancela") and not capacidades.hay_dictado(espacio, de):
-        return ""  # "sí" o "no" sin un dictado enfrente es plática: no se contesta
+        return ""  # "mándalo" o "no lo mandes" sin un dictado enfrente es plática: no se contesta
+    if spec.id not in ("dile", "confirma", "cancela"):
+        capacidades.olvidar_dictado(espacio, de)  # el "mándalo" vale para lo último que se le enseñó
     if spec.quien == ordenes.QUIEN_APRUEBA and not es_quien_aprueba(espacio, hilo):
         return "Eso solo lo puede ordenar quien aprueba las cotizaciones del negocio."
-    if orden.get("corregida") and spec.cambia:
-        return f"¿Quiso decir «{orden.get('como', spec.id)}»? Escríbalo así y lo hago."
     alta = espacio.leer_json("alta.json", {}) or {}
     nombre = (alta.get("aprobador") or "").strip() if es_quien_aprueba(espacio, hilo) else ""
-    return capacidades.MANEJADORES[spec.id](capacidades.Pedido(espacio, hilo, orden, nombre, via))
+    pedido = capacidades.Pedido(espacio, hilo, orden, nombre, via)
+    antes = len(espacio.leer_lineas(capacidades.ACCIONES))
+    if orden.get("corregida") and spec.cambia:
+        respuesta = f"¿Quiso decir «{orden.get('como', spec.id)}»? Escríbalo así y lo hago."
+    else:
+        respuesta = capacidades.MANEJADORES[spec.id](pedido)
+    if spec.cambia and spec.id != "deshaz" and len(espacio.leer_lineas(capacidades.ACCIONES)) == antes:
+        # Toda orden que cambia algo, aunque no haya cambiado nada (cliente no encontrado, pregunta), queda como
+        # la última: un "deshaz" después no revierte la de antes (tercera revisión).
+        capacidades._accion(pedido, None)
+    return respuesta
 
 
 def por_fuera(espacio: Espacio, texto: str, *, solo_lectura: bool, via: str) -> dict:

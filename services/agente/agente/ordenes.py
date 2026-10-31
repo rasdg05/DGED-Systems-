@@ -78,7 +78,7 @@ TABLA: tuple[Orden, ...] = (
     # ------------------------------------------------------------ el tablero
     _o("estado", r"(?:(?:el\s+|mi\s+)?(?:estado|reporte|resumen|tablero)(?:\s+(?:del dia|de hoy))?|pulso|numeros"
                  r"|como vamos(?:\s+hoy)?|como va todo|como va el negocio"
-                 r"|que hay|que tengo|mandame el reporte|reporte ya|dame el reporte|como estamos)",
+                 r"|que hay|que tengo|mandame el reporte|reporte ya|dame el reporte|como estamos|manda (?:el\s+)?reporte)",
        "tablero", "estado: el reporte del día (semáforo, envío, rondas, tiempo al número)"),
     _o("hoy", r"(?:hoy|que paso hoy|resumen de hoy|el dia|como va el dia|movimientos de hoy)", "tablero",
        "hoy: lo que pasó hoy (quién escribió, qué salió, qué contestaron)"),
@@ -148,9 +148,11 @@ TABLA: tuple[Orden, ...] = (
                r"(?![\s-]*\d)\s+que\s+(?P<texto>.+)",
        "clientes", "dile …1234 que ya está apartado: le enseño lo que saldría y sale cuando conteste sí, mándalo",
        QUIEN_APRUEBA, cambia=True),
-    _o("confirma", r"(?:si|va|ok|dale|sale)?\s*(?:mandalo|mandala|envialo|enviala|si mandalo|si envialo|si|va|dale)",
+    # Solo "mándalo" manda: un "sí" o un "va" sueltos contestan cualquier otra cosa (tercera revisión: el "sí" a un
+    # "¿Quiso decir…?" mandaba el dictado pendiente).
+    _o("confirma", r"(?:si|va|ok|dale|sale|ahora si)?\s*(?:mandalo|mandala|envialo|enviala)",
        "clientes", "sí, mándalo: manda lo que me dictó (vale 10 minutos)", QUIEN_APRUEBA, cambia=True),
-    _o("cancela", r"(?:no|no lo mandes|no la mandes|cancela|cancelalo|mejor no|no mandes eso)", "clientes",
+    _o("cancela", r"(?:no lo mandes|no la mandes|cancela|cancelalo|mejor no|no mandes eso)", "clientes",
        "no lo mandes: cancela lo que me dictó", QUIEN_APRUEBA, cambia=True),
     # ------------------------------------------------------- rondas y borradores
     _o("aprueba_borradores", rf"(?:aprueba|apruebo|apruebalos|mandalo|mandalos|aprobar)\s+(?:los\s+|el\s+)?"
@@ -192,7 +194,10 @@ TABLA: tuple[Orden, ...] = (
        "pausa el envío: no sale nada", QUIEN_APRUEBA, cambia=True),
     _o("ritmo", r"(?:ritmo|horario de envio|cuantos al dia|tope|limite)", "envio",
        "ritmo: cada cuánto, a qué hora y cuántos al día"),
-    _o("tope", r"(?:manda|envia|tope(?: de)?|limite(?: de)?|maximo)\s+(?:maximo\s+)?(?P<n>\d{1,3})(?:\s+(?:al|por)\s+dia)?",
+    # Con "al día" o "envíos": un "máximo 8" suelto es plática (tercera revisión).
+    _o("tope", r"(?:manda|envia|tope(?: de)?|limite(?: de)?|maximo)\s+(?:maximo\s+)?(?P<n>\d{1,3})"
+               r"(?:\s+(?:envios|mensajes))?\s+(?:al|por)\s+dia|(?:tope|limite|maximo)\s+(?:de\s+)?(?:envios|mensajes)"
+               r"\s+(?:de\s+)?(?P<n2>\d{1,3})",
        "envio", "máximo 50 al día: baja el tope de envíos (el techo es 100)", QUIEN_APRUEBA, cambia=True),
     # ------------------------------------------------------------ los precios
     _o("cotiza", r"(?:cotiza|cotizame|cotizacion|la cotizacion|una cotizacion|cuanto (?:es|sale|seria|cobro)|precio|dame precio|dame la cotizacion"
@@ -206,7 +211,8 @@ TABLA: tuple[Orden, ...] = (
        "perfil: qué versión de la lista y de las respuestas está activa"),
     _o("propuestas", r"(?:propuestas|versiones|cambios pendientes|que hay por aprobar del perfil)", "precios",
        "propuestas: versiones del perfil que esperan su sí"),
-    _o("aprueba_perfil", r"(?:aprueba|apruebo|activa|enciende)\s+(?:el\s+|la\s+)?(?:perfil|version|lista|precios)"
+    # "aprueba la lista" a secas, después de ver los borradores, era la lista de borradores (tercera revisión).
+    _o("aprueba_perfil", r"(?:aprueba|apruebo|activa|enciende)\s+(?:el\s+|la\s+|los\s+)?(?:perfil|version|lista de precios|precios)"
                          r"(?:\s+(?:version\s+)?v?(?P<n>\d{1,3}))?", "precios",
        "aprueba la versión 4: esa lista y esas respuestas quedan activas", QUIEN_APRUEBA, cambia=True),
     _o("faq", r"(?:faq|preguntas frecuentes|respuestas|respuestas guardadas|que contestas solo)", "precios",
@@ -248,7 +254,7 @@ TABLA: tuple[Orden, ...] = (
        QUIEN_APRUEBA, cambia=True),
     _o("silencia", r"(?:silencia|apaga|calla|ya no mandes|no mandes|pausa)\s+(?:los\s+|el\s+|mis\s+)?reportes?", "mesa",
        "silencia los reportes: ya no le llegan los de las 9 y las 19", cambia=True),
-    _o("activa_reportes", r"(?:activa|prende|enciende|manda|reanuda)\s+(?:los\s+|el\s+|mis\s+)?reportes?", "mesa",
+    _o("activa_reportes", r"(?:activa|prende|enciende|reanuda)\s+(?:los\s+|el\s+|mis\s+)?reportes?", "mesa",
        "activa los reportes: vuelven los de las 9 y las 19", cambia=True),
     _o("deshaz", r"(?:deshaz|deshacer|deshazlo|revierte|revertir)(?:\s+eso|\s+lo ultimo)?", "mesa",
        "deshaz: revierte su última orden, si fue hace menos de 30 minutos",
@@ -397,19 +403,31 @@ def _con_datos(o: Orden, m: re.Match, texto: str) -> dict:
     return d
 
 
+def _nota_con_cliente(texto: str, ref: str) -> bool:
+    """*"Anota 2 kilos de carne"* es la lista del súper: con el lugar en la lista (1–2 dígitos), la
+    nota pide decir que es un cliente (*"nota al 2 …"*, *"nota cliente 2 …"*) o dos puntos (*"nota 2: …"*)."""
+    if len(re.sub(r"\D", "", ref or "")) > 2:
+        return True
+    crudo = _crudo(texto).lower()
+    return bool(re.search(rf"(?:\b(?:al|a la|a|cliente|del|de la)\s+{re.escape(ref)}\b|\b{re.escape(ref)}\s*[:\-])", crudo))
+
+
 def leer(texto: str | None) -> dict | None:
     """`{"orden": id, …datos}` o None. Con errata corregida: `"corregida": True`."""
     t = normalizar(texto)
     if not t:
         return None
-    pregunta = "?" in (texto or "")
+    pregunta = "?" in (texto or "") or "¿" in (texto or "")
     if re.fullmatch(_REF, t):  # solo el cliente: "…1234", "777 123 4567"
         return {"orden": "ficha", "ref": _limpiar_ref(t)} if len(_limpiar_ref(t)) >= 4 else None
     for o in TABLA:
         if (m := o.patron.match(t)):
             if o.id == "recuerda" and not _RECUERDA_CON_DOS_PUNTOS.match(_crudo(texto or "")):
                 return None
-            if pregunta and o.cambia:
+            if o.id == "nota" and not _nota_con_cliente(texto or "", m.group("ref")):
+                return None
+            # Lo dictado y lo anotado ya se enseñan antes (o no salen de la mesa): su "?" es del cliente.
+            if pregunta and o.cambia and o.id not in ("dile", "nota"):
                 # *"¿cerró el 4521?"* es una pregunta, no una orden: lo que cambia algo se confirma antes.
                 return {**_con_datos(o, m, texto or ""), "corregida": True, "como": t, "pregunta": True}
             return _con_datos(o, m, texto or "")

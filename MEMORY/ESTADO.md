@@ -7,7 +7,7 @@
 - **Mesa de la dueña, 65 órdenes** (2026-10-31, D-056, LXXVIII–LXXXIV, rama `claude/gm-asistente-2026-10-31`,
   sale de `claude/demo-clinica-estetica`). **No desplegada.** `ordenes.py` (la tabla) + `capacidades.py` (lo que
   hace cada una); por WhatsApp, `POST /espacios/<id>/mesa`, `python -m agente.local mesa <id> "<orden>"` y el MCP.
-  Tres revisiones adversariales; 944 tests del repo en verde (cobertura 85.5%), batería de 647 frases como candado.
+  Cuatro revisiones adversariales; 959 tests del repo en verde (cobertura 85.5%), batería de 647 frases como candado.
   El siguiente reporte de las 9/19 le anuncia a cada administradora lo nuevo, una vez.
   - **Bloqueos (del dueño)**: el proxy de la sesión niega `fabulous-consideration-whatsapp.up.railway.app` (403);
     falta `TENANT_INTERNAL_TOKEN` en el entorno; la llave se pegó en el chat el 2026-10-31 (**rotarla**); y
