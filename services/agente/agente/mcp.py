@@ -36,6 +36,11 @@ HERRAMIENTAS = [
          "nombre": {"type": "string"}, "motivo": {"type": "string"},
          "agregar": {"type": "object"}, "quitar": {"type": "object"}},
          "required": ["nombre", "motivo"], "additionalProperties": False}},
+    {"name": "preguntar_a_la_mesa",
+     "description": ("Una orden de LECTURA de la mesa de la dueña (pendientes, ficha …1234, borradores, precios, "
+                     "calendario, huecos, resultados…). Las que cambian algo no pasan por aquí."),
+     "inputSchema": {"type": "object", "properties": {"texto": {"type": "string"}}, "required": ["texto"],
+                     "additionalProperties": False}},
 ]
 
 
@@ -66,6 +71,10 @@ class Servidor:
         n, descartados = perfil.proponer(self.espacio, nuevo, autor="agente de código (MCP)",
                                          nombre=f"{args['nombre']} — {args['motivo']}")
         return {"version": n, "estado": "propuesta: la enciende el dueño del negocio", "descartados": descartados}
+
+    def preguntar_a_la_mesa(self, args: dict) -> dict:
+        from . import mesa
+        return mesa.por_fuera(self.espacio, str(args.get("texto", "")), solo_lectura=True, via="mcp")
 
     def atender(self, pedido: dict) -> dict | None:
         metodo, ident = pedido.get("method"), pedido.get("id")

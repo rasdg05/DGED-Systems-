@@ -361,6 +361,25 @@ def cambiar_canal(cliente_id: str, canal_: str = Body(..., embed=True, alias="ca
     return {"antes": antes, "ahora": {"canal": canal_, "encendido": encendido}, "listo": canal.configurado(espacio)}
 
 
+@app.get("/espacios/{cliente_id}/mesa/ordenes.json")
+def ordenes_de_la_mesa(cliente_id: str, x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """Lo que la mesa entiende (`ordenes.TABLA`): para otra pantalla, otro sistema o el panel."""
+    from . import ordenes
+    _espacio(cliente_id, x_tenant_key or llave)
+    return {"ordenes": [{"id": o.id, "tema": o.tema, "ayuda": o.ayuda, "quien": o.quien, "cambia": o.cambia}
+                        for o in ordenes.TABLA]}
+
+
+@app.post("/espacios/{cliente_id}/mesa")
+def orden_a_la_mesa(cliente_id: str, texto: str = Body(..., embed=True), de_verdad: bool = Body(False, embed=True),
+                    x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:
+    """Una orden de la mesa sin WhatsApp, con la llave maestra. Sin `de_verdad` solo lee;
+    con él corre como quien aprueba según el alta y pasa por los mismos candados."""
+    from . import mesa
+    espacio = paginas.espacio_taller(cliente_id, x_tenant_key or llave)
+    return mesa.por_fuera(espacio, texto, solo_lectura=not de_verdad, via="http")
+
+
 @app.post("/espacios/{cliente_id}/rondas/{nombre}/aprobar")
 def aprobar_ronda(cliente_id: str, nombre: str, aprobador: str = Body(..., embed=True),
                   x_tenant_key: str | None = Header(default=None), llave: str | None = None) -> dict:

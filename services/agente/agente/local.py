@@ -13,6 +13,8 @@
     python -m agente.local servidor finca-quinta       # el panel en local, con la copia
     python -m agente.local desenlace finca-quinta      # qué pasó con cada ronda enviada
     python -m agente.local tiempos finca-quinta        # el tiempo al número por semana
+    python -m agente.local mesa finca-quinta "pendientes"                      # la mesa, solo lee
+    python -m agente.local mesa finca-quinta "aprueba la ronda" --de-verdad    # como quien aprueba
 
 **La copia local nunca llama a la API**: `bajar` deja `tope_usd_mes` en 0 y el
 espacio en sombra; `gasto.exigir_saldo` corta antes de cualquier llamada. Lo
@@ -92,16 +94,22 @@ def lotes(cliente_id: str, por_lote: int = 10, dias: int | None = None) -> tuple
     esperan respuesta (`tipo: contestar`) y las de seguimiento (`tipo: seguimiento`,
     D-041), cada una con su plática completa. `dias`: solo lo de los últimos N días
     (por defecto, la vigencia del semáforo)."""
-    from . import mesa, semaforo
+    from . import capacidades, mesa, semaforo
 
     espacio = _espacio(cliente_id)
     hilos = mesa.clientes(espacio, historial.hilos(espacio))
+    # Lo que la dueña decidió en la mesa: a quien no se le escribe o lo lleva ella no entra al
+    # enjambre, y lo que ya contestó tampoco (2026-10-31). Sus notas van con la plática.
+    fuera = {h for h in hilos if capacidades.no_escribir(espacio, h)} | capacidades.atendidos(espacio, hilos)
+    notas = {}
+    for n in capacidades._notas_de(espacio):
+        notas.setdefault(n["hilo"], []).append(n["texto"])
     lista = pendientes.leer(hilos)
     espera = {p.hilo: p for p in lista if p.estado == "espera"}
     limite = (dias if dias is not None else semaforo.DIAS_VIGENCIA) * 24
     atendidos = rondas.ya_atendidos(espacio)
     filas = [f for f in semaforo.leer(hilos) if f.horas <= limite and (f.hilo in espera or f.seguimiento)
-             and (f.hilo, f.ultimo_id) not in atendidos]
+             and (f.hilo, f.ultimo_id) not in atendidos and f.hilo not in fuera]
     carpeta = espacio.ruta(f"enjambre/{datetime.now(timezone.utc):%Y-%m-%dT%H%M}")
     carpeta.mkdir(parents=True, exist_ok=True)
     escritos = []
@@ -109,6 +117,7 @@ def lotes(cliente_id: str, por_lote: int = 10, dias: int | None = None) -> tuple
         platicas = [{"hilo": f.hilo, "tipo": "contestar" if f.hilo in espera else "seguimiento",
                      "estado": f.estado, "horas": f.horas, "ultimo_id": f.ultimo_id,
                      "dicho": espera[f.hilo].dicho if f.hilo in espera else f.dicho,
+                     "notas_de_la_duena": notas.get(f.hilo, []),
                      "mensajes": [{"id": m.id, "de": "negocio" if m.del_negocio else "cliente", "ts": m.ts,
                                    "tipo": m.tipo, "texto": m.texto}
                                   for m in hilos[f.hilo][-MENSAJES_POR_PLATICA:]]} for f in filas[i:i + por_lote]]
@@ -118,7 +127,7 @@ def lotes(cliente_id: str, por_lote: int = 10, dias: int | None = None) -> tuple
         escritos.append(ruta)
     return {**pendientes.resumen(lista), "para_el_enjambre": len(filas),
             "contestar": sum(1 for f in filas if f.hilo in espera),
-            "seguimiento": sum(1 for f in filas if f.hilo not in espera)}, escritos
+            "seguimiento": sum(1 for f in filas if f.hilo not in espera), "fuera_por_la_duena": len(fuera)}, escritos
 
 
 def _leer(ruta: str) -> dict:
@@ -142,6 +151,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("cliente_id"), ap.add_argument("ronda"), ap.add_argument("aprobador")
     ca = sub.add_parser("canal", help="por dónde y qué sale: oficial|vinculado, sombra|sin_cifra (D-037)")
     ca.add_argument("cliente_id"), ca.add_argument("canal"), ca.add_argument("encendido")
+    me = sub.add_parser("mesa", help="una orden de la mesa de la dueña, en producción (solo lee sin --de-verdad)")
+    me.add_argument("cliente_id"), me.add_argument("texto")
+    me.add_argument("--de-verdad", action="store_true", help="corre como quien aprueba (cambia lo que la orden diga)")
     do = sub.add_parser("documento", help="sube un documento del negocio para que el perfil lo cite")
     do.add_argument("cliente_id"), do.add_argument("archivo")
     a = p.parse_args(argv)
@@ -175,6 +187,9 @@ def main(argv: list[str] | None = None) -> int:
         print(_pedir("POST", f"/espacios/{a.cliente_id}/rondas/{a.ronda}/aprobar", {"aprobador": a.aprobador}).decode())
     elif a.orden == "canal":
         print(_pedir("POST", f"/espacios/{a.cliente_id}/canal", {"canal": a.canal, "encendido": a.encendido}).decode())
+    elif a.orden == "mesa":
+        r = json.loads(_pedir("POST", f"/espacios/{a.cliente_id}/mesa", {"texto": a.texto, "de_verdad": a.de_verdad}))
+        print(r.get("respuesta", r))
     elif a.orden == "documento":
         ruta = Path(a.archivo)
         texto = ruta.read_text(encoding="utf-8")

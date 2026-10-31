@@ -42,6 +42,12 @@ ENVIADOS = "mesa/enviados.jsonl"
 BITACORA = "mesa/bitacora.jsonl"
 REPORTES = "mesa/reportes.json"
 HORAS_REPORTE = (9, 19)
+NOVEDADES = "mesa/novedades.json"
+#: Lo nuevo de la mesa, una vez por administradora en su siguiente reporte (sube la clave al cambiar).
+NOVEDAD = ("2026-10-31", "Novedad: ahora me entiende más. Pruebe: «contestaron», «ficha …1234», «cotiza 8 personas "
+                         "del 9 al 11 de noviembre», «huecos», «borradores» y «aprueba 1 3», «no le escribas a …1234», "
+                         "«lo llevo …1234», «cerró …1234 15000», «dile a …1234 que …» y «deshaz». "
+                         "Escriba ayuda para ver todo.")
 TOPE_DIA = 40  # mensajes de la mesa por día, por si algo se encicla
 
 
@@ -185,6 +191,30 @@ def ejecutar(espacio: Espacio, hilo: str, orden: dict) -> str:
     return capacidades.MANEJADORES[spec.id](capacidades.Pedido(espacio, hilo, orden, nombre))
 
 
+def por_fuera(espacio: Espacio, texto: str, *, solo_lectura: bool, via: str) -> dict:
+    """La misma mesa sin WhatsApp: el panel, el taller (`local.py mesa`) o el MCP.
+
+    Corre como quien aprueba según el alta (sus listas numeradas son las mismas que
+    en su WhatsApp). `solo_lectura` no deja pasar nada que cambie algo: así el MCP
+    de afinación y una sesión de código miran sin tocar. Queda en la bitácora con su vía."""
+    from . import ordenes
+    orden = leer_orden(texto)
+    if orden is None:
+        quiso = ordenes.parece_orden(texto)
+        return {"orden": None, "respuesta": (f"No entendí la orden. ¿Quiso decir: {ordenes.POR_ID[quiso].ayuda.split(':')[0]}?"
+                                             if quiso else "No es una orden de la mesa. Escriba ayuda.")}
+    spec = ordenes.POR_ID[orden["orden"]]
+    if solo_lectura and spec.cambia:
+        return {"orden": spec.id, "respuesta": "Esta vía solo lee: esa orden cambia algo y la da quien aprueba."}
+    alta = espacio.leer_json("alta.json", {}) or {}
+    hilo = _hilo_de(espacio, _diez(alta.get("aprobador_telefono"))) if _diez(alta.get("aprobador_telefono")) else ""
+    if not hilo:
+        return {"orden": spec.id, "respuesta": "El alta no tiene el teléfono de quien aprueba."}
+    respuesta = ejecutar(espacio, hilo, orden)
+    _anotar(espacio, hilo, f"{spec.id} ({via})", respuesta)
+    return {"orden": spec.id, "respuesta": respuesta}
+
+
 def atender(espacio: Espacio, m: Mensaje) -> str | None:
     """Un mensaje de una administradora al WhatsApp del negocio. Contesta una orden
     conocida (o la ayuda si parece que pide algo) y deja la respuesta en el buzón.
@@ -235,8 +265,12 @@ def reporte_si_toca(espacio: Espacio, ahora: datetime | None = None) -> int:
         hechos[f"{ahora.date()}-{h}"] = ahora.isoformat(timespec="seconds")
     espacio.escribir_json(REPORTES, hechos)
     texto = reporte(espacio)
+    vistas = espacio.leer_json(NOVEDADES, {}) or {}
     for admin in sorted(admins):
-        encolar(espacio, _hilo_de(espacio, admin), texto)
+        nuevo = vistas.get(admin) != NOVEDAD[0]
+        encolar(espacio, _hilo_de(espacio, admin), texto + (f"\n\n{NOVEDAD[1]}" if nuevo else ""))
+        vistas[admin] = NOVEDAD[0]
+    espacio.escribir_json(NOVEDADES, vistas)
     return len(admins)
 
 

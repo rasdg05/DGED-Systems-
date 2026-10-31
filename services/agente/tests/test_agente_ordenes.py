@@ -352,3 +352,81 @@ def test_una_orden_que_truena_no_tumba_al_lector(con_mesa, monkeypatch):
     monkeypatch.setitem(capacidades.MANEJADORES, "estado", lambda p: 1 / 0)
     assert "No pude con esa orden" in _orden(con_mesa, "estado")
     assert con_mesa.leer_lineas(mesa.BITACORA)[-1]["orden"] == "error:estado"
+
+
+# ------------------------------------------------- la mesa por fuera de WhatsApp
+def test_la_mesa_por_http_solo_lee_sin_de_verdad_y_solo_con_la_maestra(con_mesa):
+    from agente.app import app
+    from agente.espacio import llave_de
+    from fastapi.testclient import TestClient
+    http, base = TestClient(app), f"/espacios/{con_mesa.cliente_id}"
+    maestra, del_cliente = {"llave": "secreto-de-prueba"}, {"llave": llave_de(con_mesa.cliente_id)}
+    tabla = http.get(f"{base}/mesa/ordenes.json", params=del_cliente).json()["ordenes"]
+    assert len(tabla) == len(ordenes.TABLA) and {"id", "ayuda", "quien", "cambia"} <= set(tabla[0])
+    assert http.post(f"{base}/mesa", params=del_cliente, json={"texto": "pendientes"}).status_code == 404
+    r = http.post(f"{base}/mesa", params=maestra, json={"texto": "pendientes"}).json()
+    assert r["orden"] == "pendientes" and r["respuesta"].startswith("Pendientes")
+    r = http.post(f"{base}/mesa", params=maestra, json={"texto": f"no le escribas a {HILO[-4:]}"}).json()
+    assert "solo lee" in r["respuesta"] and not capacidades.marcas(con_mesa)
+    r = http.post(f"{base}/mesa", params=maestra, json={"texto": f"no le escribas a {HILO[-4:]}", "de_verdad": True}).json()
+    assert "no le llega" in r["respuesta"] and capacidades.no_escribir(con_mesa, HILO)
+    assert con_mesa.leer_lineas(mesa.BITACORA)[-1]["orden"] == "no_escribir (http)"
+    assert "No es una orden" in http.post(f"{base}/mesa", params=maestra, json={"texto": "hola"}).json()["respuesta"]
+
+
+def test_la_mesa_desde_el_taller(con_mesa, monkeypatch, capsys):
+    import json as json_
+
+    from agente import local
+    pedidos = []
+
+    def pedir(metodo, ruta, cuerpo=None, **_):
+        pedidos.append((metodo, ruta, cuerpo))
+        return json_.dumps(mesa.por_fuera(con_mesa, cuerpo["texto"], solo_lectura=not cuerpo["de_verdad"],
+                                          via="taller")).encode()
+    monkeypatch.setattr(local, "_pedir", pedir)
+    assert local.main(["mesa", con_mesa.cliente_id, "borradores"]) == 0
+    assert "No hay nada esperando" in capsys.readouterr().out
+    local.main(["mesa", con_mesa.cliente_id, "pausa el envío"])
+    assert "solo lee" in capsys.readouterr().out
+    local.main(["mesa", con_mesa.cliente_id, "pausa el envío", "--de-verdad"])
+    assert "pausa" in capsys.readouterr().out.lower() and pedidos[-1][2]["de_verdad"] is True
+
+
+def test_el_mcp_pregunta_a_la_mesa_y_no_cambia_nada(con_mesa):
+    from agente import mcp
+    s = mcp.Servidor(con_mesa)
+    assert "preguntar_a_la_mesa" in {h["name"] for h in mcp.HERRAMIENTAS}
+    r = s.atender({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                   "params": {"name": "preguntar_a_la_mesa", "arguments": {"texto": "pendientes"}}})
+    assert "Pendientes" in r["result"]["content"][0]["text"]
+    r = s.atender({"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+                   "params": {"name": "preguntar_a_la_mesa", "arguments": {"texto": f"cerró {HILO[-4:]} 15000"}}})
+    assert "solo lee" in r["result"]["content"][0]["text"] and not con_mesa.leer_lineas(capacidades.RESERVAS)
+
+
+def test_el_enjambre_no_recibe_a_quien_la_duena_aparto_y_lleva_sus_notas(con_mesa, monkeypatch):
+    import json as json_
+
+    from agente import local
+    monkeypatch.setattr(local, "_espacio", lambda _id: con_mesa)
+    _orden(con_mesa, f"nota {HILO[-4:]} Prefiere que le hablen por la tarde")
+    _, escritos = local.lotes(con_mesa.cliente_id, dias=100_000)
+    platicas = [p for r in escritos for p in json_.loads(r.read_text(encoding="utf-8"))["platicas"]]
+    assert next(p for p in platicas if p["hilo"] == HILO)["notas_de_la_duena"] == ["Prefiere que le hablen por la tarde"]
+    _orden(con_mesa, "no le escribas a 4321")
+    _orden(con_mesa, f"lo llevo {HILO[-4:]}")
+    resumen, escritos = local.lotes(con_mesa.cliente_id, dias=100_000)
+    assert resumen["fuera_por_la_duena"] == 2
+    assert not any(p["hilo"] in (HILO, "5210000004321") for r in escritos
+                   for p in json_.loads(r.read_text(encoding="utf-8"))["platicas"])
+
+
+def test_la_novedad_va_una_sola_vez_en_el_reporte(con_mesa):
+    from datetime import datetime, timezone
+    mesa.reporte_si_toca(con_mesa, datetime(2026, 10, 30, 16, 0, tzinfo=timezone.utc))   # 10:00
+    mesa.reporte_si_toca(con_mesa, datetime(2026, 10, 31, 2, 0, tzinfo=timezone.utc))    # 20:00
+    reportes = [e["texto"] for e in con_mesa.leer_lineas(mesa.SALIDA) if e["para"] == DUENA]
+    assert len(reportes) == 2 and mesa.NOVEDAD[1] in reportes[0] and mesa.NOVEDAD[1] not in reportes[1]
+    for orden in ("contestaron", "ficha 1234", "huecos", "borradores", "deshaz"):  # lo que anuncia, se entiende
+        assert ordenes.leer(orden), orden
