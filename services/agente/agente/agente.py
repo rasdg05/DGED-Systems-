@@ -389,5 +389,26 @@ def aprobar_salida(espacio: Espacio, salida_id: str, aprobador: str) -> Salida:
     raise KeyError(salida_id)
 
 
+def aprobar_salidas(espacio: Espacio, ids: list[str], aprobador: str) -> list[Salida]:
+    """Varias de una vez (una ronda): una sola lectura de las salidas. Las ya aprobadas
+    y las que no existen se saltan; devuelve las que quedaron aprobadas ahora."""
+    alta = espacio.leer_json("alta.json", {}) or {}
+    autorizados = {a.strip().casefold() for a in [alta.get("aprobador", "")] + list(alta.get("asesores", []) or []) if a}
+    if aprobador.strip().casefold() not in autorizados:
+        raise perfil.AprobacionInvalida("solo aprueban las personas que el alta registra")
+    por_id = {s.id: s for s in salidas(espacio)}
+    hechas, vistas = [], set()
+    en = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    for i in ids:
+        s = por_id.get(i)
+        if s is None or s.aprobada_por or i in vistas:
+            continue
+        vistas.add(i)
+        s.aprobada_por = aprobador
+        espacio.agregar_linea("aprobaciones_salida.jsonl", {"id": i, "aprobador": aprobador, "en": en})
+        hechas.append(s)
+    return hechas
+
+
 def aprobadas(espacio: Espacio) -> dict[str, str]:
     return {r["id"]: r["aprobador"] for r in espacio.leer_lineas("aprobaciones_salida.jsonl")}

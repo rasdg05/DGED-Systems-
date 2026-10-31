@@ -198,6 +198,6 @@ def cargar(espacio: Espacio, ronda: dict) -> tuple[list[Salida], list[dict]]:
     return salidas, descartadas
 
 
-def se_movio(espacio: Espacio, salida: Salida) -> bool:
-    hilo = historial.hilos(espacio).get(salida.hilo) or []
+def se_movio(espacio: Espacio, salida: Salida, hilos: dict | None = None) -> bool:
+    hilo = (hilos if hilos is not None else historial.hilos(espacio)).get(salida.hilo) or []
     return not hilo or hilo[-1].id != salida.responde_a

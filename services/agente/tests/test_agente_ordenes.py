@@ -279,7 +279,7 @@ def test_aparta_a_mano_bloquea_la_cotizacion_al_enviar_y_se_libera(con_mesa):
     assert "finca" in calendario.apartada(con_mesa, cot)  # el canal lo revisa justo antes de mandar (LXIII)
     assert "OCUPADA" in _orden(con_mesa, "libre finca del 10 al 12 de noviembre de 2027")
     assert not calendario.Ocupacion.de(con_mesa).configurada  # lo apartado a mano no inventa un calendario
-    assert "Liberé 1" in _orden(con_mesa, "libera finca del 9 al 11 de noviembre de 2027")
+    assert "Liberé del 9 al 11" in _orden(con_mesa, "libera finca del 9 al 11 de noviembre de 2027")
     assert calendario.apartada(con_mesa, cot) == ""
     _orden(con_mesa, "deshaz")
     assert "finca" in calendario.apartada(con_mesa, cot)
@@ -432,3 +432,29 @@ def test_la_novedad_va_una_sola_vez_en_el_reporte(con_mesa):
     assert len(reportes) == 2 and mesa.NOVEDAD[1] in reportes[0] and mesa.NOVEDAD[1] not in reportes[1]
     for orden in ("contestaron", "ficha 1234", "huecos", "borradores", "deshaz"):  # lo que anuncia, se entiende
         assert ordenes.leer(orden), orden
+
+
+# ------------------------------------------------------------- la batería (candado)
+def _bateria() -> dict:
+    import json
+    from pathlib import Path
+    return json.loads((Path(__file__).parent / "corpus_mesa.json").read_text(encoding="utf-8"))
+
+
+def test_bateria_la_mesa_entiende_como_escribe_la_duena():
+    """Cada frase de la batería lee la orden que es. Se mide antes y después de tocar la tabla."""
+    fallan = [(oid, f, ordenes.leer(f)) for oid, frases in _bateria()["ordenes"].items() for f in frases
+              if (ordenes.leer(f) or {}).get("orden") != oid]
+    assert not fallan, fallan[:10]
+
+
+def test_bateria_la_platica_nunca_cambia_nada_sin_preguntar():
+    """Cero tolerancia: ninguna plática ni frase sacada a propósito ejecuta una orden que cambia algo
+    (las que se leen con errata o como pregunta se confirman antes; "sí"/"no" solo con un dictado enfrente)."""
+    b = _bateria()
+    peligrosas = []
+    for f in b["no_ordenes"] + b["sacadas_a_proposito"]:
+        r = ordenes.leer(f)
+        if r and ordenes.POR_ID[r["orden"]].cambia and not r.get("corregida") and r["orden"] not in ("confirma", "cancela"):
+            peligrosas.append((f, r))
+    assert not peligrosas, peligrosas

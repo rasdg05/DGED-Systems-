@@ -67,35 +67,47 @@ def configurado(espacio: Espacio) -> bool:
     return oficial(espacio) or vinculado_listo(espacio)
 
 
-def motivo_para_no_enviar(espacio: Espacio, salida: Salida) -> str:
-    """'' si la salida puede enviarse; si no, por qué."""
+def contexto(espacio: Espacio) -> dict:
+    """Lo que `motivo_para_no_enviar` lee del disco, leído una vez: para aprobar una ronda
+    de 120 sin releer el historial 240 veces (revisión del 2026-10-31: 14 s con el lector
+    detenido). Solo vale dentro de una misma orden: lo de afuera puede cambiar después."""
+    from . import calendario, capacidades, historial
+    return {"aprobadas": aprobadas(espacio), "descartadas": capacidades.descartadas(espacio),
+            "marcas": capacidades.marcas(espacio), "configurado": configurado(espacio),
+            "hilos": historial.hilos(espacio), "ocupacion": calendario.Ocupacion.de(espacio)}
+
+
+def motivo_para_no_enviar(espacio: Espacio, salida: Salida, ctx: dict | None = None) -> str:
+    """'' si la salida puede enviarse; si no, por qué. `ctx` (de `contexto`) evita releer el disco."""
     if salida.cliente_id != espacio.cliente_id:
         return "la salida es de otro cliente"
     from . import capacidades  # lo que la dueña ordenó por la mesa manda sobre lo aprobado (2026-10-31);
     # va antes que el conector: su decisión es lo que se le explica primero
-    if capacidades.descartada(espacio, salida.id):
+    if salida.id in (ctx["descartadas"] if ctx else capacidades.descartadas(espacio)):
         return capacidades.DESCARTADA
-    if salida.via != "mesa" and (marca := capacidades.no_escribir(espacio, salida.hilo)):
+    if salida.via != "mesa" and (marca := capacidades.no_escribir(espacio, salida.hilo,
+                                                                  ctx["marcas"] if ctx else None)):
         return marca  # lo que ella misma dicta sí sale: es su cliente y sus palabras
-    if not configurado(espacio):
+    if not (ctx["configurado"] if ctx else configurado(espacio)):
         return ("sin conector oficial (WHATSAPP_TOKEN y phone_number_id) ni vinculado conectado "
                 "con \"canal\": \"vinculado\": el agente no envía")
     from . import mesa
     if mesa.es_admin(espacio, salida.hilo):
         return "la plática es de una administradora: a ella le escribe la mesa, no la cola"
-    if salida.requiere_aprobacion and salida.id not in aprobadas(espacio):
+    ya = ctx["aprobadas"] if ctx else aprobadas(espacio)
+    if salida.requiere_aprobacion and salida.id not in ya:
         return "cotización sin aprobación de una persona"
-    if trae_dinero(salida.texto) and salida.via != "guardada" and salida.id not in aprobadas(espacio):
+    if trae_dinero(salida.texto) and salida.via != "guardada" and salida.id not in ya:
         # Defensa de fondo: una cifra que no viene de una guardada aprobada sale solo
         # con el sí de una persona, aunque alguien olvide marcar `requiere_aprobacion`.
         return "cifra sin aprobación de una persona"
     if salida.cotizacion:
         from . import calendario
-        if (apartada := calendario.apartada(espacio, salida.cotizacion)):
+        if (apartada := calendario.apartada(espacio, salida.cotizacion, ctx["ocupacion"] if ctx else None)):
             return apartada
     if salida.via == "ronda":
         from . import rondas  # rondas importa de agente; aquí se llega ya cargado
-        if rondas.se_movio(espacio, salida):
+        if rondas.se_movio(espacio, salida, ctx["hilos"] if ctx else None):
             return rondas.SE_MOVIO
     encendido = espacio.config().get("encendido", "sombra")
     if encendido not in ENCENDIDOS or encendido == "sombra":
@@ -123,10 +135,10 @@ def _post(url: str, cuerpo: dict) -> dict:
         return json.load(r)
 
 
-def enviar(espacio: Espacio, salida: Salida, transporte=_post) -> dict:
-    if not configurado(espacio):
-        raise CanalDormido(motivo_para_no_enviar(espacio, salida))
-    if (motivo := motivo_para_no_enviar(espacio, salida)):
+def enviar(espacio: Espacio, salida: Salida, transporte=_post, ctx: dict | None = None) -> dict:
+    if not (ctx["configurado"] if ctx else configurado(espacio)):
+        raise CanalDormido(motivo_para_no_enviar(espacio, salida, ctx))
+    if (motivo := motivo_para_no_enviar(espacio, salida, ctx)):
         raise EnvioNoPermitido(motivo)
     if not oficial(espacio):
         # Vinculado: se encola y la manda el proceso del lector, al paso de una

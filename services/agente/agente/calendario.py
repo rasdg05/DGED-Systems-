@@ -261,7 +261,8 @@ class Ocupacion:
     def disponibilidad(self, propiedad: str, llegada: date, salida: date) -> Disponibilidad:
         """Si las noches de `llegada` a `salida` (sin contarla) están libres en esa propiedad."""
         if propiedad == "ambas":
-            partes = [self.disponibilidad(p, llegada, salida) for p in sorted(self.por_propiedad)]
+            # También las casas sin calendario conectado que tienen algo apartado a mano (revisión 2026-10-31).
+            partes = [self.disponibilidad(p, llegada, salida) for p in sorted(set(self.por_propiedad) | set(self.bloques))]
             if not partes:
                 return Disponibilidad(propiedad, NO_SE_SABE, "sin calendario")
             choques = [c for p in partes for c in p.choques]
@@ -309,11 +310,11 @@ def de_la_cotizacion(oc: Ocupacion, cotizacion: dict | None) -> list[Disponibili
     return [oc.disponibilidad(p, llegada, salida) for p in props if p]
 
 
-def apartada(espacio: Espacio, cotizacion: dict | None) -> str:
+def apartada(espacio: Espacio, cotizacion: dict | None, oc: Ocupacion | None = None) -> str:
     """'' si nada de lo que ofrece la cotización está ocupado hoy; si no, qué.
     Se revisa al enviar: entre que se redactó y que una persona la aprobó, otra
     plataforma pudo vender esas noches (invariante LXIII)."""
-    oc = Ocupacion.de(espacio)
+    oc = oc or Ocupacion.de(espacio)
     if not oc.configurada and not oc.bloques:
         return ""
     ocupadas = [d.propiedad for d in de_la_cotizacion(oc, cotizacion) if d.estado == OCUPADA]

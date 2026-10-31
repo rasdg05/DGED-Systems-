@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
-from . import agente, calendario, canal, enviador, historial, mesa, semaforo
+from . import agente, calendario, canal, enviador, mesa, semaforo
 from .espacio import Espacio
 from .paginas import HORA_MX, _cuando, _enmascarar, _espacio, _fila, esc, icono, pagina, url
 
@@ -30,8 +30,8 @@ PLATAFORMAS = (("google", "Google Calendar"), ("airbnb", "Airbnb"), ("booking", 
 
 def _semaforo(espacio: Espacio) -> list:
     """El semáforo de las clientas, con lo que salió en ronda marcado (contestó al seguimiento)."""
-    hilos = mesa.clientes(espacio, historial.hilos(espacio))
-    return semaforo.leer(hilos, de_ronda=semaforo.nuestros(espacio, hilos))
+    from . import capacidades
+    return capacidades._filas(espacio)  # el mismo semáforo que el reporte: sin lo que la dueña ya contestó
 
 
 def _horas_txt(horas: float) -> str:
@@ -261,7 +261,7 @@ def resumen_inicio(espacio: Espacio) -> dict:
 def capacidades(espacio: Espacio, llave: str | None) -> str:
     """Lo que hace el asistente hoy, con su estado real (Asistente). Como la mesa de Gestor:
     lo que puede pedirle por WhatsApp va aquí también."""
-    from . import mesa, perfil
+    from . import perfil
 
     activo = perfil.activo(espacio) or {}
     con_lista = any(r.get("tipo") == "grupo" for r in activo.get("reglas", []) or [])

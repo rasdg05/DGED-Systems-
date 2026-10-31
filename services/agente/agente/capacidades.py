@@ -82,6 +82,11 @@ def _id() -> str:
     return uuid.uuid4().hex[:10]
 
 
+def _local(iso: str) -> datetime:
+    """Una hora guardada en UTC, como la lee la dueña (hora de México)."""
+    return datetime.fromisoformat(iso).astimezone(ZONA)
+
+
 def _hoy() -> date:
     return datetime.now(ZONA).date()
 
@@ -120,10 +125,10 @@ def marcar(espacio: Espacio, hilo: str, tipo: str, valor: bool, por: str) -> dic
     return registro
 
 
-def no_escribir(espacio: Espacio, hilo: str) -> str:
+def no_escribir(espacio: Espacio, hilo: str, todas: dict | None = None) -> str:
     """'' si al cliente se le puede escribir; si no, por qué. Lo revisa el canal antes de
     cada envío y las rondas al cargar (`canal.motivo_para_no_enviar`, `rondas.validar`)."""
-    m = marcas(espacio).get(hilo, {})
+    m = (todas if todas is not None else marcas(espacio)).get(hilo, {})
     if "no_escribir" in m:
         return NO_SE_LE_ESCRIBE
     if "lo_llevo" in m:
@@ -180,7 +185,10 @@ def _deshacer(p: Pedido, d: dict) -> str:
     e = p.espacio
     tipo = d["tipo"]
     if tipo == "marca":
-        marcar(e, d["hilo"], d["marca"], d["antes"], p.nombre or "mesa")
+        if d.get("previo"):  # la marca de antes, tal cual (su hora y quién), no una nueva con la hora de hoy
+            e.agregar_linea(MARCAS, dict(d["previo"], restaurada=_ahora()))
+        else:
+            marcar(e, d["hilo"], d["marca"], bool(d["antes"]), p.nombre or "mesa")
         return f"Listo: {_mask(d['hilo'])} quedó como estaba."
     if tipo == "nota":
         e.agregar_linea(NOTAS, {"id": d["id"], "borrada": True, "en": _ahora()})
@@ -193,6 +201,8 @@ def _deshacer(p: Pedido, d: dict) -> str:
             e.agregar_linea(MANUAL, {"id": i, "activo": d["activo"], "en": _ahora()})
         return "Listo: el calendario quedó como estaba."
     if tipo == "manual_reactivar":
+        for i in d.get("pedazos", []):  # lo que quedó apartado de los lados se quita: vuelve el bloque entero
+            e.agregar_linea(MANUAL, {"id": i, "activo": False, "en": _ahora()})
         for r in d["registros"]:
             e.agregar_linea(MANUAL, dict(r, activo=True, en=_ahora()))
         return "Listo: lo apartado volvió a quedar apartado."
@@ -210,6 +220,9 @@ def _deshacer(p: Pedido, d: dict) -> str:
             else:
                 config[k] = v
         e.escribir_json("config.json", config)
+        if {"canal", "encendido"} & set(d["antes"]):
+            e.agregar_linea("cambios_canal.jsonl", {"antes": d["despues"], "ahora": d["antes"], "por": p.nombre,
+                                                   "via": "mesa (deshaz)", "en": _ahora()})
         if d.get("encolar"):
             from . import mesa
             mesa.encolar_aprobadas(e)
@@ -473,11 +486,17 @@ def ficha(p: Pedido) -> str:
     if "no_escribir" in m:
         lineas.append("No se le escribe (lo pidió usted).")
     for n_ in _notas_de(p.espacio, hilo)[-3:]:
-        lineas.append(f"Nota ({n_['en'][:10]}): {_txt(n_['texto'], 120)}")
+        lineas.append(f"Nota ({_local(n_['en']):%d/%m}): {_txt(n_['texto'], 120)}")
     for r in [r for r in _reservas_vivas(p.espacio) if r["hilo"] == hilo]:
-        lineas.append("Rentó" + (f": {_pesos(r['monto_centavos'])}" if r.get("monto_centavos") else "") + f" ({r['en'][:10]}).")
-    _guardar_lista(p, "clientes", [hilo])
-    lineas.append("Historial: historial 1 · Nota: nota 1 <texto> · Dictarle: dile 1 que …")
+        lineas.append("Rentó" + (f": {_pesos(r['monto_centavos'])}" if r.get("monto_centavos") else "")
+                      + f" ({_local(r['en']):%d/%m}).")
+    lista = _lista_guardada(p, "clientes")
+    if hilo in lista:  # ver una ficha no borra la lista de donde salió (revisión 2026-10-31)
+        n = lista.index(hilo) + 1
+    else:
+        _guardar_lista(p, "clientes", [hilo])
+        n = 1
+    lineas.append(f"Historial: historial {n} · Nota: nota {n} <texto> · Dictarle: dile {n} que …")
     return "\n".join(lineas)
 
 
@@ -531,11 +550,11 @@ def notas(p: Pedido) -> str:
         lista = _notas_de(p.espacio, hilo)
         if not lista:
             return f"…{hilo[-4:]} no tiene notas."
-        return f"Notas de …{hilo[-4:]}:\n" + "\n".join(f"· {n['en'][:10]} {n['por']}: {n['texto']}" for n in lista)
+        return f"Notas de …{hilo[-4:]}:\n" + "\n".join(f"· {_local(n['en']):%d/%m} {n['por']}: {n['texto']}" for n in lista)
     lista = _notas_de(p.espacio)[-10:]
     if not lista:
         return "No hay notas todavía. Para dejar una: nota …1234 <texto>"
-    return "Últimas notas:\n" + "\n".join(f"· …{n['hilo'][-4:]} {n['en'][:10]}: {_txt(n['texto'])}" for n in lista)
+    return "Últimas notas:\n" + "\n".join(f"· …{n['hilo'][-4:]} {_local(n['en']):%d/%m}: {_txt(n['texto'])}" for n in lista)
 
 
 def marcados(p: Pedido) -> str:
@@ -571,9 +590,9 @@ def _marca_orden(tipo: str, valor: bool, hecho: str):
         hilo, error = resolver(p, p.orden.get("ref"))
         if not hilo:
             return error
-        antes = tipo in marcas(p.espacio).get(hilo, {})
+        previo = marcas(p.espacio).get(hilo, {}).get(tipo)
         marcar(p.espacio, hilo, tipo, valor, p.nombre)
-        _accion(p, {"tipo": "marca", "hilo": hilo, "marca": tipo, "antes": antes})
+        _accion(p, {"tipo": "marca", "hilo": hilo, "marca": tipo, "antes": previo is not None, "previo": previo})
         return hecho.format(c=f"…{hilo[-4:]}")
     return manejador
 
@@ -627,7 +646,7 @@ def reservas(p: Pedido) -> str:
     total = sum(r["monto_centavos"] for r in con)
     lineas = [f"Rentas asentadas en {ordenes._MES_N[hoy_.month]}: {len(del_mes)}"
               + (f", {_pesos(total)} en {_plural(len(con), 'renta')} con monto" if con else "") + "."]
-    lineas += [f"· …{r['hilo'][-4:]} {r['en'][8:10]}/{r['en'][5:7]}"
+    lineas += [f"· …{r['hilo'][-4:]} {_local(r['en']):%d/%m}"
                + (f": {_pesos(r['monto_centavos'])}" if r.get("monto_centavos") else "") for r in del_mes[-10:]]
     return "\n".join(lineas)
 
@@ -716,7 +735,7 @@ def borradores(p: Pedido) -> str:
         de = s.motivo.split(":")[0] if s.motivo.startswith("ronda ") else s.via
         lineas.append(f"{i}) …{s.hilo[-4:]} [{de}]: {_txt(s.texto, 90)}")
     if len(lista) > 15:
-        lineas.append(f"…y {len(lista) - 15} más. Para toda la ronda: aprueba la ronda")
+        lineas.append(f"…y {len(lista) - 15} más. «aprueba todos» manda solo estos 15; para toda la ronda: aprueba la ronda")
     lineas.append("Para mandar: aprueba 1 3 · para quitar: descarta 2 · todos: aprueba todos")
     return "\n".join(lineas)
 
@@ -735,25 +754,20 @@ def _elegidos(p: Pedido) -> tuple[list[str], str]:
 
 
 def _aprobar_y_encolar(p: Pedido, ids: list[str]) -> tuple[int, int, dict]:
+    """En lote: una lectura del disco para toda la ronda (antes, 14 s con 120 y el lector detenido)."""
     from . import agente, canal
     from .operacion import motivo_amable
-    aprobadas_, encoladas, no_salen = 0, 0, {}
-    ya = agente.aprobadas(p.espacio)
+    encoladas, no_salen = 0, {}
     fuera = descartadas(p.espacio)
-    for salida_id in ids:
-        if salida_id in ya or salida_id in fuera:
-            continue
-        try:
-            salida = agente.aprobar_salida(p.espacio, salida_id, p.nombre)
-        except KeyError:
-            continue
-        aprobadas_ += 1
-        if (motivo := canal.motivo_para_no_enviar(p.espacio, salida)):
+    nuevas = agente.aprobar_salidas(p.espacio, [i for i in ids if i not in fuera], p.nombre)
+    ctx = canal.contexto(p.espacio)
+    for salida in nuevas:
+        if (motivo := canal.motivo_para_no_enviar(p.espacio, salida, ctx)):
             no_salen[motivo_amable(motivo)] = no_salen.get(motivo_amable(motivo), 0) + 1
             continue
-        canal.enviar(p.espacio, salida)
+        canal.enviar(p.espacio, salida, ctx=ctx)
         encoladas += 1
-    return aprobadas_, encoladas, no_salen
+    return len(nuevas), encoladas, no_salen
 
 
 def _texto_aprobadas(p: Pedido, aprobadas_: int, encoladas: int, no_salen: dict, de: str = "") -> str:
@@ -786,6 +800,8 @@ def descarta(p: Pedido) -> str:
         return error
     ya = agente.aprobadas(p.espacio)
     ids = [i for i in ids if i not in descartadas(p.espacio) and i not in ya]
+    if not ids:
+        return "No había nada que descartar."
     for i in ids:
         p.espacio.agregar_linea(DESCARTES, {"id": i, "valor": True, "por": p.nombre, "en": _ahora()})
     _accion(p, {"tipo": "descartes", "ids": ids})
@@ -823,6 +839,8 @@ def descarta_ronda(p: Pedido) -> str:
     ya = agente.aprobadas(p.espacio)
     fuera = descartadas(p.espacio)
     ids = [i for i in ronda.get("salidas", []) if i not in ya and i not in fuera]
+    if not ids:
+        return f"De la ronda {ronda['nombre']} no queda nada por descartar."
     for i in ids:
         p.espacio.agregar_linea(DESCARTES, {"id": i, "valor": True, "por": p.nombre, "en": _ahora()})
     _accion(p, {"tipo": "descartes", "ids": ids})
@@ -899,7 +917,7 @@ def enviados(p: Pedido) -> str:
     lineas = [f"Salieron hoy ({len(hoy_)}):"]
     for e in hoy_[-12:]:
         s = salidas.get(e.get("salida", ""))
-        lineas.append(f"· {e['cuando'][11:16]} …{(e.get('hilo') or (s.hilo if s else '????'))[-4:]}"
+        lineas.append(f"· {_local(e['cuando']):%H:%M} …{(e.get('hilo') or (s.hilo if s else '????'))[-4:]}"
                       + (f": {_txt(s.texto, 60)}" if s else ""))
     return "\n".join(lineas)
 
@@ -1049,6 +1067,7 @@ def precios(p: Pedido) -> str:
     if not activo:
         return "No hay lista de precios aprobada todavía."
     prop, _ = _prop_y_resto(p)
+    prop = None if prop == "ambas" else prop  # "precios las dos": la lista entera
     reglas = [r for r in activo.get("reglas", []) or [] if not prop or r.get("propiedad") in (prop, None)]
     if not reglas:
         return f"La lista no tiene precios de {prop}." if prop else "La lista no tiene precios."
@@ -1077,7 +1096,10 @@ def propuestas(p: Pedido) -> str:
     from . import perfil
     v = perfil.version_activa(p.espacio) or 0
     nuevas = [n for n in perfil.versiones(p.espacio) if n > v]
-    pendientes_ = len([r for r in p.espacio.leer_lineas(RECUERDA) if not r.get("retirada") and r.get("texto")])
+    vivas: dict[str, dict] = {}
+    for r in p.espacio.leer_lineas(RECUERDA):
+        (vivas.pop(r["id"], None) if r.get("retirada") else vivas.__setitem__(r["id"], r))
+    pendientes_ = len(vivas)
     if not nuevas:
         return "No hay versiones esperando su sí." + (f" Hay {pendientes_} reglas suyas anotadas para la próxima." if pendientes_ else "")
     lineas = ["Esperan su sí:"]
@@ -1185,11 +1207,15 @@ def huecos(p: Pedido) -> str:
     hoy_ = _hoy()
     viernes = hoy_ + timedelta(days=(4 - hoy_.weekday()) % 7)
     lineas = [f"Fines de semana (viernes a domingo), próximas {SEMANAS_HUECOS} semanas:"]
-    for i in range(SEMANAS_HUECOS):
-        v = viernes + timedelta(weeks=i)
+    noches_ = []
+    if hoy_.weekday() == 5:  # sábado: el fin de este fin de semana todavía se vende (la noche de hoy)
+        noches_.append((hoy_, hoy_ + timedelta(days=1)))
+    noches_ += [(viernes + timedelta(weeks=i), viernes + timedelta(weeks=i, days=2))
+                for i in range(SEMANAS_HUECOS - len(noches_))]
+    for v, hasta in noches_:
         estados = []
         for x in props:
-            d = oc.disponibilidad(x, v, v + timedelta(days=2))
+            d = oc.disponibilidad(x, v, hasta)
             estados.append(f"{x} {'libre' if d.estado == 'libre' else 'ocupada' if d.estado == 'ocupada' else '¿?'}")
         lineas.append(f"· {v:%d/%m}: " + ", ".join(estados))
     if not oc.configurada:
@@ -1228,10 +1254,22 @@ def libera(p: Pedido) -> str:
     if not quitar:
         return ("No hay nada apartado a mano en esas fechas. Lo que viene de Airbnb, Booking o Google "
                 "se libera allá.")
+    pedazos = []
     for r in quitar:
         p.espacio.agregar_linea(MANUAL, {"id": r["id"], "activo": False, "en": _ahora()})
-    _accion(p, {"tipo": "manual_reactivar", "registros": quitar})
-    return f"Liberé {_plural(len(quitar), 'apartado')} a mano. Lo de las plataformas sigue como esté allá."
+        # Liberar del 9 al 11 dentro de un apartado del 1 al 15 deja apartado lo de los lados.
+        desde, hasta = date.fromisoformat(r["desde"]), date.fromisoformat(r["hasta"])
+        for a, b in ((desde, min(hasta, fechas[0])), (max(desde, fechas[1]), hasta)):
+            if a < b:
+                ident = _id()
+                p.espacio.agregar_linea(MANUAL, {"id": ident, "propiedad": r["propiedad"], "desde": a.isoformat(),
+                                                 "hasta": b.isoformat(), "por": r.get("por", ""), "activo": True,
+                                                 "en": _ahora()})
+                pedazos.append(ident)
+    _accion(p, {"tipo": "manual_reactivar", "registros": quitar, "pedazos": pedazos})
+    from .cotizador import _rango
+    return (f"Liberé {_rango(*fechas)} de lo apartado a mano" + (" (lo de los lados sigue apartado)" if pedazos else "")
+            + ". Lo de las plataformas sigue como esté allá.")
 
 
 # --------------------------------------------------------------------------- #
@@ -1243,7 +1281,8 @@ def bitacora(p: Pedido) -> str:
     if not lineas:
         return "Todavía no hay órdenes."
     return "Últimas órdenes:\n" + "\n".join(
-        f"· {r.get('en', '')[5:16].replace('T', ' ')} {r.get('de', '')}: {r.get('orden', '')}" for r in lineas)
+        f"· {_local(r['en']):%d/%m %H:%M} {r.get('de', '')}: {r.get('orden', '')}" if r.get("en")
+        else f"· {r.get('de', '')}: {r.get('orden', '')}" for r in lineas)
 
 
 def administradoras(p: Pedido) -> str:

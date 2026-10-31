@@ -173,3 +173,109 @@ def test_adv_mesa_deshaz_no_camina_hacia_atras_ni_revive_una_pausa(con_mesa):
     _orden(con_mesa, f"nota {HILO[-4:]} paga el viernes")
     assert "Borré la nota" in _orden(con_mesa, "deshaz")
     assert "ya la deshice" in _orden(con_mesa, "deshaz") and con_mesa.config()["encendido"] == "sombra"
+
+
+# ----------------------------------------------- segunda revisión: lo que hace cada orden
+def test_adv2_cerro_con_comas_o_puntos_se_asienta(con_mesa):
+    for monto in ("$15,000", "15.000", "15 000"):
+        r = _orden(con_mesa, f"cerró {HILO[-4:]} {monto}")
+        assert r and "$15,000" in r, (monto, r)
+        _orden(con_mesa, "deshaz")
+
+
+def test_adv2_ambas_ve_lo_apartado_a_mano(con_mesa):
+    from agente import calendario
+    _orden(con_mesa, "aparta finca del 9 al 11 de noviembre de 2027")
+    cot = {"llegada": "2027-11-09", "salida": "2027-11-11", "opciones": [{"propiedad": "ambas"}]}
+    assert "ambas" in calendario.apartada(con_mesa, cot)
+    assert "OCUPADA" in _orden(con_mesa, "libre las dos del 9 al 11 de noviembre de 2027")
+
+
+def test_adv2_libera_parcial_no_suelta_todo_el_bloque(con_mesa):
+    _orden(con_mesa, "aparta finca del 1 al 15 de diciembre de 2027")
+    _orden(con_mesa, "libera finca del 9 al 11 de diciembre de 2027")
+    assert "OCUPADA" in _orden(con_mesa, "libre finca del 2 al 4 de diciembre de 2027")
+    assert "OCUPADA" not in _orden(con_mesa, "libre finca del 9 al 11 de diciembre de 2027")  # sin calendario: sin saber
+    assert "OCUPADA" in _orden(con_mesa, "libre finca del 12 al 14 de diciembre de 2027")
+    _orden(con_mesa, "deshaz")
+    assert "OCUPADA" in _orden(con_mesa, "libre finca del 9 al 11 de diciembre de 2027")
+
+
+def test_adv2_deshaz_atendido_repetido_regresa_al_pendiente(con_mesa):
+    import time
+
+    from agente import historial
+    from tests.test_agente_enjambre import _m
+    ahora = int(time.time())
+    con_mesa.agregar_linea(capacidades.MARCAS, {"hilo": HILO, "tipo": "atendido", "valor": True, "por": "x",
+                                                "en": "2026-10-31T00:00:00+00:00", "ts": ahora - 100})
+    historial.guardar(con_mesa, [_m("wamid.X1", "¿sigue libre?", ts=ahora - 50)])  # escribió después
+    _orden(con_mesa, f"ya le contesté {HILO[-4:]}")   # otra vez
+    _orden(con_mesa, "deshaz")                         # se arrepiente: vuelve la marca vieja, no una nueva
+    assert f"…{HILO[-4:]}" in _orden(con_mesa, "pendientes")
+
+
+def test_adv2_recuerda_deshecho_no_cuenta(con_mesa):
+    _orden(con_mesa, "recuerda: la alberca se calienta con 24 h")
+    _orden(con_mesa, "deshaz")
+    assert "reglas suyas" not in _orden(con_mesa, "propuestas")
+
+
+def test_adv2_huecos_en_sabado_incluye_este_fin(con_mesa, monkeypatch):
+    from datetime import date
+    monkeypatch.setattr(capacidades, "_hoy", lambda: date(2026, 10, 31))  # sábado
+    assert "· 31/10" in _orden(con_mesa, "huecos")
+
+
+def test_adv2_ficha_no_borra_la_lista(con_mesa):
+    _orden(con_mesa, "pendientes")
+    _orden(con_mesa, "ficha 1")
+    assert _orden(con_mesa, "ficha 2").startswith("Cliente")
+
+
+def test_adv2_horas_en_hora_de_mexico(con_mesa, monkeypatch):
+    from datetime import datetime, timezone
+    cuando = datetime(2026, 10, 30, 15, 30, tzinfo=timezone.utc)  # 09:30 en México
+    con_mesa.agregar_linea(enviador.ENVIADOS, {"salida": "x", "hilo": HILO, "cuando": cuando.isoformat(), "enviado": True})
+    monkeypatch.setattr(mesa, "_hoy", lambda e: e.leer_lineas(enviador.ENVIADOS))
+    assert "09:30" in _orden(con_mesa, "enviados")
+
+
+def test_adv2_reporte_y_panel_cuentan_igual(con_mesa):
+    from agente import operacion, semaforo
+    _orden(con_mesa, f"ya le contesté {HILO[-4:]}")
+    assert semaforo.resumen(operacion._semaforo(con_mesa))["rojo"] == semaforo.resumen(capacidades._filas(con_mesa))["rojo"]
+
+
+def test_adv2_precios_de_ambas(con_mesa):
+    assert "Lista activa" in _orden(con_mesa, "precios las dos")
+
+
+def test_adv2_una_orden_vacia_no_gasta_el_deshaz(con_mesa):
+    _orden(con_mesa, f"nota {HILO[-4:]} paga el viernes")
+    _orden(con_mesa, "descarta la ronda")  # no hay ronda: no cambia nada
+    assert "Borré la nota" in _orden(con_mesa, "deshaz")
+
+
+def test_adv2_aprobar_una_ronda_grande_no_detiene_al_lector(con_mesa):
+    import time
+
+    from agente import historial
+    from tests.test_agente_enjambre import _m
+    vinculado.publicar(con_mesa, "conectado")
+    _orden(con_mesa, "enciende el envío")
+    base = int(time.time()) - 30 * 3600
+    mensajes = []
+    for i in range(700):  # del tamaño de Finca Emiliano: ~11,000 mensajes en 700 pláticas
+        h = f"52177700{i:05d}"
+        mensajes += [_m(f"w{i}-{k}", f"Mensaje {k} de la plática", k % 2 == 1, ts=base - 86400 + i * 20 + k, hilo=h)
+                     for k in range(14)]
+        mensajes += [_m(f"w{i}a", "Hola, ¿precio para 10?", ts=base + i, hilo=h),
+                     _m(f"w{i}b", "Claro, ¿qué fechas?", True, ts=base + i + 1, hilo=h)]
+    historial.guardar(con_mesa, mensajes)
+    entradas = [{"hilo": f"52177700{i:05d}", "ultimo_id": f"w{i}b", "textos": ["Hola, sigue interesado?"]}
+                for i in range(120)]
+    rondas.cargar(con_mesa, {"nombre": "grande", "orden": "prueba", "entradas": entradas})
+    inicio = time.perf_counter()
+    r = _orden(con_mesa, "aprueba la ronda")
+    assert "Aprobé 120" in r and time.perf_counter() - inicio < 3, (r, time.perf_counter() - inicio)

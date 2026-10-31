@@ -166,13 +166,16 @@ def encolar_aprobadas(espacio: Espacio) -> int:
     from . import agente, canal, enviador
     ya = agente.aprobadas(espacio)
     vistas = {e["salida"] for e in espacio.leer_lineas(enviador.COLA)}
+    candidatas = [s for s in agente.salidas(espacio) if s.id in ya and s.id not in vistas and s.requiere_aprobacion]
+    if not candidatas:
+        return 0
+    ctx = canal.contexto(espacio)
     n = 0
-    for s in agente.salidas(espacio):
-        if s.id in ya and s.id not in vistas and s.requiere_aprobacion:
-            s.aprobada_por = ya[s.id]
-            if not canal.motivo_para_no_enviar(espacio, s):
-                canal.enviar(espacio, s)
-                n += 1
+    for s in candidatas:
+        s.aprobada_por = ya[s.id]
+        if not canal.motivo_para_no_enviar(espacio, s, ctx):
+            canal.enviar(espacio, s, ctx=ctx)
+            n += 1
     return n
 
 
