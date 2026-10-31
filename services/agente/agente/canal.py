@@ -71,6 +71,12 @@ def motivo_para_no_enviar(espacio: Espacio, salida: Salida) -> str:
     """'' si la salida puede enviarse; si no, por qué."""
     if salida.cliente_id != espacio.cliente_id:
         return "la salida es de otro cliente"
+    from . import capacidades  # lo que la dueña ordenó por la mesa manda sobre lo aprobado (2026-10-31);
+    # va antes que el conector: su decisión es lo que se le explica primero
+    if capacidades.descartada(espacio, salida.id):
+        return capacidades.DESCARTADA
+    if salida.via != "mesa" and (marca := capacidades.no_escribir(espacio, salida.hilo)):
+        return marca  # lo que ella misma dicta sí sale: es su cliente y sus palabras
     if not configurado(espacio):
         return ("sin conector oficial (WHATSAPP_TOKEN y phone_number_id) ni vinculado conectado "
                 "con \"canal\": \"vinculado\": el agente no envía")

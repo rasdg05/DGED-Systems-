@@ -571,7 +571,8 @@ def _sin_responder(hilos: dict) -> list[str]:
 
 
 def _por_aprobar(espacio: Espacio) -> list:
-    return [s for s in agente.salidas(espacio) if s.requiere_aprobacion and not s.aprobada_por]
+    from . import capacidades
+    return capacidades._por_aprobar(espacio)  # una sola cuenta: sin lo que la dueña descartó en la mesa
 
 
 def _pendiente(espacio: Espacio) -> int | None:
@@ -694,6 +695,8 @@ def conversaciones(cliente_id: str, llave: str | None = None, hilo: str | None =
     hilos = historial.hilos(espacio)
     if hilo and hilo in hilos:
         propuestas: dict[str, list] = {}
+        from . import capacidades
+        descartadas_ = capacidades.descartadas(espacio)
         for s in agente.salidas(espacio):
             if s.hilo == hilo and s.via != "silencio" and (s.texto or s.borrador):
                 propuestas.setdefault(s.responde_a, []).append(s)
@@ -703,7 +706,7 @@ def conversaciones(cliente_id: str, llave: str | None = None, hilo: str | None =
                           f'<div class="meta {"n" if m.del_negocio else ""}">{"negocio" if m.del_negocio else "cliente"} · '
                           f"{_hora(m.ts)}</div>")
             for s in propuestas.get(m.id, []):
-                espera = s.requiere_aprobacion and not s.aprobada_por
+                espera = s.requiere_aprobacion and not s.aprobada_por and s.id not in descartadas_
                 aviso = ("Espera su aprobación" if espera else
                          f"Aprobada por {esc(s.aprobada_por)}" if s.aprobada_por else
                          VIAS.get(s.via, "Su asistente habría contestado"))

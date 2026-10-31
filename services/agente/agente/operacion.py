@@ -103,7 +103,9 @@ _MOTIVOS = (("sombra", "Envío en pausa"), ("sin conector", "WhatsApp sin conect
             ("se movió", "El cliente escribió después: no se mandó"), ("apartadas", "Esas fechas ya se apartaron"),
             ("sin aprobación", "Falta su sí"), ("ya recibió una ronda", "Ya recibió un mensaje en las últimas 24 h"),
             ("falló", "WhatsApp no lo aceptó"), ("la contesta la persona", "Lo contesta usted"),
-            ("otro cliente", "No es de este negocio"), ("no existe", "Ya no existe"))
+            ("otro cliente", "No es de este negocio"), ("no existe", "Ya no existe"),
+            ("pidió no escribirle", "Usted pidió no escribirle"), ("lo lleva una persona", "Lo lleva usted"),
+            ("descartada por", "Usted lo descartó"))
 
 
 def motivo_amable(motivo: str) -> str:
@@ -117,7 +119,8 @@ def cola(cliente_id: str, llave: str | None = None) -> str:
     espacio = _espacio(cliente_id, llave)
     alta = espacio.leer_json("alta.json", {}) or {}
     salidas = {s.id: s for s in agente.salidas(espacio)}
-    por_aprobar = [s for s in salidas.values() if s.requiere_aprobacion and not s.aprobada_por]
+    from . import capacidades
+    por_aprobar = capacidades._por_aprobar(espacio)  # sin lo descartado en la mesa (2026-10-31)
     en_cola = [salidas[i] for i in enviador.pendientes(espacio) if i in salidas]
     hoy = datetime.now(HORA_MX).date()
     registros = [e for e in espacio.leer_lineas(enviador.ENVIADOS)
@@ -264,7 +267,8 @@ def capacidades(espacio: Espacio, llave: str | None) -> str:
     con_lista = any(r.get("tipo") == "grupo" for r in activo.get("reglas", []) or [])
     filas_sem = _semaforo(espacio)
     res = semaforo.resumen(filas_sem)
-    por_aprobar = sum(1 for s in agente.salidas(espacio) if s.requiere_aprobacion and not s.aprobada_por)
+    from . import capacidades
+    por_aprobar = len(capacidades._por_aprobar(espacio))
     admins = len(mesa.administradores(espacio))
     cal = calendario.Ocupacion.de(espacio).configurada
 

@@ -246,6 +246,12 @@ class Ocupacion:
             for d in espacio.leer_json(f"{CARPETA}/{nombre}.json", []) or []:
                 b = Bloque(date.fromisoformat(d["desde"]), date.fromisoformat(d["hasta"]), d["tipo"], d.get("titulo", ""))
                 bloques.setdefault(prop, []).append((fuente["plataforma"], b))
+        # Lo que la dueña apartó por la mesa ("aparta finca del 9 al 11"): ocupado, aunque
+        # no haya calendario conectado; no vuelve "configurada" la ocupación (2026-10-31).
+        from . import capacidades
+        for r in capacidades.apartados_a_mano(espacio):
+            b = Bloque(date.fromisoformat(r["desde"]), date.fromisoformat(r["hasta"]), "bloqueo", "apartado a mano")
+            bloques.setdefault(r["propiedad"], []).append(("a mano", b))
         return cls(por_propiedad, bloques)
 
     @property
@@ -308,7 +314,7 @@ def apartada(espacio: Espacio, cotizacion: dict | None) -> str:
     Se revisa al enviar: entre que se redactó y que una persona la aprobó, otra
     plataforma pudo vender esas noches (invariante LXIII)."""
     oc = Ocupacion.de(espacio)
-    if not oc.configurada:
+    if not oc.configurada and not oc.bloques:
         return ""
     ocupadas = [d.propiedad for d in de_la_cotizacion(oc, cotizacion) if d.estado == OCUPADA]
     return f"fechas ya apartadas en el calendario: {', '.join(ocupadas)}" if ocupadas else ""

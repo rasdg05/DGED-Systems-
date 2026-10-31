@@ -165,6 +165,9 @@ def validar(espacio: Espacio, ronda: dict) -> tuple[list[dict], list[dict]]:
     aceptadas, descartadas, vistos = [], [], set()
     for entrada in ronda.get("entradas", []) or []:
         motivo = motivo_de_rechazo(entrada, hilos, por_hilo, activo, ocupacion, seguimiento, atendidos)
+        if not motivo:
+            from . import capacidades  # "no le escribas" y "lo llevo yo" de la mesa (2026-10-31)
+            motivo = capacidades.no_escribir(espacio, str(entrada.get("hilo", "")))
         if not motivo and entrada.get("hilo") in vistos:
             motivo = "el hilo ya va en esta ronda"
         (descartadas if motivo else aceptadas).append(dict(entrada, motivo=motivo) if motivo else entrada)

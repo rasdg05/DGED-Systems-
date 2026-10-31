@@ -23,14 +23,12 @@ contesta por el mismo dispositivo vinculado. Tres reglas:
 Reportes: a las `HORAS_REPORTE` (hora de México), uno por horario y por día, a
 cada administradora: semáforo, cola, envíos y lo que espera a la dueña.
 
-Órdenes (sin acentos ni mayúsculas): *ayuda*, *estado* (o *reporte*),
-*pendientes*, *cola*, *aprueba la ronda* (la última cargada) o *aprueba la
-ronda <nombre>*, *enciende el envío*, *pausa el envío*.
+Órdenes: la tabla de `ordenes.py` (más de 60, del 2026-10-31: clientes, rondas y
+borradores, envío, precios, calendario y la mesa misma); lo que hace cada una,
+en `capacidades.py`. *ayuda* las enseña por tema.
 """
 from __future__ import annotations
 
-import re
-import unicodedata
 import uuid
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -103,12 +101,12 @@ def _dicho(texto: str | None) -> str:
 
 
 def reporte(espacio: Espacio) -> str:
-    from . import agente, calendario, enviador, historial, operacion, semaforo
+    from . import calendario, capacidades, enviador, historial, operacion, semaforo
 
     hilos = clientes(espacio, historial.hilos(espacio))
-    filas = semaforo.leer(hilos, de_ronda=semaforo.nuestros(espacio, hilos))
+    filas = capacidades._filas(espacio, hilos)  # sin los que la dueña ya marcó como contestados
     res = semaforo.resumen(filas)
-    por_aprobar = [s for s in agente.salidas(espacio) if s.requiere_aprobacion and not s.aprobada_por]
+    por_aprobar = capacidades._por_aprobar(espacio)  # sin lo descartado
     hoy = _hoy(espacio)
     _, titulo, _ = operacion.estado_canal(espacio)
     lineas = [f"Reporte de su asistente · {datetime.now(ZONA):%d/%m %H:%M}",
@@ -142,58 +140,13 @@ def reporte(espacio: Espacio) -> str:
     return "\n".join(lineas)
 
 
-def _pendientes(espacio: Espacio) -> str:
-    from . import historial, operacion, semaforo
-    hilos = clientes(espacio, historial.hilos(espacio))
-    filas = [f for f in semaforo.leer(hilos, de_ronda=semaforo.nuestros(espacio, hilos)) if f.color in ("rojo", "ambar")]
-    if not filas:
-        return "No hay pendientes urgentes."
-    return "Pendientes, el más urgente primero:\n" + "\n".join(
-        f"· …{f.hilo[-4:]} {semaforo.ETIQUETA[f.estado].lower()}, {operacion._horas_txt(f.horas)}: {_dicho(f.dicho)}"
-        for f in filas[:12]) + (f"\n…y {len(filas) - 12} más en la app." if len(filas) > 12 else "")
-
-
-def _cola(espacio: Espacio) -> str:
-    from . import agente, enviador, operacion
-    _, titulo, texto = operacion.estado_canal(espacio)
-    por_aprobar = [s for s in agente.salidas(espacio) if s.requiere_aprobacion and not s.aprobada_por]
-    hoy = _hoy(espacio)
-    return (f"{titulo}. {texto}\nEsperan su sí: {len(por_aprobar)} · en cola: {len(enviador.pendientes(espacio))} · "
-            f"enviados hoy: {sum(1 for e in hoy if e.get('enviado'))}")
-
-
-AYUDA = ("Puede escribirme:\n· estado: el reporte del día\n· pendientes: a quién contestar primero\n"
-         "· cola: lo que espera su sí y lo que sale\n· aprueba la ronda: manda los seguimientos que preparó el equipo\n"
-         "· enciende el envío / pausa el envío\nLos mensajes salen uno cada 40 segundos, de 9 a 9, y antes de cada uno "
-         "se revisa si el cliente ya escribió o si la fecha ya se apartó.")
-
-
 # --------------------------------------------------------------------------- #
 #  Las órdenes                                                                 #
 # --------------------------------------------------------------------------- #
-def _norm(texto: str) -> str:
-    t = unicodedata.normalize("NFD", (texto or "").lower())
-    t = "".join(c for c in t if unicodedata.category(c) != "Mn")
-    return " ".join(re.sub(r"[¿?¡!.,/]", " ", t).split())
-
-
-_ORDENES = (
-    ("ayuda", re.compile(r"^(?:ayuda|help|menu|que puedes hacer|comandos)$")),
-    ("estado", re.compile(r"^(?:estado|reporte|resumen|como vamos|como va todo)$")),
-    ("pendientes", re.compile(r"^(?:pendientes|urgentes|a quien contesto)$")),
-    ("cola", re.compile(r"^(?:cola|envios|envio)$")),
-    ("aprueba", re.compile(r"^(?:aprueba|apruebo|aprobar|si aprueba|manda|mandala)\s+(?:la\s+)?ronda(?:\s+(?P<nombre>[a-z0-9-]+))?$")),
-    ("enciende", re.compile(r"^(?:enciende|prende|activa|encender|prender)\s+(?:el\s+)?envio$")),
-    ("pausa", re.compile(r"^(?:pausa|apaga|deten|para|deten el|pausar)\s+(?:el\s+)?envio$")),
-)
-
-
 def leer_orden(texto: str) -> dict | None:
-    t = _norm(texto)
-    for orden, patron in _ORDENES:
-        if (m := patron.match(t)):
-            return {"orden": orden, **{k: v for k, v in m.groupdict().items() if v}}
-    return None
+    """La orden que pidió una administradora (`ordenes.TABLA`), o None."""
+    from . import ordenes
+    return ordenes.leer(texto)
 
 
 def _anotar(espacio: Espacio, hilo: str, orden: str, resultado: str) -> None:
@@ -218,69 +171,18 @@ def encolar_aprobadas(espacio: Espacio) -> int:
 
 
 def ejecutar(espacio: Espacio, hilo: str, orden: dict) -> str:
-    from . import agente, canal, perfil
+    """Quién puede, y luego lo que hace (`capacidades.MANEJADORES`). Lo que cambia algo
+    y se leyó corrigiendo una errata no se hace: se pregunta."""
+    from . import capacidades, ordenes
 
-    o = orden["orden"]
-    if o == "ayuda":
-        return AYUDA
-    if o == "estado":
-        return reporte(espacio)
-    if o == "pendientes":
-        return _pendientes(espacio)
-    if o == "cola":
-        return _cola(espacio)
-    if not es_quien_aprueba(espacio, hilo):
+    spec = ordenes.POR_ID[orden["orden"]]
+    if spec.quien == ordenes.QUIEN_APRUEBA and not es_quien_aprueba(espacio, hilo):
         return "Eso solo lo puede ordenar quien aprueba las cotizaciones del negocio."
+    if orden.get("corregida") and spec.cambia:
+        return f"¿Quiso decir «{orden.get('como', spec.id)}»? Escríbalo así y lo hago."
     alta = espacio.leer_json("alta.json", {}) or {}
-    nombre = (alta.get("aprobador") or "").strip()
-    if o in ("enciende", "pausa"):
-        config = espacio.config()
-        antes = {"canal": config.get("canal", "oficial"), "encendido": config.get("encendido", "sombra")}
-        config.update(canal="vinculado", encendido="sin_cifra") if o == "enciende" else config.update(encendido="sombra")
-        espacio.escribir_json("config.json", config)
-        espacio.agregar_linea("cambios_canal.jsonl", {"antes": antes, "ahora": {"canal": config.get("canal"),
-                                                                                "encendido": config["encendido"]},
-                                                     "por": nombre, "via": "mesa",
-                                                     "en": datetime.now(timezone.utc).isoformat(timespec="seconds")})
-        if o == "pausa":
-            return "Envío en pausa. No sale nada hasta que escriba: enciende el envío"
-        n = encolar_aprobadas(espacio)
-        return ("Envío encendido. Sale lo que usted aprueba, uno cada 40 segundos, de 9 a 9."
-                + (f" Ya van a la cola {n} que había aprobado." if n else ""))
-    # aprueba la ronda
-    cargadas = _rondas_cargadas(espacio)
-    ronda = next((r for r in cargadas if r["nombre"] == orden.get("nombre")), None) if orden.get("nombre") \
-        else (cargadas[-1] if cargadas else None)
-    if ronda is None:
-        return "No encontré esa ronda." if orden.get("nombre") else "No hay rondas cargadas."
-    try:
-        aprobadas, encoladas, no_salen = 0, 0, {}
-        ya = agente.aprobadas(espacio)
-        for salida_id in ronda.get("salidas", []):
-            if salida_id in ya:
-                continue
-            try:
-                salida = agente.aprobar_salida(espacio, salida_id, nombre)
-            except KeyError:
-                continue
-            aprobadas += 1
-            if (motivo := canal.motivo_para_no_enviar(espacio, salida)):
-                from .operacion import motivo_amable
-                no_salen[motivo_amable(motivo)] = no_salen.get(motivo_amable(motivo), 0) + 1
-                continue
-            canal.enviar(espacio, salida)
-            encoladas += 1
-    except perfil.AprobacionInvalida as error:
-        return f"No se pudo aprobar: {error}"
-    encoladas += encolar_aprobadas(espacio)
-    texto = (f"Aprobé {aprobadas} mensaje{'' if aprobadas == 1 else 's'} de la ronda {ronda['nombre']} "
-             f"a su nombre. En cola: {encoladas}.")
-    if no_salen:
-        texto += " No salen por ahora: " + "; ".join(f"{k} ({v})" for k, v in no_salen.items()) + "."
-        c = espacio.config()
-        if c.get("encendido") != "sin_cifra" or c.get("canal") != "vinculado":
-            texto += " Para mandarlos, escriba: enciende el envío"
-    return texto
+    nombre = (alta.get("aprobador") or "").strip() if es_quien_aprueba(espacio, hilo) else ""
+    return capacidades.MANEJADORES[spec.id](capacidades.Pedido(espacio, hilo, orden, nombre))
 
 
 def atender(espacio: Espacio, m: Mensaje) -> str | None:
@@ -291,8 +193,22 @@ def atender(espacio: Espacio, m: Mensaje) -> str | None:
         return None
     orden = leer_orden(m.texto)
     if orden is None:
-        return None  # una plática normal con la dueña: no se le contesta en automático
-    respuesta = ejecutar(espacio, m.hilo, orden)
+        from . import ordenes
+        quiso = ordenes.parece_orden(m.texto)
+        if quiso is None:
+            return None  # una plática normal con la dueña: no se le contesta en automático
+        respuesta = (f"No entendí la orden. ¿Quiso decir: {ordenes.POR_ID[quiso].ayuda.split(':')[0]}? "
+                     "Escriba ayuda para ver todo.")
+        _anotar(espacio, m.hilo, "no_entendida", respuesta)
+        encolar(espacio, m.hilo, respuesta)
+        return respuesta
+    try:
+        respuesta = ejecutar(espacio, m.hilo, orden)
+    except Exception as error:  # noqa: BLE001 - una orden que truena no tumba al lector
+        respuesta = f"No pude con esa orden ({type(error).__name__}). Quedó escrito para revisarlo."
+        _anotar(espacio, m.hilo, f"error:{orden['orden']}", repr(error))
+        encolar(espacio, m.hilo, respuesta)
+        return respuesta
     _anotar(espacio, m.hilo, orden["orden"], respuesta)
     encolar(espacio, m.hilo, respuesta)
     return respuesta
@@ -311,7 +227,8 @@ def reporte_si_toca(espacio: Espacio, ahora: datetime | None = None) -> int:
     ahora = (ahora or datetime.now(timezone.utc)).astimezone(ZONA)
     hechos = espacio.leer_json(REPORTES, {}) or {}
     toca = [h for h in HORAS_REPORTE if ahora.hour >= h and f"{ahora.date()}-{h}" not in hechos]
-    admins = administradores(espacio)
+    silenciadas = set(espacio.config().get("reportes_silenciados", []) or [])  # "silencia los reportes"
+    admins = administradores(espacio) - silenciadas
     if not toca or not admins:
         return 0
     for h in toca:
