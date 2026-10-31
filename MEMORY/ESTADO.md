@@ -1,8 +1,20 @@
-# Estado — 2026-10-29 (corrida GM del agente: medir lo que pasa después de la ronda)
+# Estado — 2026-10-31 (corrida GM del asistente: la mesa de la dueña con las órdenes de Gestor)
 
 > Lo único de la memoria que caduca rápido. Al cerrar trabajo, actualízalo.
 
 ## Corre
+
+- **Mesa de la dueña, 65 órdenes** (2026-10-31, D-056, LXXVIII–LXXXIV, rama `claude/gm-asistente-2026-10-31`,
+  sale de `claude/demo-clinica-estetica`). **No desplegada.** `ordenes.py` (la tabla) + `capacidades.py` (lo que
+  hace cada una); por WhatsApp, `POST /espacios/<id>/mesa`, `python -m agente.local mesa <id> "<orden>"` y el MCP.
+  Tres revisiones adversariales; 944 tests del repo en verde (cobertura 85.5%), batería de 647 frases como candado.
+  El siguiente reporte de las 9/19 le anuncia a cada administradora lo nuevo, una vez.
+  - **Bloqueos (del dueño)**: el proxy de la sesión niega `fabulous-consideration-whatsapp.up.railway.app` (403);
+    falta `TENANT_INTERNAL_TOKEN` en el entorno; la llave se pegó en el chat el 2026-10-31 (**rotarla**); y
+    decidir qué rama despliega `fabulous-consideration` (el servicio del agente; `DGED-Systems-` es Atlas).
+  - **Programado para el 2026-11-01** (Routines, sesiones nuevas): 7:00 enjambre de Finca Emiliano que carga la
+    ronda `2026-11-01-seguimiento`; 9:30 la aprueba a nombre de Mariana y arranca el envío. Sin los bloqueos de
+    arriba resueltos, las dos se detienen y avisan sin enviar nada.
 
 - **Corrida GM del agente, 2026-10-29** (`docs/21-corrida-gm-agente.md`, D-047 a D-052, LXXI–LXXVI; el
   runbook de Gestor aplicado aquí). En producción hasta `f197f0f`; 569 tests del agente en verde.
